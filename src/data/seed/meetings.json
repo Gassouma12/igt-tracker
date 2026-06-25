@@ -1,0 +1,1352 @@
+[
+{
+"id": "mtg_1",
+"opportunityId": "opp_1",
+"ownerId": "usr_pavlos",
+"date": "2025-02-04",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_2",
+"opportunityId": "opp_19",
+"ownerId": "usr_pavlos",
+"date": "2026-03-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_3",
+"opportunityId": "opp_88",
+"ownerId": "usr_pavlos",
+"date": "2026-04-28",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_4",
+"opportunityId": "opp_89",
+"ownerId": "usr_pavlos",
+"date": "2026-04-09",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_5",
+"opportunityId": "opp_95",
+"ownerId": "usr_pavlos",
+"date": "2026-04-28",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_6",
+"opportunityId": "opp_101",
+"ownerId": "usr_pavlos",
+"date": "2026-04-28",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_7",
+"opportunityId": "opp_135",
+"ownerId": "usr_pavlos",
+"date": "2026-06-02",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_8",
+"opportunityId": "opp_135",
+"ownerId": "usr_pavlos",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_9",
+"opportunityId": "opp_145",
+"ownerId": "usr_pavlos",
+"date": "2026-05-22",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_10",
+"opportunityId": "opp_158",
+"ownerId": "usr_pavlos",
+"date": "2026-05-22",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_11",
+"opportunityId": "opp_173",
+"ownerId": "usr_pavlos",
+"date": "2026-05-22",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_12",
+"opportunityId": "opp_173",
+"ownerId": "usr_pavlos",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_13",
+"opportunityId": "opp_212",
+"ownerId": "usr_pavlos",
+"date": "2026-06-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_14",
+"opportunityId": "opp_212",
+"ownerId": "usr_pavlos",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_15",
+"opportunityId": "opp_217",
+"ownerId": "usr_pavlos",
+"date": "2026-06-18",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_16",
+"opportunityId": "opp_217",
+"ownerId": "usr_pavlos",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_17",
+"opportunityId": "opp_221",
+"ownerId": "usr_pavlos",
+"date": "2026-06-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_18",
+"opportunityId": "opp_223",
+"ownerId": "usr_pavlos",
+"date": "2026-06-19",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_19",
+"opportunityId": "opp_241",
+"ownerId": "usr_roxy",
+"date": "2026-02-11",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_20",
+"opportunityId": "opp_271",
+"ownerId": "usr_roxy",
+"date": "2026-02-13",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_21",
+"opportunityId": "opp_325",
+"ownerId": "usr_roxy",
+"date": "2026-03-09",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_22",
+"opportunityId": "opp_359",
+"ownerId": "usr_marit",
+"date": "2026-04-20",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_23",
+"opportunityId": "opp_993",
+"ownerId": "usr_alandra",
+"date": "2025-06-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_24",
+"opportunityId": "opp_1021",
+"ownerId": "usr_adam",
+"date": null,
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_25",
+"opportunityId": "opp_1130",
+"ownerId": "usr_ebrahim",
+"date": "2026-02-28",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_26",
+"opportunityId": "opp_1526",
+"ownerId": "usr_linda",
+"date": "2026-06-22",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_27",
+"opportunityId": "opp_1531",
+"ownerId": "usr_kobe",
+"date": "2026-02-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_28",
+"opportunityId": "opp_1596",
+"ownerId": "usr_kobe",
+"date": "2026-03-06",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_29",
+"opportunityId": "opp_1617",
+"ownerId": "usr_kobe",
+"date": "2026-02-23",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_30",
+"opportunityId": "opp_1645",
+"ownerId": "usr_kobe",
+"date": "2026-04-01",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_31",
+"opportunityId": "opp_1663",
+"ownerId": "usr_kobe",
+"date": "2026-03-31",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_32",
+"opportunityId": "opp_1664",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_33",
+"opportunityId": "opp_1665",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_34",
+"opportunityId": "opp_1666",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_35",
+"opportunityId": "opp_1667",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_36",
+"opportunityId": "opp_1668",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_37",
+"opportunityId": "opp_1669",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_38",
+"opportunityId": "opp_1670",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_39",
+"opportunityId": "opp_1671",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_40",
+"opportunityId": "opp_1672",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_41",
+"opportunityId": "opp_1673",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_42",
+"opportunityId": "opp_1674",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_43",
+"opportunityId": "opp_1675",
+"ownerId": "usr_kobe",
+"date": "2026-04-25",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_44",
+"opportunityId": "opp_1681",
+"ownerId": "usr_kobe",
+"date": "2026-04-13",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_45",
+"opportunityId": "opp_1732",
+"ownerId": "usr_dieter",
+"date": "2026-02-19",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_46",
+"opportunityId": "opp_1733",
+"ownerId": "usr_dieter",
+"date": "2026-02-19",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_47",
+"opportunityId": "opp_1734",
+"ownerId": "usr_dieter",
+"date": "2026-02-19",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_48",
+"opportunityId": "opp_1735",
+"ownerId": "usr_dieter",
+"date": "2026-02-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_49",
+"opportunityId": "opp_1735",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_50",
+"opportunityId": "opp_1736",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_51",
+"opportunityId": "opp_1737",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_52",
+"opportunityId": "opp_1738",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_53",
+"opportunityId": "opp_1739",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_54",
+"opportunityId": "opp_1740",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_55",
+"opportunityId": "opp_1741",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_56",
+"opportunityId": "opp_1742",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_57",
+"opportunityId": "opp_1743",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_58",
+"opportunityId": "opp_1744",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_59",
+"opportunityId": "opp_1745",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_60",
+"opportunityId": "opp_1746",
+"ownerId": "usr_dieter",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_61",
+"opportunityId": "opp_1747",
+"ownerId": "usr_dieter",
+"date": "2026-03-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_62",
+"opportunityId": "opp_1748",
+"ownerId": "usr_dieter",
+"date": "2026-03-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_63",
+"opportunityId": "opp_1749",
+"ownerId": "usr_dieter",
+"date": "2026-03-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_64",
+"opportunityId": "opp_1750",
+"ownerId": "usr_dieter",
+"date": "2026-03-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_65",
+"opportunityId": "opp_1751",
+"ownerId": "usr_dieter",
+"date": "2026-03-05",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_66",
+"opportunityId": "opp_1752",
+"ownerId": "usr_dieter",
+"date": "2026-04-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_67",
+"opportunityId": "opp_1753",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_68",
+"opportunityId": "opp_1754",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_69",
+"opportunityId": "opp_1755",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_70",
+"opportunityId": "opp_1756",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_71",
+"opportunityId": "opp_1757",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_72",
+"opportunityId": "opp_1758",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_73",
+"opportunityId": "opp_1759",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_74",
+"opportunityId": "opp_1760",
+"ownerId": "usr_dieter",
+"date": "2026-04-15",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_75",
+"opportunityId": "opp_1761",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_76",
+"opportunityId": "opp_1762",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_77",
+"opportunityId": "opp_1763",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_78",
+"opportunityId": "opp_1764",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_79",
+"opportunityId": "opp_1764",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_80",
+"opportunityId": "opp_1765",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_81",
+"opportunityId": "opp_1766",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_82",
+"opportunityId": "opp_1767",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_83",
+"opportunityId": "opp_1768",
+"ownerId": "usr_dieter",
+"date": "2026-04-16",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_84",
+"opportunityId": "opp_1769",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_85",
+"opportunityId": "opp_1770",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_86",
+"opportunityId": "opp_1771",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_87",
+"opportunityId": "opp_1772",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_88",
+"opportunityId": "opp_1773",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_89",
+"opportunityId": "opp_1774",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_90",
+"opportunityId": "opp_1775",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_91",
+"opportunityId": "opp_1776",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_92",
+"opportunityId": "opp_1777",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_93",
+"opportunityId": "opp_1778",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_94",
+"opportunityId": "opp_1779",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_95",
+"opportunityId": "opp_1780",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_96",
+"opportunityId": "opp_1781",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_97",
+"opportunityId": "opp_1782",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_98",
+"opportunityId": "opp_1783",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_99",
+"opportunityId": "opp_1784",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_100",
+"opportunityId": "opp_1785",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_101",
+"opportunityId": "opp_1786",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_102",
+"opportunityId": "opp_1787",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_103",
+"opportunityId": "opp_1788",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_104",
+"opportunityId": "opp_1789",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_105",
+"opportunityId": "opp_1789",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_106",
+"opportunityId": "opp_1790",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_107",
+"opportunityId": "opp_1791",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_108",
+"opportunityId": "opp_1792",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_109",
+"opportunityId": "opp_1793",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_110",
+"opportunityId": "opp_1794",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_111",
+"opportunityId": "opp_1795",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_112",
+"opportunityId": "opp_1796",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_113",
+"opportunityId": "opp_1797",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_114",
+"opportunityId": "opp_1798",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_115",
+"opportunityId": "opp_1799",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_116",
+"opportunityId": "opp_1800",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_117",
+"opportunityId": "opp_1801",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_118",
+"opportunityId": "opp_1802",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_119",
+"opportunityId": "opp_1803",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_120",
+"opportunityId": "opp_1804",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_121",
+"opportunityId": "opp_1805",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_122",
+"opportunityId": "opp_1806",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_123",
+"opportunityId": "opp_1807",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_124",
+"opportunityId": "opp_1808",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_125",
+"opportunityId": "opp_1808",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 2,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_126",
+"opportunityId": "opp_1809",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_127",
+"opportunityId": "opp_1810",
+"ownerId": "usr_dieter",
+"date": "2026-04-27",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_128",
+"opportunityId": "opp_1811",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_129",
+"opportunityId": "opp_1812",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_130",
+"opportunityId": "opp_1813",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_131",
+"opportunityId": "opp_1814",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_132",
+"opportunityId": "opp_1815",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_133",
+"opportunityId": "opp_1816",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_134",
+"opportunityId": "opp_1817",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_135",
+"opportunityId": "opp_1818",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_136",
+"opportunityId": "opp_1819",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_137",
+"opportunityId": "opp_1820",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_138",
+"opportunityId": "opp_1821",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_139",
+"opportunityId": "opp_1822",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_140",
+"opportunityId": "opp_1823",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_141",
+"opportunityId": "opp_1824",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_142",
+"opportunityId": "opp_1825",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_143",
+"opportunityId": "opp_1826",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_144",
+"opportunityId": "opp_1827",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_145",
+"opportunityId": "opp_1828",
+"ownerId": "usr_dieter",
+"date": "2026-05-07",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_146",
+"opportunityId": "opp_1829",
+"ownerId": "usr_dieter",
+"date": null,
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_147",
+"opportunityId": "opp_1903",
+"ownerId": "usr_jeremy",
+"date": "2026-03-26",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_148",
+"opportunityId": "opp_1908",
+"ownerId": "usr_jeremy",
+"date": "2026-04-17",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_149",
+"opportunityId": "opp_1929",
+"ownerId": "usr_yodi",
+"date": "2026-03-03",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+},
+{
+"id": "mtg_150",
+"opportunityId": "opp_1955",
+"ownerId": "usr_yodi",
+"date": "2026-05-06",
+"number": 1,
+"outcome": "Held",
+"nextAction": null
+}
+]

@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colours are stored as space-separated RGB channels so Tailwind can inject
+     alpha for opacity modifiers (bg-brand/15, ring-brand/30, …). The full-colour
+     aliases below are derived from them for direct use in inline styles / CSS. */
+  --bg-rgb: 10 13 22;
+  --bg-elev-rgb: 14 18 29;
+  --surface-rgb: 20 26 40;
+  --surface-2-rgb: 27 34 51;
+  --line-rgb: 39 48 70;
+  --line-soft-rgb: 29 37 54;
+  --ink-rgb: 238 241 248;
+  --ink-dim-rgb: 164 175 198;
+  --ink-mute-rgb: 107 119 149;
+  --brand-rgb: 99 102 241;
+  --brand-hover-rgb: 124 127 245;
+  --accent-rgb: 34 211 238;
+  --success-rgb: 52 211 153;
+  --warning-rgb: 251 191 36;
+  --danger-rgb: 248 113 113;
+  --info-rgb: 96 165 250;
+
+  --bg: rgb(var(--bg-rgb));
+  --bg-elev: rgb(var(--bg-elev-rgb));
+  --surface: rgb(var(--surface-rgb));
+  --surface-2: rgb(var(--surface-2-rgb));
+  --line: rgb(var(--line-rgb));
+  --line-soft: rgb(var(--line-soft-rgb));
+  --ink: rgb(var(--ink-rgb));
+  --ink-dim: rgb(var(--ink-dim-rgb));
+  --ink-mute: rgb(var(--ink-mute-rgb));
+  --brand: rgb(var(--brand-rgb));
+  --brand-hover: rgb(var(--brand-hover-rgb));
+  --brand-soft: rgb(var(--brand-rgb) / 0.16);
+  --accent: rgb(var(--accent-rgb));
+  --success: rgb(var(--success-rgb));
+  --warning: rgb(var(--warning-rgb));
+  --danger: rgb(var(--danger-rgb));
+  --info: rgb(var(--info-rgb));
+
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--line);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient backdrop glow — subtle premium depth */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(99, 102, 241, 0.12), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(34, 211, 238, 0.08), transparent 55%);
+  pointer-events: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 8px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-2);
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line shadow-card;
+    background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-bg-elev px-3 py-2 text-sm text-ink
+      placeholder:text-ink-mute outline-none transition
+      focus:border-brand focus:ring-2 focus:ring-brand/30;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

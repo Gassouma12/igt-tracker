@@ -1,0 +1,147 @@
+import {
+  Area, AreaChart, Bar, BarChart, Cell, Funnel, FunnelChart, LabelList,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from 'recharts'
+import type { OpportunityStatus } from '@/data/types'
+import { STATUS_STYLE } from '@/components/ui/StatusBadge'
+import { fmtMonth, fmtNum, fmtPct } from '@/lib/format'
+
+const AXIS = { fontSize: 11, fill: 'var(--ink-mute)' }
+const GRID = 'var(--line)'
+
+function TipBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-line bg-surface px-3 py-2 text-xs shadow-pop">
+      {children}
+    </div>
+  )
+}
+
+// ---- Funnel --------------------------------------------------------------
+export function FunnelView({ data }: { data: { stage: OpportunityStatus; count: number }[] }) {
+  const shaped = data.map((d) => ({ ...d, name: d.stage, fill: STATUS_STYLE[d.stage].dot }))
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <FunnelChart>
+        <Tooltip
+          content={({ active, payload }) =>
+            active && payload?.length ? (
+              <TipBox>
+                <p className="font-medium text-ink">{payload[0].payload.stage}</p>
+                <p className="text-ink-dim">{fmtNum(payload[0].payload.count)} reached</p>
+              </TipBox>
+            ) : null
+          }
+        />
+        <Funnel dataKey="count" data={shaped} isAnimationActive={false}>
+          <LabelList position="right" fill="var(--ink-dim)" stroke="none" dataKey="stage" fontSize={11} />
+          <LabelList position="left" fill="var(--ink)" stroke="none" dataKey="count" fontSize={12} />
+        </Funnel>
+      </FunnelChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ---- Conversion bars -----------------------------------------------------
+export function ConversionBars({ data }: { data: { from: OpportunityStatus; to: OpportunityStatus; rate: number }[] }) {
+  const shaped = data.map((d) => ({ label: `${shortStage(d.from)} → ${shortStage(d.to)}`, rate: d.rate }))
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <BarChart data={shaped} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <XAxis dataKey="label" tick={AXIS} interval={0} angle={-18} textAnchor="end" height={60} stroke={GRID} />
+        <YAxis tickFormatter={(v) => `${Math.round(v * 100)}%`} tick={AXIS} stroke={GRID} />
+        <Tooltip
+          cursor={{ fill: 'var(--surface-2)' }}
+          content={({ active, payload }) =>
+            active && payload?.length ? (
+              <TipBox>
+                <p className="font-medium text-ink">{payload[0].payload.label}</p>
+                <p className="text-ink-dim">{fmtPct(payload[0].payload.rate, 1)} conversion</p>
+              </TipBox>
+            ) : null
+          }
+        />
+        <Bar dataKey="rate" radius={[6, 6, 0, 0]} fill="var(--brand)" isAnimationActive={false} />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ---- Ranking (horizontal) ------------------------------------------------
+export function RankingBars({ data, dataKey = 'outreaches', color = 'var(--accent)' }: {
+  data: { name: string; outreaches: number; signed: number; meetings: number }[]
+  dataKey?: 'outreaches' | 'signed' | 'meetings'
+  color?: string
+}) {
+  const shaped = [...data].slice(0, 8)
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(shaped.length * 38, 120)}>
+      <BarChart data={shaped} layout="vertical" margin={{ left: 8, right: 16 }}>
+        <XAxis type="number" tick={AXIS} stroke={GRID} />
+        <YAxis type="category" dataKey="name" tick={AXIS} width={110} stroke={GRID} />
+        <Tooltip
+          cursor={{ fill: 'var(--surface-2)' }}
+          content={({ active, payload }) =>
+            active && payload?.length ? (
+              <TipBox>
+                <p className="font-medium text-ink">{payload[0].payload.name}</p>
+                <p className="text-ink-dim">{fmtNum(Number(payload[0].value))} {dataKey}</p>
+              </TipBox>
+            ) : null
+          }
+        />
+        <Bar dataKey={dataKey} radius={[0, 6, 6, 0]} isAnimationActive={false}>
+          {shaped.map((_, i) => (
+            <Cell key={i} fill={color} fillOpacity={1 - i * 0.07} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ---- Timeline area -------------------------------------------------------
+export function TimelineArea({ data }: { data: { month: string; outreaches: number; meetings: number; contracts: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+        <defs>
+          <linearGradient id="gOut" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.5} />
+            <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="gMeet" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.45} />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <XAxis dataKey="month" tickFormatter={fmtMonth} tick={AXIS} stroke={GRID} />
+        <YAxis tick={AXIS} stroke={GRID} />
+        <Tooltip
+          cursor={{ stroke: 'var(--line)' }}
+          content={({ active, payload, label }) =>
+            active && payload?.length ? (
+              <TipBox>
+                <p className="mb-1 font-medium text-ink">{fmtMonth(String(label))}</p>
+                {payload.map((p) => (
+                  <p key={p.name} className="text-ink-dim">
+                    <span style={{ color: p.color }}>●</span> {p.name}: {fmtNum(Number(p.value))}
+                  </p>
+                ))}
+              </TipBox>
+            ) : null
+          }
+        />
+        <Area type="monotone" dataKey="outreaches" stroke="var(--brand)" strokeWidth={2} fill="url(#gOut)" isAnimationActive={false} />
+        <Area type="monotone" dataKey="meetings" stroke="var(--accent)" strokeWidth={2} fill="url(#gMeet)" isAnimationActive={false} />
+      </AreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+function shortStage(s: OpportunityStatus): string {
+  return s
+    .replace('Contract ', '')
+    .replace('Meeting scheduled', 'Meeting')
+    .replace('Prospect', 'Prosp.')
+}

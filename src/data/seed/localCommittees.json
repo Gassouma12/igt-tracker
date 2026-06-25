@@ -1,0 +1,29 @@
+[
+{
+"id": "lc_ghent",
+"name": "LC Ghent",
+"country": "Belgium",
+"lcpId": "usr_pavlos",
+"lcvpIds": [
+"usr_tijs"
+]
+},
+{
+"id": "lc_antwerp",
+"name": "LC Antwerp",
+"country": "Belgium",
+"lcpId": "usr_roxy",
+"lcvpIds": [
+"usr_adam"
+]
+},
+{
+"id": "lc_leuven",
+"name": "LC Leuven",
+"country": "Belgium",
+"lcpId": "usr_alandra",
+"lcvpIds": [
+"usr_felix"
+]
+}
+]

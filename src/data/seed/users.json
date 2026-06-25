@@ -1,0 +1,222 @@
+[
+{
+"id": "usr_admin",
+"name": "Aboulkacem (MCVP iGT)",
+"email": "admin@aib.org",
+"role": "admin",
+"lcId": null,
+"position": "MCVP Sales",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_adam",
+"name": "Adam",
+"email": "adam@aiesec.be",
+"role": "lcvp",
+"lcId": "lc_antwerp",
+"position": "VP Sales",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_alandra",
+"name": "Alandra",
+"email": "alandra@aiesec.be",
+"role": "lcp",
+"lcId": "lc_leuven",
+"position": "Local Committee President",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_carmela",
+"name": "Carmela",
+"email": "carmela@aiesec.be",
+"role": "member",
+"lcId": "lc_ghent",
+"position": "Sales Member",
+"teamLeadId": "usr_tijs",
+"active": true
+},
+{
+"id": "usr_daksh",
+"name": "Daksh",
+"email": "daksh@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_delia",
+"name": "Delia",
+"email": "delia@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_dieter",
+"name": "Dieter",
+"email": "dieter@aiesec.be",
+"role": "member",
+"lcId": "lc_antwerp",
+"position": "Sales Member",
+"teamLeadId": "usr_adam",
+"active": true
+},
+{
+"id": "usr_ebrahim",
+"name": "Ebrahim",
+"email": "ebrahim@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_felix",
+"name": "Felix",
+"email": "felix@aiesec.be",
+"role": "lcvp",
+"lcId": "lc_leuven",
+"position": "VP Sales",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_jeremy",
+"name": "Jeremy",
+"email": "jeremy@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_kobe",
+"name": "Kobe",
+"email": "kobe@aiesec.be",
+"role": "member",
+"lcId": "lc_ghent",
+"position": "Sales Member",
+"teamLeadId": "usr_tijs",
+"active": true
+},
+{
+"id": "usr_linda",
+"name": "Linda",
+"email": "linda@aiesec.be",
+"role": "member",
+"lcId": "lc_ghent",
+"position": "Sales Member",
+"teamLeadId": "usr_tijs",
+"active": true
+},
+{
+"id": "usr_mariia",
+"name": "Mariia",
+"email": "mariia@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_marit",
+"name": "Marit",
+"email": "marit@aiesec.be",
+"role": "member",
+"lcId": "lc_antwerp",
+"position": "Sales Member",
+"teamLeadId": "usr_adam",
+"active": true
+},
+{
+"id": "usr_nazar",
+"name": "Nazar",
+"email": "nazar@aiesec.be",
+"role": "member",
+"lcId": "lc_antwerp",
+"position": "Sales Member",
+"teamLeadId": "usr_adam",
+"active": true
+},
+{
+"id": "usr_nico",
+"name": "Nico",
+"email": "nico@aiesec.be",
+"role": "member",
+"lcId": "lc_antwerp",
+"position": "Sales Member",
+"teamLeadId": "usr_adam",
+"active": true
+},
+{
+"id": "usr_pavlos",
+"name": "Pavlos",
+"email": "pavlos@aiesec.be",
+"role": "lcp",
+"lcId": "lc_ghent",
+"position": "Local Committee President",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_pratyksshi",
+"name": "Pratyksshi",
+"email": "pratyksshi@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_rayhan",
+"name": "Rayhan",
+"email": "rayhan@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+},
+{
+"id": "usr_roxy",
+"name": "Roxy",
+"email": "roxy@aiesec.be",
+"role": "lcp",
+"lcId": "lc_antwerp",
+"position": "Local Committee President",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_tijs",
+"name": "Tijs",
+"email": "tijs@aiesec.be",
+"role": "lcvp",
+"lcId": "lc_ghent",
+"position": "VP Sales",
+"teamLeadId": null,
+"active": true
+},
+{
+"id": "usr_yodi",
+"name": "Yodi",
+"email": "yodi@aiesec.be",
+"role": "member",
+"lcId": "lc_leuven",
+"position": "Sales Member",
+"teamLeadId": "usr_felix",
+"active": true
+}
+]
