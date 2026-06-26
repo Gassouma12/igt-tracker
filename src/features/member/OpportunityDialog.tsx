@@ -11,7 +11,8 @@ import {
 import { OPPORTUNITY_STATUSES, type ActivityType, type ActivityPhase, type ActivityOutcome } from '@/data/types'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/primitives'
-import { Field, Input, Select, Textarea } from '@/components/ui/Field'
+import { Field, Input, Textarea } from '@/components/ui/Field'
+import { Dropdown } from '@/components/ui/Dropdown'
 import { fmtDate, relativeDays } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
@@ -70,9 +71,12 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
             {/* stage + next action */}
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="Stage">
-                <Select value={opp.status} onChange={(e) => advanceStage(user, opp, e.target.value as typeof opp.status)}>
-                  {OPPORTUNITY_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </Select>
+                <Dropdown
+                  className="w-full"
+                  value={opp.status}
+                  onChange={(v) => advanceStage(user, opp, v as typeof opp.status)}
+                  options={OPPORTUNITY_STATUSES.map((s) => ({ value: s, label: s }))}
+                />
               </Field>
               <Field label="Next action">
                 <div className="flex h-10 items-center rounded-xl border border-line bg-bg-elev px-3 text-sm text-ink-dim">
@@ -86,19 +90,31 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
               <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink"><Plus size={15} /> Log outreach</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <Field label="Channel">
-                  <Select value={type} onChange={(e) => setType(e.target.value as ActivityType)}>
-                    <option>LinkedIn</option><option>Email</option><option>Cold call</option><option>Meeting</option>
-                  </Select>
+                  <Dropdown
+                    className="w-full"
+                    value={type}
+                    onChange={(v) => setType(v as ActivityType)}
+                    options={['LinkedIn', 'Email', 'Cold call', 'Meeting'].map((c) => ({ value: c, label: c }))}
+                  />
                 </Field>
                 <Field label="Phase">
-                  <Select value={phase} onChange={(e) => setPhase(e.target.value as ActivityPhase)} disabled={type === 'Meeting'}>
-                    <option value="first">First contact</option><option value="follow-up">Follow-up</option>
-                  </Select>
+                  <Dropdown
+                    className="w-full"
+                    value={type === 'Meeting' ? 'meeting' : phase}
+                    onChange={(v) => setPhase(v as ActivityPhase)}
+                    disabled={type === 'Meeting'}
+                    options={type === 'Meeting'
+                      ? [{ value: 'meeting', label: 'Meeting' }]
+                      : [{ value: 'first', label: 'First contact' }, { value: 'follow-up', label: 'Follow-up' }]}
+                  />
                 </Field>
                 <Field label="Outcome">
-                  <Select value={outcome} onChange={(e) => setOutcome(e.target.value as ActivityOutcome)}>
-                    <option value="positive">Positive</option><option value="neutral">Neutral</option><option value="no-response">No response</option>
-                  </Select>
+                  <Dropdown
+                    className="w-full"
+                    value={outcome}
+                    onChange={(v) => setOutcome(v as ActivityOutcome)}
+                    options={[{ value: 'positive', label: 'Positive' }, { value: 'neutral', label: 'Neutral' }, { value: 'no-response', label: 'No response' }]}
+                  />
                 </Field>
               </div>
               <div className="mt-3">

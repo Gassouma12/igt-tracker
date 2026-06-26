@@ -7,9 +7,10 @@ import type { Role } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
-import { Select } from '@/components/ui/Field'
+import { Dropdown } from '@/components/ui/Dropdown'
 
 const ROLES: Role[] = ['admin', 'lcp', 'lcvp', 'member']
+const ROLE_OPTS = ROLES.map((r) => ({ value: r, label: r.toUpperCase() }))
 
 export default function UserManagement() {
   const actor = useCurrentUser()
@@ -38,14 +39,18 @@ export default function UserManagement() {
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-mute" />
           <input className="input pl-9" placeholder="Search name or email…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <Select className="max-w-[180px]" value={lcFilter} onChange={(e) => setLcFilter(e.target.value)}>
-          <option value="">All LCs</option>
-          {lcs.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-        </Select>
-        <Select className="max-w-[150px]" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-          <option value="">All roles</option>
-          {ROLES.map((r) => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-        </Select>
+        <Dropdown
+          className="w-44"
+          value={lcFilter}
+          onChange={setLcFilter}
+          options={[{ value: '', label: 'All LCs' }, ...lcs.map((l) => ({ value: l.id, label: l.name }))]}
+        />
+        <Dropdown
+          className="w-36"
+          value={roleFilter}
+          onChange={setRoleFilter}
+          options={[{ value: '', label: 'All roles' }, ...ROLE_OPTS]}
+        />
       </div>
 
       <Table>
@@ -61,15 +66,20 @@ export default function UserManagement() {
               </TD>
               <TD>{u.email}</TD>
               <TD>
-                <Select className="h-8 py-0 text-xs" value={u.role} onChange={(e) => actor && updateUser(actor, u.id, { role: e.target.value as Role })}>
-                  {ROLES.map((r) => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                </Select>
+                <Dropdown
+                  size="sm" className="w-28"
+                  value={u.role}
+                  onChange={(v) => actor && updateUser(actor, u.id, { role: v as Role })}
+                  options={ROLE_OPTS}
+                />
               </TD>
               <TD>
-                <Select className="h-8 py-0 text-xs" value={u.lcId ?? ''} onChange={(e) => actor && updateUser(actor, u.id, { lcId: e.target.value || null })}>
-                  <option value="">— None —</option>
-                  {lcs.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-                </Select>
+                <Dropdown
+                  size="sm" className="w-36"
+                  value={u.lcId ?? ''}
+                  onChange={(v) => actor && updateUser(actor, u.id, { lcId: v || null })}
+                  options={[{ value: '', label: '— None —' }, ...lcs.map((l) => ({ value: l.id, label: l.name }))]}
+                />
               </TD>
               <TD>
                 <Button

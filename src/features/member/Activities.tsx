@@ -4,7 +4,7 @@ import { useScopedData } from './useScopedData'
 import { OpportunityDialog } from './OpportunityDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, EmptyState } from '@/components/ui/primitives'
-import { Select } from '@/components/ui/Field'
+import { Dropdown } from '@/components/ui/Dropdown'
 import { fmtDate } from '@/lib/format'
 import type { ActivityType } from '@/data/types'
 import { cn } from '@/lib/cn'
@@ -47,10 +47,12 @@ export default function Activities() {
         title="Activities"
         subtitle={`${grouped.total} logged touchpoints`}
         actions={
-          <Select className="max-w-[180px]" value={type} onChange={(e) => setType(e.target.value as ActivityType | '')}>
-            <option value="">All channels</option>
-            <option>LinkedIn</option><option>Email</option><option>Cold call</option><option>Meeting</option>
-          </Select>
+          <Dropdown
+            className="w-44"
+            value={type}
+            onChange={(v) => setType(v as ActivityType | '')}
+            options={[{ value: '', label: 'All channels' }, ...['LinkedIn', 'Email', 'Cold call', 'Meeting'].map((c) => ({ value: c, label: c }))]}
+          />
         }
       />
 

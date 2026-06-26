@@ -11,9 +11,10 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
-import { Select } from '@/components/ui/Field'
+import { Dropdown } from '@/components/ui/Dropdown'
 import { fmtDate, relativeDays } from '@/lib/format'
 import { useFilters } from '@/state/filters'
+import { cn } from '@/lib/cn'
 
 const COLUMNS: OpportunityStatus[] = [...FUNNEL, 'Lost']
 
@@ -26,6 +27,7 @@ export default function MyPipeline() {
   const [openId, setOpenId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
+  const [overCol, setOverCol] = useState<OpportunityStatus | null>(null)
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -39,11 +41,14 @@ export default function MyPipeline() {
   const byStatus = (s: OpportunityStatus) => filtered.filter((o) => o.status === s)
 
   function onDrop(status: OpportunityStatus) {
+    setOverCol(null)
     if (!dragId || !user) return
     const opp = opportunities.find((o) => o.id === dragId)
     if (opp && opp.status !== status) advanceStage(user, opp, status)
     setDragId(null)
   }
+
+  const dragStatus = dragId ? opportunities.find((o) => o.id === dragId)?.status : null
 
   return (
     <div>
@@ -65,11 +70,18 @@ export default function MyPipeline() {
         <div className="flex gap-3 overflow-x-auto pb-4">
           {COLUMNS.map((status) => {
             const items = byStatus(status)
+            const isTarget = !!dragId && overCol === status && dragStatus !== status
+            const droppable = !!dragId && dragStatus !== status
             return (
               <div
                 key={status}
-                className="flex w-72 shrink-0 flex-col rounded-2xl border border-line bg-bg-elev/50"
-                onDragOver={(e) => e.preventDefault()}
+                className={cn(
+                  'flex w-72 shrink-0 flex-col rounded-2xl border bg-bg-elev/50 transition-colors duration-150',
+                  isTarget ? 'border-brand bg-brand/10 ring-2 ring-brand/40' : 'border-line',
+                  droppable && !isTarget && 'border-dashed border-brand/40',
+                )}
+                onDragOver={(e) => { e.preventDefault(); if (overCol !== status) setOverCol(status) }}
+                onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol((c) => (c === status ? null : c)) }}
                 onDrop={() => onDrop(status)}
               >
                 <div className="flex items-center justify-between border-b border-line px-3 py-2.5">
@@ -77,7 +89,7 @@ export default function MyPipeline() {
                     <span className="h-2 w-2 rounded-full" style={{ background: STATUS_STYLE[status].dot }} />
                     {status}
                   </span>
-                  <span className="text-xs text-ink-mute">{items.length}</span>
+                  <span className={cn('rounded-full px-2 text-xs', isTarget ? 'bg-brand/20 text-brand' : 'text-ink-mute')}>{items.length}</span>
                 </div>
                 <div className="flex flex-1 flex-col gap-2 p-2">
                   {items.slice(0, 50).map((o) => {
@@ -87,9 +99,13 @@ export default function MyPipeline() {
                       <button
                         key={o.id}
                         draggable
-                        onDragStart={() => setDragId(o.id)}
+                        onDragStart={(e) => { setDragId(o.id); e.dataTransfer.effectAllowed = 'move' }}
+                        onDragEnd={() => { setDragId(null); setOverCol(null) }}
                         onClick={() => setOpenId(o.id)}
-                        className="cursor-grab rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand/40 active:cursor-grabbing"
+                        className={cn(
+                          'cursor-grab rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand/40 hover:shadow-card active:cursor-grabbing',
+                          dragId === o.id && 'rotate-1 opacity-40 ring-2 ring-brand/50',
+                        )}
                       >
                         <p className="truncate text-sm font-medium text-ink">{c?.name ?? '—'}</p>
                         {ct && <p className="truncate text-xs text-ink-mute">{ct.name}</p>}
@@ -97,7 +113,12 @@ export default function MyPipeline() {
                       </button>
                     )
                   })}
-                  {items.length === 0 && <p className="px-1 py-4 text-center text-xs text-ink-mute">Drop here</p>}
+                  {items.length === 0 && (
+                    <p className={cn('rounded-xl border border-dashed px-1 py-6 text-center text-xs transition-colors',
+                      isTarget ? 'border-brand/50 text-brand' : 'border-transparent text-ink-mute')}>
+                      {droppable ? 'Drop here' : 'Empty'}
+                    </p>
+                  )}
                 </div>
               </div>
             )
@@ -106,10 +127,12 @@ export default function MyPipeline() {
       ) : (
         <>
           <div className="mb-3 flex items-center gap-2">
-            <Select className="max-w-xs" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as OpportunityStatus | '')}>
-              <option value="">All stages</option>
-              {OPPORTUNITY_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </Select>
+            <Dropdown
+              className="w-48"
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as OpportunityStatus | '')}
+              options={[{ value: '', label: 'All stages' }, ...OPPORTUNITY_STATUSES.map((s) => ({ value: s, label: s }))]}
+            />
           </div>
           <Table>
             <THead>

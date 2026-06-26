@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
 
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
@@ -17,12 +17,4 @@ export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputEleme
 
 export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea className={cn('input min-h-[84px] resize-y', className)} {...rest} />
-}
-
-export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select className={cn('input cursor-pointer appearance-none pr-8', className)} {...rest}>
-      {children}
-    </select>
-  )
 }

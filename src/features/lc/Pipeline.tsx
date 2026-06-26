@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar } from '@/components/ui/primitives'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
-import { Select } from '@/components/ui/Field'
+import { Dropdown } from '@/components/ui/Dropdown'
 import { fmtDate, relativeDays } from '@/lib/format'
 import { OPPORTUNITY_STATUSES, type OpportunityStatus } from '@/data/types'
 
@@ -34,14 +34,18 @@ export default function Pipeline() {
           <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-mute" />
           <input className="input pl-9" placeholder="Filter by company…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <Select className="max-w-[200px]" value={owner} onChange={(e) => setOwner(e.target.value)}>
-          <option value="">All members</option>
-          {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-        </Select>
-        <Select className="max-w-[200px]" value={status} onChange={(e) => setStatus(e.target.value as OpportunityStatus | '')}>
-          <option value="">All stages</option>
-          {OPPORTUNITY_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </Select>
+        <Dropdown
+          className="w-44"
+          value={owner}
+          onChange={setOwner}
+          options={[{ value: '', label: 'All members' }, ...members.map((m) => ({ value: m.id, label: m.name }))]}
+        />
+        <Dropdown
+          className="w-44"
+          value={status}
+          onChange={(v) => setStatus(v as OpportunityStatus | '')}
+          options={[{ value: '', label: 'All stages' }, ...OPPORTUNITY_STATUSES.map((s) => ({ value: s, label: s }))]}
+        />
       </div>
 
       <Table>

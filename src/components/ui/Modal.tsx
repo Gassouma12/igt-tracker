@@ -19,13 +19,15 @@ export function Modal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-[fade-up_0.15s_ease]" />
         <Dialog.Content
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2',
-            'rounded-2xl border border-line bg-surface p-6 shadow-pop',
-            'data-[state=open]:animate-fade-up focus:outline-none',
+            // NOTE: centering uses -translate-*-1/2, so the entrance animation must
+            // be opacity-only — a transform-based animation would clobber centering.
+            'fixed left-1/2 top-1/2 z-50 flex max-h-[88vh] w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col',
+            'overflow-hidden rounded-2xl border border-line bg-surface shadow-pop',
+            'data-[state=open]:animate-fade-in focus:outline-none',
             className,
           )}
         >
-          <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 border-b border-line p-6 pb-4">
             <div>
               <Dialog.Title className="font-display text-lg font-semibold text-ink">{title}</Dialog.Title>
               {description && <Dialog.Description className="mt-1 text-sm text-ink-mute">{description}</Dialog.Description>}
@@ -34,7 +36,7 @@ export function Modal({
               <X size={18} />
             </Dialog.Close>
           </div>
-          {children}
+          <div className="overflow-y-auto p-6">{children}</div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

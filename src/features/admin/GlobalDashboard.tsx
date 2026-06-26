@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { Filter } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Select } from '@/components/ui/Field'
+import { Dropdown } from '@/components/ui/Dropdown'
 import { Dashboard } from '@/features/shared/Dashboard'
 import { useFilters } from '@/state/filters'
 
@@ -36,17 +35,13 @@ export default function GlobalDashboard() {
         title="Global Dashboard"
         subtitle="All Local Committees · iGT sales performance"
         actions={
-          <div className="flex items-center gap-2 rounded-xl border border-line bg-bg-elev px-3">
-            <Filter size={15} className="text-ink-mute" />
-            <Select
-              className="border-0 bg-transparent px-1 focus:ring-0"
-              value={lcFilter ?? ''}
-              onChange={(e) => setFilters({ lcId: e.target.value || null })}
-            >
-              <option value="">All LCs</option>
-              {lcs.map((lc) => <option key={lc.id} value={lc.id}>{lc.name}</option>)}
-            </Select>
-          </div>
+          <Dropdown
+            className="w-48"
+            ariaLabel="Filter by Local Committee"
+            value={lcFilter ?? ''}
+            onChange={(v) => setFilters({ lcId: v || null })}
+            options={[{ value: '', label: 'All LCs' }, ...lcs.map((lc) => ({ value: lc.id, label: lc.name }))]}
+          />
         }
       />
       <Dashboard
