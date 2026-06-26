@@ -4,8 +4,9 @@ import { useScopedData } from './useScopedData'
 import { OpportunityDialog } from './OpportunityDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Badge, EmptyState } from '@/components/ui/primitives'
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
+import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { fmtDate } from '@/lib/format'
+import { useSort } from '@/lib/useSort'
 
 export default function Meetings() {
   const { meetings, opportunities, companyById, contactById } = useScopedData()
@@ -27,6 +28,14 @@ export default function Meetings() {
 
   const upcoming = rows.filter((r) => r.date && r.date >= new Date().toISOString().slice(0, 10)).length
 
+  const { sorted, sorts, toggle } = useSort(rows, {
+    company: (m) => m.company,
+    contact: (m) => m.contact,
+    number: (m) => m.number,
+    date: (m) => m.date ?? '',
+    outcome: (m) => m.outcome ?? '',
+  })
+
   return (
     <div>
       <PageHeader title="Meetings" subtitle={`${rows.length} meetings · ${upcoming} upcoming`} />
@@ -34,9 +43,17 @@ export default function Meetings() {
         <EmptyState icon={<CalendarDays size={28} />} title="No meetings yet" hint="Log a meeting from any opportunity to track it here." />
       ) : (
         <Table>
-          <THead><TR><TH>Company</TH><TH>Contact</TH><TH>Meeting</TH><TH>Date</TH><TH>Outcome</TH></TR></THead>
+          <THead>
+            <TR>
+              <SortHeader label="Company" sortKey="company" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Contact" sortKey="contact" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Meeting" sortKey="number" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Date" sortKey="date" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Outcome" sortKey="outcome" sorts={sorts} onToggle={toggle} />
+            </TR>
+          </THead>
           <TBody>
-            {rows.slice(0, 200).map((m) => (
+            {sorted.slice(0, 200).map((m) => (
               <TR key={m.id} onClick={() => setOpenId(m.opportunityId)}>
                 <TD className="font-medium text-ink">{m.company}</TD>
                 <TD>{m.contact}</TD>

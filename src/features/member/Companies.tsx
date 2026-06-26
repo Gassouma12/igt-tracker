@@ -6,8 +6,9 @@ import { AddOpportunityDialog } from './AddOpportunityDialog'
 import { OpportunityDialog } from './OpportunityDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button, EmptyState } from '@/components/ui/primitives'
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
+import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { fmtDate } from '@/lib/format'
+import { useSort } from '@/lib/useSort'
 import { useFilters } from '@/state/filters'
 
 export default function Companies() {
@@ -36,6 +37,14 @@ export default function Companies() {
       .sort((a, b) => (b.lastActivity ?? '').localeCompare(a.lastActivity ?? ''))
   }, [opportunities, contacts, companyById, search])
 
+  const { sorted, sorts, toggle } = useSort(rows, {
+    name: (r) => r.name,
+    industry: (r) => r.industry ?? '',
+    opps: (r) => r.opps,
+    contacts: (r) => r.contacts,
+    activity: (r) => r.lastActivity ?? '',
+  })
+
   return (
     <div>
       <PageHeader
@@ -54,9 +63,17 @@ export default function Companies() {
           action={<Button onClick={() => setAdding(true)}><Plus size={16} /> New opportunity</Button>} />
       ) : (
         <Table>
-          <THead><TR><TH>Company</TH><TH>Industry</TH><TH>Opportunities</TH><TH>Contacts</TH><TH>Last activity</TH></TR></THead>
+          <THead>
+            <TR>
+              <SortHeader label="Company" sortKey="name" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Industry" sortKey="industry" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Opportunities" sortKey="opps" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Contacts" sortKey="contacts" sorts={sorts} onToggle={toggle} />
+              <SortHeader label="Last activity" sortKey="activity" sorts={sorts} onToggle={toggle} />
+            </TR>
+          </THead>
           <TBody>
-            {rows.slice(0, 300).map((r) => (
+            {sorted.slice(0, 300).map((r) => (
               <TR key={r.id} onClick={() => setOpenId(r.lastOppId)}>
                 <TD className="font-medium text-ink">{r.name}</TD>
                 <TD>{r.industry ?? '—'}</TD>

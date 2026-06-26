@@ -5,9 +5,10 @@ import { OpportunityDialog } from '@/features/member/OpportunityDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar } from '@/components/ui/primitives'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
+import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { fmtDate, relativeDays } from '@/lib/format'
+import { useSort } from '@/lib/useSort'
 import { OPPORTUNITY_STATUSES, type OpportunityStatus } from '@/data/types'
 
 export default function Pipeline() {
@@ -22,8 +23,16 @@ export default function Pipeline() {
     return opportunities
       .filter((o) => (!owner || o.ownerId === owner) && (!status || o.status === status))
       .filter((o) => !term || companyById(o.companyId)?.name.toLowerCase().includes(term))
-      .sort((a, b) => (b.lastActivityAt ?? '').localeCompare(a.lastActivityAt ?? ''))
   }, [opportunities, owner, status, q, companyById])
+
+  const { sorted, sorts, toggle } = useSort(rows, {
+    company: (o) => companyById(o.companyId)?.name ?? '',
+    owner: (o) => userById(o.ownerId)?.name ?? '',
+    contact: (o) => contactById(o.contactId)?.name ?? '',
+    stage: (o) => OPPORTUNITY_STATUSES.indexOf(o.status),
+    activity: (o) => o.lastActivityAt ?? '',
+    next: (o) => o.nextActionDate ?? '',
+  })
 
   return (
     <div>
@@ -49,9 +58,18 @@ export default function Pipeline() {
       </div>
 
       <Table>
-        <THead><TR><TH>Company</TH><TH>Owner</TH><TH>Contact</TH><TH>Stage</TH><TH>Last activity</TH><TH>Next action</TH></TR></THead>
+        <THead>
+          <TR>
+            <SortHeader label="Company" sortKey="company" sorts={sorts} onToggle={toggle} />
+            <SortHeader label="Owner" sortKey="owner" sorts={sorts} onToggle={toggle} />
+            <SortHeader label="Contact" sortKey="contact" sorts={sorts} onToggle={toggle} />
+            <SortHeader label="Stage" sortKey="stage" sorts={sorts} onToggle={toggle} />
+            <SortHeader label="Last activity" sortKey="activity" sorts={sorts} onToggle={toggle} />
+            <SortHeader label="Next action" sortKey="next" sorts={sorts} onToggle={toggle} />
+          </TR>
+        </THead>
         <TBody>
-          {rows.slice(0, 300).map((o) => (
+          {sorted.slice(0, 300).map((o) => (
             <TR key={o.id} onClick={() => setOpenId(o.id)}>
               <TD className="font-medium text-ink">{companyById(o.companyId)?.name ?? '—'}</TD>
               <TD>

@@ -10,10 +10,11 @@ import { OPPORTUNITY_STATUSES, type Opportunity, type OpportunityStatus } from '
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
-import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
+import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { fmtDate, relativeDays } from '@/lib/format'
 import { useFilters } from '@/state/filters'
+import { useSort } from '@/lib/useSort'
 import { cn } from '@/lib/cn'
 
 const COLUMNS: OpportunityStatus[] = [...FUNNEL, 'Lost']
@@ -39,6 +40,14 @@ export default function MyPipeline() {
   }, [opportunities, statusFilter, search, companyById])
 
   const byStatus = (s: OpportunityStatus) => filtered.filter((o) => o.status === s)
+
+  const { sorted, sorts, toggle } = useSort(filtered, {
+    company: (o) => companyById(o.companyId)?.name ?? '',
+    contact: (o) => contactById(o.contactId)?.name ?? '',
+    stage: (o) => OPPORTUNITY_STATUSES.indexOf(o.status),
+    activity: (o) => o.lastActivityAt ?? '',
+    next: (o) => o.nextActionDate ?? '',
+  })
 
   function onDrop(status: OpportunityStatus) {
     setOverCol(null)
@@ -136,10 +145,16 @@ export default function MyPipeline() {
           </div>
           <Table>
             <THead>
-              <TR><TH>Company</TH><TH>Contact</TH><TH>Stage</TH><TH>Last activity</TH><TH>Next action</TH></TR>
+              <TR>
+                <SortHeader label="Company" sortKey="company" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Contact" sortKey="contact" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Stage" sortKey="stage" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Last activity" sortKey="activity" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Next action" sortKey="next" sorts={sorts} onToggle={toggle} />
+              </TR>
             </THead>
             <TBody>
-              {filtered.slice(0, 200).map((o: Opportunity) => {
+              {sorted.slice(0, 200).map((o: Opportunity) => {
                 const c = companyById(o.companyId)
                 const ct = contactById(o.contactId)
                 return (
