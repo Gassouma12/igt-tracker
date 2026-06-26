@@ -114,6 +114,17 @@ export async function scheduleFollowUp(
   await log(actor, 'opportunity', opp.id, `scheduled "${nextAction}" on ${nextActionDate} for ${companyName(opp.companyId)}`)
 }
 
+export async function updateUser(
+  actor: User, userId: string, patch: Partial<User>,
+): Promise<void> {
+  const before = db().users.find((u) => u.id === userId)
+  await repo.users.update(userId, patch)
+  const field = Object.keys(patch)[0]
+  await log(actor, 'user', userId, `updated ${before?.name ?? 'user'} (${field})`,
+    String((before as Record<string, unknown> | undefined)?.[field] ?? ''),
+    String((patch as Record<string, unknown>)[field] ?? ''))
+}
+
 export async function addMeeting(
   actor: User, opp: Opportunity,
   data: { date: string; outcome?: string; nextAction?: string },

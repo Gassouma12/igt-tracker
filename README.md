@@ -89,8 +89,13 @@ match these facts and logs the result in dev.
 
 - **Auth + RBAC** — mock login, role-based routing/guards, data scoping (member → own,
   lcvp → team, lcp → LC, admin → everything).
-- **Admin Global Dashboard** — KPIs, sales funnel, stage conversion, LC & member
-  rankings, monthly timeline, goal achievement; LC filter.
+- **Admin** — Global Dashboard (KPIs, funnel, conversion, LC & member rankings, timeline,
+  goals, LC filter); **LC Management** (per-LC stats, leadership, members); **User
+  Management** (inline role / LC / active editing, all audited); **Analytics** (LC
+  comparison, channel mix, trend); **Settings** (data summary, reset-to-seed, audit log).
+- **LC (LCP / LCVP)** — Overview dashboard, Pipeline (filterable by member/stage/company),
+  Team (per-member performance), Goals (LC + per-member progress), Reports (summary +
+  **CSV export**).
 - **Member Workspace** — pipeline (drag-and-drop kanban + table), companies, activity
   timeline, meetings, personal performance; add company/contact/opportunity, log
   outreach, advance stage, schedule follow-ups, log meetings — all writing through the
@@ -98,12 +103,13 @@ match these facts and logs the result in dev.
 - **Global search** (scoped) and **derived notifications** (overdue follow-ups, upcoming
   meetings, inactive opportunities).
 
+Every page across all four roles is live (no stubs remain).
+
 ## Roadmap (next passes)
 
-- LC dashboards (Overview / Pipeline / Team / Goals / Reports) — wired in nav, UIs to come.
-- Admin LC management, user management, analytics, settings.
-- Supabase (DB / auth / storage) migration.
-- Surfaced notifications inbox, reference content (value proposition, outreach tips).
+- Supabase (DB / auth / storage) migration — the repository seam is in place.
+- Surfaced notifications inbox and reference content (value proposition, outreach tips).
+- Richer editing (edit company/contact details, manage LC goals in-app).
 
 > Notes: data is currently bundled (seed JSON) and persisted to `localStorage`; member →
 > LC assignment and goal targets are documented migration assumptions, editable once the
