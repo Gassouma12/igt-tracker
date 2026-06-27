@@ -20,6 +20,21 @@ export function supervisorsOf(user: User, allUsers: User[]): string[] {
   return [...ids]
 }
 
+/**
+ * Goal-setting hierarchy: LCVP sets their members' goals, LCP sets their VPs',
+ * MCVP sets LCVPs' goals.
+ */
+export function canSetGoalFor(actor: User, target: User): boolean {
+  if (actor.role === 'admin') return target.role === 'lcvp'
+  if (actor.role === 'lcp') return target.role === 'lcvp' && target.lcId === actor.lcId
+  if (actor.role === 'lcvp') return target.role === 'member' && target.lcId === actor.lcId
+  return false
+}
+
+export function manageableUsers(actor: User, allUsers: User[]): User[] {
+  return allUsers.filter((u) => canSetGoalFor(actor, u)).sort((a, b) => a.name.localeCompare(b.name))
+}
+
 export function canViewGlobalDashboard(user: User): boolean {
   return user.role === 'admin'
 }

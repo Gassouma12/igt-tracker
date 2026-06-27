@@ -19,7 +19,7 @@ export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number]
 export type ActivityType = 'LinkedIn' | 'Email' | 'Cold call' | 'Follow-up' | 'Meeting'
 export type ActivityPhase = 'first' | 'follow-up' | 'meeting'
 export type ActivityOutcome = 'positive' | 'neutral' | 'no-response'
-export type GoalMetric = 'outreaches' | 'meetings' | 'contracts'
+export type GoalMetric = 'outreaches' | 'meetings' | 'contracts' | 'revenue'
 export type GoalScope = 'member' | 'lc' | 'global'
 
 export interface User {
@@ -68,6 +68,8 @@ export interface Opportunity {
   ownerId: string
   lcId: string
   status: OpportunityStatus
+  value: number // expected deal value (EUR); 0 until set
+  revenueReceived: boolean // money actually collected
   nextAction: string | null
   nextActionDate: string | null
   lastActivityAt: string | null

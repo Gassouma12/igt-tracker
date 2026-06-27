@@ -1,17 +1,23 @@
-import { useMemo } from 'react'
-import { Crown, MapPin, Star, Users } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Crown, MapPin, Star, Target, Users } from 'lucide-react'
 import { useDB } from '@/data/store'
+import { useCurrentUser } from '@/state/session'
 import { performanceByLC } from '@/lib/metrics'
+import { manageableUsers } from '@/lib/rbac'
 import { fmtNum, fmtPct } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Avatar, Badge, Card } from '@/components/ui/primitives'
+import { Avatar, Badge, Button, Card } from '@/components/ui/primitives'
+import { GoalEditorModal } from '@/features/shared/GoalEditor'
 
 export default function LCManagement() {
+  const actor = useCurrentUser()
   const lcs = useDB((s) => s.localCommittees)
   const users = useDB((s) => s.users)
   const opportunities = useDB((s) => s.opportunities)
   const activities = useDB((s) => s.activities)
   const meetings = useDB((s) => s.meetings)
+  const [editing, setEditing] = useState(false)
+  const managed = actor ? manageableUsers(actor, users) : []
 
   const perf = useMemo(
     () => performanceByLC(opportunities, activities, meetings, lcs),
@@ -22,7 +28,11 @@ export default function LCManagement() {
 
   return (
     <div>
-      <PageHeader title="LC Management" subtitle={`${lcs.length} Local Committees · ${users.filter((u) => u.role !== 'admin').length} members`} />
+      <PageHeader
+        title="LC Management"
+        subtitle={`${lcs.length} Local Committees · ${users.filter((u) => u.role !== 'admin').length} members`}
+        actions={managed.length > 0 && <Button onClick={() => setEditing(true)}><Target size={16} /> Set LCVP goals</Button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {lcs.map((lc) => {
@@ -68,6 +78,8 @@ export default function LCManagement() {
           )
         })}
       </div>
+
+      {actor && <GoalEditorModal open={editing} onClose={() => setEditing(false)} actor={actor} users={managed} />}
     </div>
   )
 }

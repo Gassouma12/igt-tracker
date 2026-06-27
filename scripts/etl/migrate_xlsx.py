@@ -15,6 +15,7 @@ Usage:  python scripts/etl/migrate_xlsx.py
 """
 
 from __future__ import annotations
+import hashlib
 import json
 import os
 import re
@@ -160,6 +161,24 @@ def has(v) -> bool:
     if n is not None:
         return n > 0
     return v is not None and str(v).strip() != ""
+
+
+def _hash(s: str) -> int:
+    return int(hashlib.md5(s.encode()).hexdigest(), 16)
+
+
+# The spreadsheet has no revenue, so synthesize a plausible deal value for
+# advanced-stage opportunities (deterministic by id) and mark some signed deals
+# as collected. Editable in-app afterwards.
+ADVANCED = {"Negotiation", "Contract sent", "Contract signed"}
+
+
+def deal_value(opp_id: str, status: str) -> int:
+    return 0 if status not in ADVANCED else 5000 + (_hash(opp_id) % 46) * 1000
+
+
+def revenue_received(opp_id: str, status: str) -> bool:
+    return status == "Contract signed" and _hash(opp_id + "rev") % 2 == 0
 
 
 # ---------------------------------------------------------------- load
@@ -360,6 +379,8 @@ for ws in wb.worksheets:
             "ownerId": owner_id,
             "lcId": lc_id,
             "status": status,
+            "value": deal_value(opp_id, status),
+            "revenueReceived": revenue_received(opp_id, status),
             "nextAction": next_action,
             "nextActionDate": next_action_date,
             "lastActivityAt": last_activity,
@@ -409,7 +430,7 @@ for lc in LCS:
 # Goals: the sheet's Plan columns were mostly 0, so seed sensible semester
 # targets (per member) and roll LC/global up from them. Editable in-app.
 PERIOD = "2026-S1"
-MEMBER_TARGET = {"outreaches": 200, "meetings": 10, "contracts": 2}
+MEMBER_TARGET = {"outreaches": 200, "meetings": 10, "contracts": 2, "revenue": 20000}
 goals = []
 gid = 0
 members_by_lc: dict[str, int] = {}

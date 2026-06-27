@@ -29,11 +29,11 @@
 {
 "id": "goal_4",
 "scope": "member",
-"ownerId": "usr_alandra",
-"lcId": "lc_leuven",
+"ownerId": "usr_adam",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_5",
@@ -41,11 +41,20 @@
 "ownerId": "usr_alandra",
 "lcId": "lc_leuven",
 "period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_6",
+"scope": "member",
+"ownerId": "usr_alandra",
+"lcId": "lc_leuven",
+"period": "2026-S1",
 "metric": "meetings",
 "planned": 10
 },
 {
-"id": "goal_6",
+"id": "goal_7",
 "scope": "member",
 "ownerId": "usr_alandra",
 "lcId": "lc_leuven",
@@ -54,22 +63,13 @@
 "planned": 2
 },
 {
-"id": "goal_7",
-"scope": "member",
-"ownerId": "usr_carmela",
-"lcId": "lc_ghent",
-"period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
-},
-{
 "id": "goal_8",
 "scope": "member",
-"ownerId": "usr_carmela",
-"lcId": "lc_ghent",
+"ownerId": "usr_alandra",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_9",
@@ -77,40 +77,40 @@
 "ownerId": "usr_carmela",
 "lcId": "lc_ghent",
 "period": "2026-S1",
-"metric": "contracts",
-"planned": 2
-},
-{
-"id": "goal_10",
-"scope": "member",
-"ownerId": "usr_daksh",
-"lcId": "lc_leuven",
-"period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
 },
 {
-"id": "goal_11",
+"id": "goal_10",
 "scope": "member",
-"ownerId": "usr_daksh",
-"lcId": "lc_leuven",
+"ownerId": "usr_carmela",
+"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "meetings",
 "planned": 10
 },
 {
-"id": "goal_12",
+"id": "goal_11",
 "scope": "member",
-"ownerId": "usr_daksh",
-"lcId": "lc_leuven",
+"ownerId": "usr_carmela",
+"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 2
 },
 {
+"id": "goal_12",
+"scope": "member",
+"ownerId": "usr_carmela",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
 "id": "goal_13",
 "scope": "member",
-"ownerId": "usr_delia",
+"ownerId": "usr_daksh",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "outreaches",
@@ -119,7 +119,7 @@
 {
 "id": "goal_14",
 "scope": "member",
-"ownerId": "usr_delia",
+"ownerId": "usr_daksh",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "meetings",
@@ -128,7 +128,7 @@
 {
 "id": "goal_15",
 "scope": "member",
-"ownerId": "usr_delia",
+"ownerId": "usr_daksh",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "contracts",
@@ -137,24 +137,69 @@
 {
 "id": "goal_16",
 "scope": "member",
-"ownerId": "usr_dieter",
-"lcId": "lc_antwerp",
+"ownerId": "usr_daksh",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_17",
 "scope": "member",
-"ownerId": "usr_dieter",
-"lcId": "lc_antwerp",
+"ownerId": "usr_delia",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "outreaches",
+"planned": 200
 },
 {
 "id": "goal_18",
 "scope": "member",
+"ownerId": "usr_delia",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_19",
+"scope": "member",
+"ownerId": "usr_delia",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "contracts",
+"planned": 2
+},
+{
+"id": "goal_20",
+"scope": "member",
+"ownerId": "usr_delia",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_21",
+"scope": "member",
+"ownerId": "usr_dieter",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_22",
+"scope": "member",
+"ownerId": "usr_dieter",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_23",
+"scope": "member",
 "ownerId": "usr_dieter",
 "lcId": "lc_antwerp",
 "period": "2026-S1",
@@ -162,63 +207,18 @@
 "planned": 2
 },
 {
-"id": "goal_19",
-"scope": "member",
-"ownerId": "usr_ebrahim",
-"lcId": "lc_leuven",
-"period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
-},
-{
-"id": "goal_20",
-"scope": "member",
-"ownerId": "usr_ebrahim",
-"lcId": "lc_leuven",
-"period": "2026-S1",
-"metric": "meetings",
-"planned": 10
-},
-{
-"id": "goal_21",
-"scope": "member",
-"ownerId": "usr_ebrahim",
-"lcId": "lc_leuven",
-"period": "2026-S1",
-"metric": "contracts",
-"planned": 2
-},
-{
-"id": "goal_22",
-"scope": "member",
-"ownerId": "usr_felix",
-"lcId": "lc_leuven",
-"period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
-},
-{
-"id": "goal_23",
-"scope": "member",
-"ownerId": "usr_felix",
-"lcId": "lc_leuven",
-"period": "2026-S1",
-"metric": "meetings",
-"planned": 10
-},
-{
 "id": "goal_24",
 "scope": "member",
-"ownerId": "usr_felix",
-"lcId": "lc_leuven",
+"ownerId": "usr_dieter",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "contracts",
-"planned": 2
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_25",
 "scope": "member",
-"ownerId": "usr_jeremy",
+"ownerId": "usr_ebrahim",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "outreaches",
@@ -227,7 +227,7 @@
 {
 "id": "goal_26",
 "scope": "member",
-"ownerId": "usr_jeremy",
+"ownerId": "usr_ebrahim",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "meetings",
@@ -236,7 +236,7 @@
 {
 "id": "goal_27",
 "scope": "member",
-"ownerId": "usr_jeremy",
+"ownerId": "usr_ebrahim",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "contracts",
@@ -245,89 +245,89 @@
 {
 "id": "goal_28",
 "scope": "member",
-"ownerId": "usr_kobe",
-"lcId": "lc_ghent",
+"ownerId": "usr_ebrahim",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_29",
 "scope": "member",
-"ownerId": "usr_kobe",
-"lcId": "lc_ghent",
+"ownerId": "usr_felix",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "outreaches",
+"planned": 200
 },
 {
 "id": "goal_30",
 "scope": "member",
-"ownerId": "usr_kobe",
-"lcId": "lc_ghent",
+"ownerId": "usr_felix",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "contracts",
-"planned": 2
+"metric": "meetings",
+"planned": 10
 },
 {
 "id": "goal_31",
 "scope": "member",
-"ownerId": "usr_linda",
-"lcId": "lc_ghent",
+"ownerId": "usr_felix",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "contracts",
+"planned": 2
 },
 {
 "id": "goal_32",
 "scope": "member",
-"ownerId": "usr_linda",
-"lcId": "lc_ghent",
+"ownerId": "usr_felix",
+"lcId": "lc_leuven",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_33",
 "scope": "member",
-"ownerId": "usr_linda",
-"lcId": "lc_ghent",
-"period": "2026-S1",
-"metric": "contracts",
-"planned": 2
-},
-{
-"id": "goal_34",
-"scope": "member",
-"ownerId": "usr_mariia",
+"ownerId": "usr_jeremy",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
 },
 {
-"id": "goal_35",
+"id": "goal_34",
 "scope": "member",
-"ownerId": "usr_mariia",
+"ownerId": "usr_jeremy",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "meetings",
 "planned": 10
 },
 {
-"id": "goal_36",
+"id": "goal_35",
 "scope": "member",
-"ownerId": "usr_mariia",
+"ownerId": "usr_jeremy",
 "lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 2
 },
 {
+"id": "goal_36",
+"scope": "member",
+"ownerId": "usr_jeremy",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
 "id": "goal_37",
 "scope": "member",
-"ownerId": "usr_marit",
-"lcId": "lc_antwerp",
+"ownerId": "usr_kobe",
+"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
@@ -335,8 +335,8 @@
 {
 "id": "goal_38",
 "scope": "member",
-"ownerId": "usr_marit",
-"lcId": "lc_antwerp",
+"ownerId": "usr_kobe",
+"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "meetings",
 "planned": 10
@@ -344,8 +344,8 @@
 {
 "id": "goal_39",
 "scope": "member",
-"ownerId": "usr_marit",
-"lcId": "lc_antwerp",
+"ownerId": "usr_kobe",
+"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 2
@@ -353,89 +353,89 @@
 {
 "id": "goal_40",
 "scope": "member",
-"ownerId": "usr_nazar",
-"lcId": "lc_antwerp",
+"ownerId": "usr_kobe",
+"lcId": "lc_ghent",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_41",
 "scope": "member",
-"ownerId": "usr_nazar",
-"lcId": "lc_antwerp",
+"ownerId": "usr_linda",
+"lcId": "lc_ghent",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "outreaches",
+"planned": 200
 },
 {
 "id": "goal_42",
 "scope": "member",
-"ownerId": "usr_nazar",
-"lcId": "lc_antwerp",
+"ownerId": "usr_linda",
+"lcId": "lc_ghent",
 "period": "2026-S1",
-"metric": "contracts",
-"planned": 2
+"metric": "meetings",
+"planned": 10
 },
 {
 "id": "goal_43",
 "scope": "member",
-"ownerId": "usr_nico",
-"lcId": "lc_antwerp",
+"ownerId": "usr_linda",
+"lcId": "lc_ghent",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "contracts",
+"planned": 2
 },
 {
 "id": "goal_44",
 "scope": "member",
-"ownerId": "usr_nico",
-"lcId": "lc_antwerp",
+"ownerId": "usr_linda",
+"lcId": "lc_ghent",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_45",
 "scope": "member",
-"ownerId": "usr_nico",
-"lcId": "lc_antwerp",
-"period": "2026-S1",
-"metric": "contracts",
-"planned": 2
-},
-{
-"id": "goal_46",
-"scope": "member",
-"ownerId": "usr_pavlos",
-"lcId": "lc_ghent",
+"ownerId": "usr_mariia",
+"lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
 },
 {
-"id": "goal_47",
+"id": "goal_46",
 "scope": "member",
-"ownerId": "usr_pavlos",
-"lcId": "lc_ghent",
+"ownerId": "usr_mariia",
+"lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "meetings",
 "planned": 10
 },
 {
-"id": "goal_48",
+"id": "goal_47",
 "scope": "member",
-"ownerId": "usr_pavlos",
-"lcId": "lc_ghent",
+"ownerId": "usr_mariia",
+"lcId": "lc_leuven",
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 2
 },
 {
+"id": "goal_48",
+"scope": "member",
+"ownerId": "usr_mariia",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
 "id": "goal_49",
 "scope": "member",
-"ownerId": "usr_pratyksshi",
-"lcId": "lc_leuven",
+"ownerId": "usr_marit",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
@@ -443,8 +443,8 @@
 {
 "id": "goal_50",
 "scope": "member",
-"ownerId": "usr_pratyksshi",
-"lcId": "lc_leuven",
+"ownerId": "usr_marit",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
 "metric": "meetings",
 "planned": 10
@@ -452,8 +452,8 @@
 {
 "id": "goal_51",
 "scope": "member",
-"ownerId": "usr_pratyksshi",
-"lcId": "lc_leuven",
+"ownerId": "usr_marit",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 2
@@ -461,89 +461,89 @@
 {
 "id": "goal_52",
 "scope": "member",
-"ownerId": "usr_rayhan",
-"lcId": "lc_leuven",
+"ownerId": "usr_marit",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_53",
 "scope": "member",
-"ownerId": "usr_rayhan",
-"lcId": "lc_leuven",
+"ownerId": "usr_nazar",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "outreaches",
+"planned": 200
 },
 {
 "id": "goal_54",
 "scope": "member",
-"ownerId": "usr_rayhan",
-"lcId": "lc_leuven",
+"ownerId": "usr_nazar",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "contracts",
-"planned": 2
+"metric": "meetings",
+"planned": 10
 },
 {
 "id": "goal_55",
 "scope": "member",
-"ownerId": "usr_roxy",
+"ownerId": "usr_nazar",
 "lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "outreaches",
-"planned": 200
+"metric": "contracts",
+"planned": 2
 },
 {
 "id": "goal_56",
 "scope": "member",
-"ownerId": "usr_roxy",
+"ownerId": "usr_nazar",
 "lcId": "lc_antwerp",
 "period": "2026-S1",
-"metric": "meetings",
-"planned": 10
+"metric": "revenue",
+"planned": 20000
 },
 {
 "id": "goal_57",
 "scope": "member",
-"ownerId": "usr_roxy",
+"ownerId": "usr_nico",
 "lcId": "lc_antwerp",
-"period": "2026-S1",
-"metric": "contracts",
-"planned": 2
-},
-{
-"id": "goal_58",
-"scope": "member",
-"ownerId": "usr_tijs",
-"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
 },
 {
-"id": "goal_59",
+"id": "goal_58",
 "scope": "member",
-"ownerId": "usr_tijs",
-"lcId": "lc_ghent",
+"ownerId": "usr_nico",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
 "metric": "meetings",
 "planned": 10
 },
 {
-"id": "goal_60",
+"id": "goal_59",
 "scope": "member",
-"ownerId": "usr_tijs",
-"lcId": "lc_ghent",
+"ownerId": "usr_nico",
+"lcId": "lc_antwerp",
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 2
 },
 {
+"id": "goal_60",
+"scope": "member",
+"ownerId": "usr_nico",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
 "id": "goal_61",
 "scope": "member",
-"ownerId": "usr_yodi",
-"lcId": "lc_leuven",
+"ownerId": "usr_pavlos",
+"lcId": "lc_ghent",
 "period": "2026-S1",
 "metric": "outreaches",
 "planned": 200
@@ -551,6 +551,186 @@
 {
 "id": "goal_62",
 "scope": "member",
+"ownerId": "usr_pavlos",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_63",
+"scope": "member",
+"ownerId": "usr_pavlos",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "contracts",
+"planned": 2
+},
+{
+"id": "goal_64",
+"scope": "member",
+"ownerId": "usr_pavlos",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_65",
+"scope": "member",
+"ownerId": "usr_pratyksshi",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_66",
+"scope": "member",
+"ownerId": "usr_pratyksshi",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_67",
+"scope": "member",
+"ownerId": "usr_pratyksshi",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "contracts",
+"planned": 2
+},
+{
+"id": "goal_68",
+"scope": "member",
+"ownerId": "usr_pratyksshi",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_69",
+"scope": "member",
+"ownerId": "usr_rayhan",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_70",
+"scope": "member",
+"ownerId": "usr_rayhan",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_71",
+"scope": "member",
+"ownerId": "usr_rayhan",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "contracts",
+"planned": 2
+},
+{
+"id": "goal_72",
+"scope": "member",
+"ownerId": "usr_rayhan",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_73",
+"scope": "member",
+"ownerId": "usr_roxy",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_74",
+"scope": "member",
+"ownerId": "usr_roxy",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_75",
+"scope": "member",
+"ownerId": "usr_roxy",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "contracts",
+"planned": 2
+},
+{
+"id": "goal_76",
+"scope": "member",
+"ownerId": "usr_roxy",
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_77",
+"scope": "member",
+"ownerId": "usr_tijs",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_78",
+"scope": "member",
+"ownerId": "usr_tijs",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "meetings",
+"planned": 10
+},
+{
+"id": "goal_79",
+"scope": "member",
+"ownerId": "usr_tijs",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "contracts",
+"planned": 2
+},
+{
+"id": "goal_80",
+"scope": "member",
+"ownerId": "usr_tijs",
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_81",
+"scope": "member",
+"ownerId": "usr_yodi",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "outreaches",
+"planned": 200
+},
+{
+"id": "goal_82",
+"scope": "member",
 "ownerId": "usr_yodi",
 "lcId": "lc_leuven",
 "period": "2026-S1",
@@ -558,7 +738,7 @@
 "planned": 10
 },
 {
-"id": "goal_63",
+"id": "goal_83",
 "scope": "member",
 "ownerId": "usr_yodi",
 "lcId": "lc_leuven",
@@ -567,7 +747,16 @@
 "planned": 2
 },
 {
-"id": "goal_64",
+"id": "goal_84",
+"scope": "member",
+"ownerId": "usr_yodi",
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 20000
+},
+{
+"id": "goal_85",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_antwerp",
@@ -576,7 +765,7 @@
 "planned": 1200
 },
 {
-"id": "goal_65",
+"id": "goal_86",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_antwerp",
@@ -585,7 +774,7 @@
 "planned": 60
 },
 {
-"id": "goal_66",
+"id": "goal_87",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_antwerp",
@@ -594,7 +783,16 @@
 "planned": 12
 },
 {
-"id": "goal_67",
+"id": "goal_88",
+"scope": "lc",
+"ownerId": null,
+"lcId": "lc_antwerp",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 120000
+},
+{
+"id": "goal_89",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_leuven",
@@ -603,7 +801,7 @@
 "planned": 2000
 },
 {
-"id": "goal_68",
+"id": "goal_90",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_leuven",
@@ -612,7 +810,7 @@
 "planned": 100
 },
 {
-"id": "goal_69",
+"id": "goal_91",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_leuven",
@@ -621,7 +819,16 @@
 "planned": 20
 },
 {
-"id": "goal_70",
+"id": "goal_92",
+"scope": "lc",
+"ownerId": null,
+"lcId": "lc_leuven",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 200000
+},
+{
+"id": "goal_93",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_ghent",
@@ -630,7 +837,7 @@
 "planned": 1000
 },
 {
-"id": "goal_71",
+"id": "goal_94",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_ghent",
@@ -639,7 +846,7 @@
 "planned": 50
 },
 {
-"id": "goal_72",
+"id": "goal_95",
 "scope": "lc",
 "ownerId": null,
 "lcId": "lc_ghent",
@@ -648,7 +855,16 @@
 "planned": 10
 },
 {
-"id": "goal_73",
+"id": "goal_96",
+"scope": "lc",
+"ownerId": null,
+"lcId": "lc_ghent",
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 100000
+},
+{
+"id": "goal_97",
 "scope": "global",
 "ownerId": null,
 "lcId": null,
@@ -657,7 +873,7 @@
 "planned": 4200
 },
 {
-"id": "goal_74",
+"id": "goal_98",
 "scope": "global",
 "ownerId": null,
 "lcId": null,
@@ -666,12 +882,21 @@
 "planned": 210
 },
 {
-"id": "goal_75",
+"id": "goal_99",
 "scope": "global",
 "ownerId": null,
 "lcId": null,
 "period": "2026-S1",
 "metric": "contracts",
 "planned": 42
+},
+{
+"id": "goal_100",
+"scope": "global",
+"ownerId": null,
+"lcId": null,
+"period": "2026-S1",
+"metric": "revenue",
+"planned": 420000
 }
 ]

@@ -4,6 +4,11 @@ export function fmtNum(n: number): string {
   return n.toLocaleString('en-US')
 }
 
+export function fmtMoney(n: number): string {
+  if (Math.abs(n) >= 1000) return `€${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`
+  return `€${n.toLocaleString('en-US')}`
+}
+
 export function fmtPct(ratio: number, digits = 0): string {
   if (!isFinite(ratio)) return '—'
   return `${(ratio * 100).toFixed(digits)}%`

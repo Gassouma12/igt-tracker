@@ -128,12 +128,25 @@ export function performanceByLC(
   return performanceBy((o) => o.lcId, name, opps, activities, meetings)
 }
 
+// ---- revenue -------------------------------------------------------------
+export function revenue(opps: Opportunity[]): { receivable: number; received: number } {
+  let receivable = 0
+  let received = 0
+  for (const o of opps) {
+    const v = o.value ?? 0
+    if (o.revenueReceived) received += v
+    else if (o.status === 'Contract signed' || o.status === 'Contract sent') receivable += v
+  }
+  return { receivable, received }
+}
+
 // ---- goals ---------------------------------------------------------------
 export function actualFor(
   metric: GoalMetric, activities: Activity[], meetings: Meeting[], opps: Opportunity[],
 ): number {
   if (metric === 'outreaches') return totalOutreaches(activities)
   if (metric === 'meetings') return meetings.length
+  if (metric === 'revenue') return revenue(opps).received
   return opps.filter((o) => o.status === 'Contract signed').length
 }
 

@@ -3,8 +3,9 @@ import { Activity, CalendarCheck, Handshake, Target, TrendingUp } from 'lucide-r
 import { useScopedData } from './useScopedData'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { funnel, goalProgress, kpis, timeline } from '@/lib/metrics'
-import { fmtNum, fmtPct } from '@/lib/format'
+import { funnel, goalProgress, kpis, revenue, timeline } from '@/lib/metrics'
+import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
+import type { GoalMetric } from '@/data/types'
 import { availableMonths, inMonthRange } from '@/lib/dates'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, Progress, SectionTitle, StatCard } from '@/components/ui/primitives'
@@ -12,7 +13,8 @@ import { Dropdown } from '@/components/ui/Dropdown'
 import { MonthRange } from '@/components/ui/MonthRange'
 import { FunnelView, TimelineArea } from '@/components/charts/Charts'
 
-const METRIC_LABEL: Record<string, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed' }
+const METRIC_LABEL: Record<string, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed', revenue: 'Revenue received' }
+const goalVal = (m: GoalMetric, n: number) => (m === 'revenue' ? fmtMoney(n) : fmtNum(n))
 
 export default function Performance() {
   const user = useCurrentUser()
@@ -115,16 +117,26 @@ export default function Performance() {
         </Card>
         <Card>
           <SectionTitle title="Goal progress" subtitle="Targets vs done" />
+          <div className="mb-4 grid grid-cols-2 gap-2">
+            <div className="rounded-xl border border-line bg-bg-elev p-3">
+              <p className="text-xs text-ink-mute">Revenue received</p>
+              <p className="font-display text-xl font-bold text-success">{fmtMoney(revenue(sel.opps).received)}</p>
+            </div>
+            <div className="rounded-xl border border-line bg-bg-elev p-3">
+              <p className="text-xs text-ink-mute">Receivable (outstanding)</p>
+              <p className="font-display text-xl font-bold text-warning">{fmtMoney(revenue(sel.opps).receivable)}</p>
+            </div>
+          </div>
           <div className="space-y-4">
             {goalsWithActuals.length === 0 && <p className="text-sm text-ink-mute">No goals for this selection.</p>}
             {goalsWithActuals.map((g) => (
               <div key={g.metric}>
                 <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="flex items-center gap-1.5 text-ink-dim"><Target size={14} /> {METRIC_LABEL[g.metric] ?? g.metric}</span>
-                  <span className="text-ink-mute">{fmtNum(g.done)} / {fmtNum(g.planned)}</span>
+                  <span className="text-ink-mute">{goalVal(g.metric, g.done)} / {goalVal(g.metric, g.planned)}</span>
                 </div>
                 <Progress value={g.pct} tone={g.pct >= 1 ? 'success' : g.pct >= 0.5 ? 'brand' : 'warning'} />
-                <p className="mt-1 text-xs text-ink-mute">{fmtPct(g.pct)} achieved · gap {fmtNum(g.gap)}</p>
+                <p className="mt-1 text-xs text-ink-mute">{fmtPct(g.pct)} achieved · gap {goalVal(g.metric, g.gap)}</p>
               </div>
             ))}
           </div>

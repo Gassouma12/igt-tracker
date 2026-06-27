@@ -7,8 +7,10 @@ import { repo } from './repositories'
 import { supervisorsOf } from '@/lib/rbac'
 import type {
   Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
-  NotificationKind, Opportunity, OpportunityStatus, User,
+  GoalMetric, NotificationKind, Opportunity, OpportunityStatus, User,
 } from './types'
+
+const PERIOD = '2026-S1'
 
 function companyName(companyId: string): string {
   return db().companies.find((c) => c.id === companyId)?.name ?? 'company'
@@ -87,6 +89,7 @@ export async function createOpportunity(
   const opp: Opportunity = {
     id: newId('opp'), companyId: data.companyId, contactId: data.contactId ?? null,
     ownerId: actor.id, lcId: data.lcId, status: 'Prospect',
+    value: 0, revenueReceived: false,
     nextAction: null, nextActionDate: null,
     lastActivityAt: todayISO(), createdAt: todayISO(), updatedAt: todayISO(),
   }
@@ -131,11 +134,39 @@ export async function advanceStage(
   if (to === 'Contract signed') await notify(actor, opp, 'contract', 'signed a contract with')
 }
 
+export async function setDealValue(actor: User, opp: Opportunity, value: number): Promise<void> {
+  await repo.opportunities.update(opp.id, { value: Math.max(0, value), updatedAt: nowISO() })
+  await log(actor, 'opportunity', opp.id, `set ${companyName(opp.companyId)} deal value to €${Math.max(0, value)}`)
+}
+
+export async function setRevenueReceived(actor: User, opp: Opportunity, received: boolean): Promise<void> {
+  await repo.opportunities.update(opp.id, { revenueReceived: received, updatedAt: nowISO() })
+  await log(actor, 'opportunity', opp.id, `marked ${companyName(opp.companyId)} revenue ${received ? 'received' : 'outstanding'}`)
+}
+
 export async function scheduleFollowUp(
   actor: User, opp: Opportunity, nextActionDate: string, nextAction: string,
 ): Promise<void> {
   await repo.opportunities.update(opp.id, { nextAction, nextActionDate, updatedAt: nowISO() })
   await log(actor, 'opportunity', opp.id, `scheduled "${nextAction}" on ${nextActionDate} for ${companyName(opp.companyId)}`)
+}
+
+export async function setGoal(
+  actor: User, target: User, metric: GoalMetric, planned: number,
+): Promise<void> {
+  const existing = db().goals.find(
+    (g) => g.scope === 'member' && g.ownerId === target.id && g.metric === metric && g.period === PERIOD,
+  )
+  if (existing) {
+    if (existing.planned === planned) return
+    await repo.goals.update(existing.id, { planned })
+  } else {
+    await repo.goals.create({
+      id: newId('goal'), scope: 'member', ownerId: target.id, lcId: target.lcId,
+      period: PERIOD, metric, planned,
+    })
+  }
+  await log(actor, 'goal', target.id, `set ${target.name}'s ${metric} target to ${planned}`)
 }
 
 export async function updateUser(

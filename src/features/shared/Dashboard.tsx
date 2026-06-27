@@ -7,12 +7,13 @@ import { Activity, CalendarCheck, Handshake, Target, TrendingUp } from 'lucide-r
 import {
   conversions, funnel, goalProgress, kpis, performanceByLC, performanceByMember, timeline,
 } from '@/lib/metrics'
-import { fmtNum, fmtPct } from '@/lib/format'
+import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
 import { Card, Progress, SectionTitle, StatCard } from '@/components/ui/primitives'
 import { ConversionBars, FunnelView, RankingBars, TimelineArea } from '@/components/charts/Charts'
-import type { Activity as Act, Contract, Goal, LocalCommittee, Meeting, Opportunity, User } from '@/data/types'
+import type { Activity as Act, Contract, Goal, GoalMetric, LocalCommittee, Meeting, Opportunity, User } from '@/data/types'
 
-const METRIC_LABEL = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed' }
+const METRIC_LABEL: Record<GoalMetric, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed', revenue: 'Revenue received' }
+const goalVal = (m: GoalMetric, n: number) => (m === 'revenue' ? fmtMoney(n) : fmtNum(n))
 
 export interface DashboardProps {
   opps: Opportunity[]
@@ -72,10 +73,10 @@ export function Dashboard({
               <div key={g.metric}>
                 <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="flex items-center gap-1.5 text-ink-dim"><Target size={14} /> {METRIC_LABEL[g.metric]}</span>
-                  <span className="text-ink-mute">{fmtNum(g.done)} / {fmtNum(g.planned)}</span>
+                  <span className="text-ink-mute">{goalVal(g.metric, g.done)} / {goalVal(g.metric, g.planned)}</span>
                 </div>
                 <Progress value={g.pct} tone={g.pct >= 1 ? 'success' : g.pct >= 0.5 ? 'brand' : 'warning'} />
-                <p className="mt-1 text-xs text-ink-mute">{fmtPct(g.pct)} achieved · gap {fmtNum(g.gap)}</p>
+                <p className="mt-1 text-xs text-ink-mute">{fmtPct(g.pct)} achieved · gap {goalVal(g.metric, g.gap)}</p>
               </div>
             ))}
           </div>

@@ -6,7 +6,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useDB, todayISO } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import {
-  addMeeting, advanceStage, logActivity, scheduleFollowUp,
+  addMeeting, advanceStage, logActivity, scheduleFollowUp, setDealValue, setRevenueReceived,
 } from '@/data/actions'
 import { OPPORTUNITY_STATUSES, type ActivityType, type ActivityPhase, type ActivityOutcome } from '@/data/types'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -82,6 +82,29 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
                 <div className="flex h-10 items-center rounded-xl border border-line bg-bg-elev px-3 text-sm text-ink-dim">
                   {opp.nextAction ? `${opp.nextAction} · ${fmtDate(opp.nextActionDate)}` : '—'}
                 </div>
+              </Field>
+            </div>
+
+            {/* revenue */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Deal value (€)">
+                <Input
+                  type="number" min={0}
+                  key={opp.value}
+                  defaultValue={opp.value}
+                  onBlur={(e) => setDealValue(user, opp, Number(e.target.value) || 0)}
+                />
+              </Field>
+              <Field label="Revenue">
+                <button
+                  onClick={() => setRevenueReceived(user, opp, !opp.revenueReceived)}
+                  className={cn(
+                    'flex h-10 w-full items-center justify-between rounded-xl border px-3 text-sm transition',
+                    opp.revenueReceived ? 'border-success/40 bg-success/10 text-success' : 'border-line bg-bg-elev text-ink-dim hover:bg-surface-2',
+                  )}
+                >
+                  {opp.revenueReceived ? 'Received ✓' : 'Mark as received'}
+                </button>
               </Field>
             </div>
 
