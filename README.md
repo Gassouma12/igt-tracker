@@ -100,16 +100,25 @@ match these facts and logs the result in dev.
   timeline, meetings, personal performance; add company/contact/opportunity, log
   outreach, advance stage, schedule follow-ups, log meetings — all writing through the
   repositories and recording an audit trail.
-- **Global search** (scoped) and **derived notifications** (overdue follow-ups, upcoming
-  meetings, inactive opportunities).
+- **Global search** (scoped) and a **notification centre**: targeted, stored notifications
+  (a logged meeting or signed contract notifies the rep's supervisors up their LC chain
+  plus the MCVP) with unread state and click-to-locate (pulses the lead in the pipeline /
+  opens its detail), alongside derived reminders (overdue / upcoming / inactive).
+- **Revenue tracking** — per-deal value + received flag, split into receivable vs received,
+  with a `revenue` goal metric surfaced across dashboards, LC Goals and Performance.
+- **Goal-setting hierarchy** — LCVP sets members' targets, LCP sets LCVPs', MCVP sets LCVPs'.
+- **Tables** are sortable (click headers, stackable multi-column) across pipeline, companies,
+  activities and meetings; **pipelines** have a month-range filter and a numbers/charts
+  Summary view; **Performance** adds month-range plus per-member / per-LC filters by role.
+- Custom themed dropdowns, a drag-and-drop kanban with drop-target highlighting.
 
 Every page across all four roles is live (no stubs remain).
 
 ## Roadmap (next passes)
 
 - Supabase (DB / auth / storage) migration — the repository seam is in place.
-- Surfaced notifications inbox and reference content (value proposition, outreach tips).
-- Richer editing (edit company/contact details, manage LC goals in-app).
+- A full-page notifications inbox and reference content (value proposition, outreach tips).
+- Richer editing (edit company / contact details inline).
 
 > Notes: data is currently bundled (seed JSON) and persisted to `localStorage`; member →
 > LC assignment and goal targets are documented migration assumptions, editable once the
