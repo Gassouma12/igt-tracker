@@ -23,6 +23,8 @@ export type GoalMetric = 'outreaches' | 'meetings' | 'contracts' | 'revenue'
 export type GoalScope = 'member' | 'lc' | 'global'
 export type GoalCadence = 'weekly' | 'monthly' | 'semester'
 
+export type AccountStatus = 'pending' | 'approved' | 'rejected'
+
 export interface User {
   id: string
   name: string
@@ -32,6 +34,8 @@ export interface User {
   position: string
   teamLeadId: string | null
   active: boolean
+  phone?: string | null
+  status?: AccountStatus // missing => 'approved' (seeded users)
 }
 
 export interface LocalCommittee {

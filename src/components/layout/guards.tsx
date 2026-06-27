@@ -3,12 +3,15 @@ import type { ReactNode } from 'react'
 import type { Role } from '@/data/types'
 import { useCurrentUser } from '@/state/session'
 import { homePathFor } from '@/app/nav'
+import { AccountPending } from '@/features/auth/AccountPending'
 
-/** Redirects to /login when nobody is signed in. */
+/** Redirects to /login when nobody is signed in; gates unapproved accounts. */
 export function RequireAuth({ children }: { children: ReactNode }) {
   const user = useCurrentUser()
   const location = useLocation()
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  // Seeded users have no status field => treated as approved.
+  if ((user.status ?? 'approved') !== 'approved') return <AccountPending user={user} />
   return <>{children}</>
 }
 

@@ -11,6 +11,7 @@ const Login = lazy(() => import('@/features/auth/Login'))
 const GlobalDashboard = lazy(() => import('@/features/admin/GlobalDashboard'))
 const LCManagement = lazy(() => import('@/features/admin/LCManagement'))
 const UserManagement = lazy(() => import('@/features/admin/UserManagement'))
+const Approvals = lazy(() => import('@/features/admin/Approvals'))
 const Analytics = lazy(() => import('@/features/admin/Analytics'))
 const Settings = lazy(() => import('@/features/admin/Settings'))
 const LCOverview = lazy(() => import('@/features/lc/Overview'))
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/admin" element={guarded(['admin'], <GlobalDashboard />)} />
           <Route path="/admin/lcs" element={guarded(['admin'], <LCManagement />)} />
           <Route path="/admin/users" element={guarded(['admin'], <UserManagement />)} />
+          <Route path="/admin/approvals" element={guarded(['admin'], <Approvals />)} />
           <Route path="/admin/analytics" element={guarded(['admin'], <Analytics />)} />
           <Route path="/admin/settings" element={guarded(['admin'], <Settings />)} />
 

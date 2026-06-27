@@ -6,7 +6,7 @@ import { db, newId, nowISO, todayISO } from './store'
 import { repo } from './repositories'
 import { supervisorsOf } from '@/lib/rbac'
 import type {
-  Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
+  AccountStatus, Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
   GoalCadence, GoalMetric, NotificationKind, Opportunity, OpportunityStatus, User,
 } from './types'
 
@@ -207,6 +207,33 @@ export async function updateUser(
   await log(actor, 'user', userId, `updated ${before?.name ?? 'user'} (${field})`,
     String((before as Record<string, unknown> | undefined)?.[field] ?? ''),
     String((patch as Record<string, unknown>)[field] ?? ''))
+}
+
+/** Self-service account creation. New accounts start 'pending' admin approval. */
+export async function signUp(data: {
+  name: string; email: string; phone?: string; position?: string; lcId: string | null
+}): Promise<User> {
+  const user: User = {
+    id: newId('usr'), name: data.name.trim(), email: data.email.trim().toLowerCase(),
+    role: 'member', lcId: data.lcId, position: data.position?.trim() || 'Member',
+    teamLeadId: null, active: true, phone: data.phone?.trim() || null, status: 'pending',
+  }
+  await repo.users.create(user)
+  // Notify every admin (MCVP) that an account is awaiting approval.
+  for (const admin of db().users.filter((u) => u.role === 'admin' && u.active)) {
+    await repo.notifications.create({
+      id: newId('ntf'), recipientId: admin.id, actorId: user.id, opportunityId: null,
+      kind: 'goal', message: `${user.name} requested an account — approval needed`,
+      read: false, at: nowISO(),
+    })
+  }
+  return user
+}
+
+export async function setUserStatus(actor: User, userId: string, status: AccountStatus): Promise<void> {
+  const before = db().users.find((u) => u.id === userId)
+  await repo.users.update(userId, { status })
+  await log(actor, 'user', userId, `${status} account for ${before?.name ?? 'user'}`)
 }
 
 export async function addMeeting(

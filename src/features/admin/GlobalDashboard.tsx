@@ -4,6 +4,7 @@ import { useDB } from '@/data/store'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { Dashboard } from '@/features/shared/Dashboard'
+import { MeetingBreakdown } from '@/features/shared/MeetingBreakdown'
 import { useFilters } from '@/state/filters'
 
 export default function GlobalDashboard() {
@@ -65,6 +66,10 @@ export default function GlobalDashboard() {
           </>
         }
       />
+      <div className="mb-4">
+        <MeetingBreakdown opps={scoped.opps} meetings={scoped.meetings} users={users} />
+      </div>
+
       <Dashboard
         opps={scoped.opps}
         activities={scoped.activities}

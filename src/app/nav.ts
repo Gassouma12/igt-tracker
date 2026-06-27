@@ -1,6 +1,6 @@
 import {
   Activity, BarChart3, Briefcase, Building2, CalendarDays, FileText,
-  LayoutDashboard, Settings, Target, TrendingUp, UserSquare, Users, Workflow,
+  LayoutDashboard, Settings, ShieldCheck, Target, TrendingUp, UserSquare, Users, Workflow,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { Role } from '@/data/types'
@@ -16,6 +16,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin', label: 'Global Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/lcs', label: 'LC Management', icon: Building2 },
   { to: '/admin/users', label: 'User Management', icon: Users },
+  { to: '/admin/approvals', label: 'Approvals', icon: ShieldCheck },
   { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/me/performance', label: 'Performance', icon: TrendingUp },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
