@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BarChart3, LayoutGrid, Plus, Table as TableIcon } from 'lucide-react'
 import { useScopedData } from './useScopedData'
+import { useFocus } from '@/state/focus'
 import { OpportunityDialog } from './OpportunityDialog'
 import { AddOpportunityDialog } from './AddOpportunityDialog'
 import { useCurrentUser } from '@/state/session'
@@ -36,6 +37,18 @@ export default function MyPipeline() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
+  // When a notification focuses a lead, jump to the table, clear filters, then
+  // scroll to + pulse the row briefly.
+  const highlightId = useFocus((s) => s.highlightId)
+  const setHighlight = useFocus((s) => s.setHighlight)
+  useEffect(() => {
+    if (!highlightId) return
+    setView('table'); setStatusFilter(''); setFrom(''); setTo('')
+    const t1 = setTimeout(() => document.getElementById(`row-${highlightId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120)
+    const t2 = setTimeout(() => setHighlight(null), 3400)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [highlightId, setHighlight])
+
   const months = useMemo(() => availableMonths(activities.map((a) => a.date)), [activities])
 
   const ranged = useMemo(() => {
@@ -68,6 +81,12 @@ export default function MyPipeline() {
     activity: (o) => o.lastActivityAt ?? '',
     next: (o) => o.nextActionDate ?? '',
   })
+
+  // keep a focused (highlighted) lead at the top so it's always rendered/visible
+  const display = useMemo(() => {
+    const hit = highlightId && sorted.find((o) => o.id === highlightId)
+    return hit ? [hit, ...sorted.filter((o) => o.id !== highlightId)] : sorted
+  }, [sorted, highlightId])
 
   function onDrop(status: OpportunityStatus) {
     setOverCol(null)
@@ -183,11 +202,11 @@ export default function MyPipeline() {
               </TR>
             </THead>
             <TBody>
-              {sorted.slice(0, 200).map((o: Opportunity) => {
+              {display.slice(0, 200).map((o: Opportunity) => {
                 const c = companyById(o.companyId)
                 const ct = contactById(o.contactId)
                 return (
-                  <TR key={o.id} onClick={() => setOpenId(o.id)}>
+                  <TR key={o.id} id={`row-${o.id}`} className={cn(highlightId === o.id && 'row-pulse')} onClick={() => setOpenId(o.id)}>
                     <TD className="font-medium text-ink">{c?.name ?? '—'}</TD>
                     <TD>{ct?.name ?? '—'}</TD>
                     <TD><StatusBadge status={o.status} /></TD>

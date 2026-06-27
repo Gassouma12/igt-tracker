@@ -4,9 +4,10 @@
 
 import { db, newId, nowISO, todayISO } from './store'
 import { repo } from './repositories'
+import { supervisorsOf } from '@/lib/rbac'
 import type {
   Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
-  Opportunity, OpportunityStatus, User,
+  NotificationKind, Opportunity, OpportunityStatus, User,
 } from './types'
 
 function companyName(companyId: string): string {
@@ -21,6 +22,27 @@ async function log(
     id: newId('log'), actorId: actor.id, entity, entityId, action,
     from, to, at: nowISO(),
   })
+}
+
+/** Notify the actor's supervisors (LC chain above them) + MCVP of a win. */
+async function notify(actor: User, opp: Opportunity, kind: NotificationKind, verb: string) {
+  const company = companyName(opp.companyId)
+  for (const recipientId of supervisorsOf(actor, db().users)) {
+    await repo.notifications.create({
+      id: newId('ntf'), recipientId, actorId: actor.id, opportunityId: opp.id,
+      kind, message: `${actor.name} ${verb} ${company}`, read: false, at: nowISO(),
+    })
+  }
+}
+
+export async function markNotificationRead(id: string): Promise<void> {
+  await repo.notifications.update(id, { read: true })
+}
+
+export async function markAllNotificationsRead(recipientId: string): Promise<void> {
+  for (const n of db().notifications) {
+    if (n.recipientId === recipientId && !n.read) await repo.notifications.update(n.id, { read: true })
+  }
 }
 
 /** Status the opportunity should reach after a given activity (never downgrades). */
@@ -96,6 +118,7 @@ export async function logActivity(
   if (nextStatus !== opp.status) {
     await log(actor, 'opportunity', opp.id, `moved ${companyName(opp.companyId)}`, opp.status, nextStatus)
   }
+  if (data.type === 'Meeting') await notify(actor, opp, 'meeting', 'logged a meeting with')
   return activity
 }
 
@@ -105,6 +128,7 @@ export async function advanceStage(
   if (to === opp.status) return
   await repo.opportunities.update(opp.id, { status: to, updatedAt: nowISO() })
   await log(actor, 'opportunity', opp.id, `moved ${companyName(opp.companyId)}`, opp.status, to)
+  if (to === 'Contract signed') await notify(actor, opp, 'contract', 'signed a contract with')
 }
 
 export async function scheduleFollowUp(
@@ -139,4 +163,5 @@ export async function addMeeting(
     status: bump(opp.status, 'Meeting scheduled'),
   })
   await log(actor, 'meeting', opp.id, `logged meeting #${existing + 1} for ${companyName(opp.companyId)}`)
+  await notify(actor, opp, 'meeting', 'scheduled a meeting with')
 }

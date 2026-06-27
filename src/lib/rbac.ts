@@ -4,6 +4,22 @@
 
 import type { LocalCommittee, Opportunity, User } from '@/data/types'
 
+const RANK: Record<string, number> = { member: 0, lcvp: 1, lcp: 2, admin: 3 }
+
+/**
+ * Everyone who should be notified about a user's wins: all higher-ranked people
+ * in the same LC (their VPs and LCP), plus every MCVP (admin).
+ */
+export function supervisorsOf(user: User, allUsers: User[]): string[] {
+  const ids = new Set<string>()
+  for (const u of allUsers) {
+    if (u.id === user.id || !u.active) continue
+    if (u.role === 'admin') { ids.add(u.id); continue } // MCVP always
+    if (u.lcId && u.lcId === user.lcId && RANK[u.role] > RANK[user.role]) ids.add(u.id)
+  }
+  return [...ids]
+}
+
 export function canViewGlobalDashboard(user: User): boolean {
   return user.role === 'admin'
 }

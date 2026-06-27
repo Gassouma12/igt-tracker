@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BarChart3, Search, Table as TableIcon } from 'lucide-react'
 import { useLC } from './useLC'
+import { useFocus } from '@/state/focus'
 import { OpportunityDialog } from '@/features/member/OpportunityDialog'
 import { PipelineSummary } from '@/features/shared/PipelineSummary'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -24,6 +25,16 @@ export default function Pipeline() {
   const [to, setTo] = useState('')
   const [view, setView] = useState<'table' | 'summary'>('table')
   const [openId, setOpenId] = useState<string | null>(null)
+
+  const highlightId = useFocus((s) => s.highlightId)
+  const setHighlight = useFocus((s) => s.setHighlight)
+  useEffect(() => {
+    if (!highlightId) return
+    setView('table'); setOwner(''); setStatus(''); setQ(''); setFrom(''); setTo('')
+    const t1 = setTimeout(() => document.getElementById(`row-${highlightId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120)
+    const t2 = setTimeout(() => setHighlight(null), 3400)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [highlightId, setHighlight])
 
   const months = useMemo(() => availableMonths(activities.map((a) => a.date)), [activities])
 
@@ -54,6 +65,12 @@ export default function Pipeline() {
     activity: (o) => o.lastActivityAt ?? '',
     next: (o) => o.nextActionDate ?? '',
   })
+
+  // keep a focused (highlighted) lead at the top so it's always rendered/visible
+  const display = useMemo(() => {
+    const hit = highlightId && sorted.find((o) => o.id === highlightId)
+    return hit ? [hit, ...sorted.filter((o) => o.id !== highlightId)] : sorted
+  }, [sorted, highlightId])
 
   return (
     <div>
@@ -109,8 +126,8 @@ export default function Pipeline() {
               </TR>
             </THead>
             <TBody>
-              {sorted.slice(0, 300).map((o) => (
-                <TR key={o.id} onClick={() => setOpenId(o.id)}>
+              {display.slice(0, 300).map((o) => (
+                <TR key={o.id} id={`row-${o.id}`} className={cn(highlightId === o.id && 'row-pulse')} onClick={() => setOpenId(o.id)}>
                   <TD className="font-medium text-ink">{companyById(o.companyId)?.name ?? '—'}</TD>
                   <TD>
                     <span className="flex items-center gap-2">

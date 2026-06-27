@@ -126,6 +126,20 @@ export interface LogEntry {
   at: string
 }
 
+export type NotificationKind = 'meeting' | 'contract'
+
+/** Stored, targeted notification (vs the derived reminders in metrics.ts). */
+export interface Notification {
+  id: string
+  recipientId: string
+  actorId: string
+  opportunityId: string
+  kind: NotificationKind
+  message: string
+  read: boolean
+  at: string
+}
+
 export interface DB {
   users: User[]
   localCommittees: LocalCommittee[]
@@ -137,6 +151,7 @@ export interface DB {
   contracts: Contract[]
   goals: Goal[]
   activityLog: LogEntry[]
+  notifications: Notification[]
 }
 
 export type EntityKey = keyof DB

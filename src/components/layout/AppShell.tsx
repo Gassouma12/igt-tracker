@@ -3,9 +3,13 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { Spinner } from '@/components/ui/primitives'
+import { OpportunityDialog } from '@/features/member/OpportunityDialog'
+import { useFocus } from '@/state/focus'
 
 export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const dialogOppId = useFocus((s) => s.dialogOppId)
+  const closeLead = useFocus((s) => s.closeLead)
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -34,6 +38,9 @@ export function AppShell() {
           </div>
         </main>
       </div>
+
+      {/* Global lead detail — opened by notifications when there's no pipeline to jump to */}
+      <OpportunityDialog oppId={dialogOppId} onClose={closeLead} />
     </div>
   )
 }

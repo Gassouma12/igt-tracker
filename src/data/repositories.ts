@@ -42,4 +42,5 @@ export const repo = {
   contracts: makeRepo('contracts'),
   goals: makeRepo('goals'),
   activityLog: makeRepo('activityLog'),
+  notifications: makeRepo('notifications'),
 }

@@ -6,7 +6,7 @@
 import { create } from 'zustand'
 import type {
   Activity, Company, Contact, Contract, DB, Goal, LocalCommittee, LogEntry,
-  Meeting, Opportunity, User,
+  Meeting, Notification, Opportunity, User,
 } from './types'
 
 import users from './seed/users.json'
@@ -33,6 +33,7 @@ function seedDB(): DB {
     contracts: contracts as Contract[],
     goals: goals as Goal[],
     activityLog: [] as LogEntry[],
+    notifications: [] as Notification[],
   }
 }
 
@@ -48,7 +49,7 @@ function loadDB(): DB {
 
 const ENTITY_KEYS: (keyof DB)[] = [
   'users', 'localCommittees', 'companies', 'contacts', 'opportunities',
-  'activities', 'meetings', 'contracts', 'goals', 'activityLog',
+  'activities', 'meetings', 'contracts', 'goals', 'activityLog', 'notifications',
 ]
 
 function persist(db: DB) {

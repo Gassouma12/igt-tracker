@@ -27,9 +27,10 @@ export function TBody({ children }: { children: ReactNode }) {
   return <tbody className="divide-y divide-line">{children}</tbody>
 }
 
-export function TR({ children, className, onClick }: { children: ReactNode; className?: string; onClick?: () => void }) {
+export function TR({ children, className, onClick, id }: { children: ReactNode; className?: string; onClick?: () => void; id?: string }) {
   return (
     <tr
+      id={id}
       className={cn('transition hover:bg-surface-2/60', onClick && 'cursor-pointer', className)}
       onClick={onClick}
     >

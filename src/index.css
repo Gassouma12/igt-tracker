@@ -103,6 +103,21 @@ body::before {
   }
 }
 
+@keyframes row-pulse {
+  0%,
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  20% {
+    background-color: rgb(var(--brand-rgb) / 0.22);
+    box-shadow: inset 3px 0 0 0 var(--brand);
+  }
+}
+.row-pulse {
+  animation: row-pulse 1.6s ease-out 2;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

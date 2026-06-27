@@ -191,8 +191,8 @@ export function timeline(
   return [...map.values()].sort((a, b) => a.month.localeCompare(b.month))
 }
 
-// ---- notifications (derived, not stored) ---------------------------------
-export interface Notification {
+// ---- reminders (derived, not stored) -------------------------------------
+export interface Reminder {
   kind: 'overdue' | 'upcoming-meeting' | 'inactive'
   opportunityId: string
   label: string
@@ -201,10 +201,10 @@ export interface Notification {
 
 const INACTIVE_DAYS = 21
 
-export function notifications(
+export function reminders(
   opps: Opportunity[], meetings: Meeting[], today = new Date().toISOString().slice(0, 10),
-): Notification[] {
-  const out: Notification[] = []
+): Reminder[] {
+  const out: Reminder[] = []
   const t = new Date(today).getTime()
   const isOpen = (o: Opportunity) => o.status !== 'Contract signed' && o.status !== 'Lost'
 
