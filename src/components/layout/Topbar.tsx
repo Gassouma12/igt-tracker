@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { navFor, homePathFor } from '@/app/nav'
 import { useDB } from '@/data/store'
 import { useCurrentUser, useSession } from '@/state/session'
+import { useSupabaseAuth } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/primitives'
 import { GlobalSearch } from './GlobalSearch'
 import { NotificationBell } from './NotificationBell'
@@ -53,25 +54,29 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
                 <p className="text-xs text-ink-mute">{user.email}</p>
               </div>
               <div className="my-1 h-px bg-line" />
-              <p className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-mute">
-                <Repeat size={12} /> Switch identity (demo)
-              </p>
-              {DEMO_USERS.map((id) => {
-                const u = users.find((x) => x.id === id)
-                if (!u) return null
-                return (
-                  <Dropdown.Item
-                    key={id}
-                    onSelect={() => switchTo(id)}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-dim outline-none transition data-[highlighted]:bg-surface-2 data-[highlighted]:text-ink"
-                  >
-                    <Avatar name={u.name} size={24} />
-                    <span className="truncate">{u.name}</span>
-                    <span className="ml-auto text-[10px] uppercase text-ink-mute">{u.role}</span>
-                  </Dropdown.Item>
-                )
-              })}
-              <div className="my-1 h-px bg-line" />
+              {!useSupabaseAuth && (
+                <>
+                  <p className="flex items-center gap-2 px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-mute">
+                    <Repeat size={12} /> Switch identity (demo)
+                  </p>
+                  {DEMO_USERS.map((id) => {
+                    const u = users.find((x) => x.id === id)
+                    if (!u) return null
+                    return (
+                      <Dropdown.Item
+                        key={id}
+                        onSelect={() => switchTo(id)}
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-ink-dim outline-none transition data-[highlighted]:bg-surface-2 data-[highlighted]:text-ink"
+                      >
+                        <Avatar name={u.name} size={24} />
+                        <span className="truncate">{u.name}</span>
+                        <span className="ml-auto text-[10px] uppercase text-ink-mute">{u.role}</span>
+                      </Dropdown.Item>
+                    )
+                  })}
+                  <div className="my-1 h-px bg-line" />
+                </>
+              )}
               <Dropdown.Item
                 onSelect={() => { logout(); navigate('/login') }}
                 className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm text-danger outline-none transition data-[highlighted]:bg-danger/15"

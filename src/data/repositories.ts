@@ -77,9 +77,11 @@ export async function hydrateFromSupabase(): Promise<boolean> {
     keys.forEach((k, i) => {
       const { data, error } = results[i]
       if (error) throw error
-      ;(next as Record<string, unknown>)[k] = data ?? []
+      // Only replace a table when Supabase actually has rows — so an empty (not
+      // yet seeded) project keeps the bundled demo data instead of going blank.
+      if (data && data.length) (next as Record<string, unknown>)[k] = data
     })
-    useDB.getState().patch(next)
+    if (Object.keys(next).length) useDB.getState().patch(next)
     return true
   } catch (e) {
     console.error('[supabase] hydrate failed — staying on local data', e)

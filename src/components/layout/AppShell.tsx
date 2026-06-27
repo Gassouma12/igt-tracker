@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { Spinner } from '@/components/ui/primitives'
+import { Credits } from '@/components/ui/Brand'
 import { OpportunityDialog } from '@/features/member/OpportunityDialog'
 import { useFocus } from '@/state/focus'
 
@@ -35,6 +36,9 @@ export function AppShell() {
             <Suspense fallback={<Spinner />}>
               <Outlet />
             </Suspense>
+            <footer className="mt-8 border-t border-line pt-4 lg:hidden">
+              <Credits />
+            </footer>
           </div>
         </main>
       </div>

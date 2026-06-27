@@ -5,9 +5,10 @@
 import { db, newId, nowISO, todayISO } from './store'
 import { repo } from './repositories'
 import { supervisorsOf } from '@/lib/rbac'
+import { supabase, useSupabaseAuth } from '@/lib/supabase'
 import type {
   AccountStatus, Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
-  GoalCadence, GoalMetric, NotificationKind, Opportunity, OpportunityStatus, User,
+  GoalCadence, GoalMetric, NotificationKind, Opportunity, OpportunityStatus, Role, User,
 } from './types'
 
 function companyName(companyId: string): string {
@@ -209,13 +210,23 @@ export async function updateUser(
     String((patch as Record<string, unknown>)[field] ?? ''))
 }
 
-/** Self-service account creation. New accounts start 'pending' admin approval. */
+/** Self-service account creation. New accounts start 'pending' admin approval.
+ *  In real-auth mode this also creates the Supabase Auth user; the profile row
+ *  is keyed on the auth uid. */
 export async function signUp(data: {
   name: string; email: string; phone?: string; position?: string; lcId: string | null
+  role?: Role; password?: string
 }): Promise<User> {
+  const email = data.email.trim().toLowerCase()
+  let id = newId('usr')
+  if (useSupabaseAuth && supabase) {
+    const { data: auth, error } = await supabase.auth.signUp({ email, password: data.password ?? '' })
+    if (error) throw error
+    if (auth.user) id = auth.user.id
+  }
   const user: User = {
-    id: newId('usr'), name: data.name.trim(), email: data.email.trim().toLowerCase(),
-    role: 'member', lcId: data.lcId, position: data.position?.trim() || 'Member',
+    id, name: data.name.trim(), email,
+    role: data.role ?? 'member', lcId: data.lcId, position: data.position?.trim() || 'Member',
     teamLeadId: null, active: true, phone: data.phone?.trim() || null, status: 'pending',
   }
   await repo.users.create(user)
@@ -228,6 +239,13 @@ export async function signUp(data: {
     })
   }
   return user
+}
+
+/** Real-auth sign-in (no-op in mock mode — callers use useSession.login there). */
+export async function signInWithPassword(email: string, password: string): Promise<void> {
+  if (!useSupabaseAuth || !supabase) return
+  const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
+  if (error) throw error
 }
 
 export async function setUserStatus(actor: User, userId: string, status: AccountStatus): Promise<void> {

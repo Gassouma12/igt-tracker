@@ -32,41 +32,57 @@ UI (reads, reactive)
 - **`supabase/schema.sql`** — the exact data model. Columns are quoted camelCase
   so rows map 1:1 onto `src/data/types.ts` — no field-mapping layer.
 
-## Steps
+## Activation checklist (this project)
 
-### 1. Create a project
-[supabase.com](https://supabase.com) → New project. Note the **Project URL** and
-**anon public key** under *Settings → API*.
+`.env` is already filled in with the project URL + publishable key, so the DB is
+**linked** (the app hydrates from it; an empty DB keeps the bundled demo data).
+To go fully live — seeded data, real logins, realtime — do these in order:
 
-### 2. Create the database
-Open *SQL Editor* → paste `supabase/schema.sql` → **Run**. This creates all 11
-tables, indexes, FKs, the per-cadence unique goal index, and enables RLS with
-permissive starter policies.
+**1. Create the tables** — SQL Editor → run `supabase/schema.sql`.
 
-### 3. (Optional) Seed it with the migrated data
-The current demo data lives in `src/data/seed/*.json`. Quick load:
-```sql
--- In SQL editor, for each table, paste rows. Or script it:
--- node scripts/seed-supabase.mjs   (write this using @supabase/supabase-js
--- service-role key + the JSON files; insert in FK order: local_committees,
--- users, companies, contacts, opportunities, activities, meetings, contracts,
--- goals). Keys match column names, so it's a direct insert.
-```
+**2. Seed the data** — SQL Editor → run `supabase/seed.sql` (auto-generated from
+the migrated spreadsheet; regenerate with `node scripts/gen-seed-sql.mjs`). This
+loads the 3 LCs, users, ~companies/opportunities/activities/meetings/contracts.
+> The publishable (anon) key **can't** insert (RLS) — that's why seeding goes
+> through the SQL editor, which bypasses RLS.
 
-### 4. Point the app at it
+**3. Enable realtime** — SQL Editor → run `supabase/realtime.sql` (adds the tables
+to the `supabase_realtime` publication). The app already subscribes on startup.
+
+**4. Upload the images** to the `images` bucket. Either drag `src/images/bg.png`
+and `gem.png` into the bucket in the dashboard, **or**:
 ```bash
-cp .env.example .env
-# fill in:
-VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
-npm run dev
+SUPABASE_SERVICE_ROLE_KEY=<service_role key> node scripts/upload-images.mjs
 ```
-On boot the app calls `hydrateFromSupabase()` and shows live data; writes mirror
-to Postgres. With env unset it stays on mock data.
+(The anon key can't upload — needs the service role key from *Settings → API*.)
+> The app currently bundles these images, so it looks right regardless; this step
+> is only if you want them served from the bucket.
 
-> For GitHub Pages, add the two vars as repository **Actions secrets** and expose
-> them to the build step in `.github/workflows/deploy.yml`
+**5. Turn on real auth.** In *Authentication → Providers → Email*, **disable
+"Confirm email"** (so sign-up logs the user straight into the pending screen).
+Then in `.env` set `VITE_USE_SUPABASE_AUTH=true` and restart `npm run dev`.
+
+**6. Bootstrap the first admin.** Sign up once via the app (it lands on the
+pending screen), then in SQL Editor:
+```sql
+update users set role = 'admin', status = 'approved' where email = 'you@aiesec.be';
+```
+Re-open the app — you now have the **Approvals** tab to approve everyone else.
+
+> **GitHub Pages:** add `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (and
+> `VITE_USE_SUPABASE_AUTH`) as repository **Actions secrets**, and pass them to
+> the build step in `.github/workflows/deploy.yml`
 > (`env: VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}` …).
+
+## What's wired in code
+
+- **Link + load**: `src/lib/supabase.ts` (client), `hydrateFromSupabase()` in
+  `repositories.ts` (loads tables on startup; keeps seed if a table is empty).
+- **Write-through**: every `repo.*.create/update/remove` mirrors to Postgres.
+- **Realtime**: `src/data/realtime.ts` subscribes to all tables and patches the
+  store, so an LCVP and a member see each other's changes live.
+- **Auth**: `signUp` / `signInWithPassword` in `actions.ts`, session sync in
+  `state/session.ts` — all behind `useSupabaseAuth` (the env flag).
 
 ## Auth & RLS (next step, when you want real logins)
 

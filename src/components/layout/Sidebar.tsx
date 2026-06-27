@@ -1,8 +1,8 @@
 import { NavLink } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
 import { navFor } from '@/app/nav'
 import { useCurrentUser } from '@/state/session'
 import { Avatar } from '@/components/ui/primitives'
+import { BrandMark, Credits } from '@/components/ui/Brand'
 import { cn } from '@/lib/cn'
 
 const ROLE_LABEL: Record<string, string> = {
@@ -17,9 +17,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col gap-2 border-r border-line bg-bg-elev/70 px-3 py-5">
       <div className="flex items-center gap-2.5 px-2 pb-4">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white shadow-glow">
-          <Sparkles size={18} />
-        </span>
+        <BrandMark size={36} />
         <div className="leading-tight">
           <p className="font-display text-sm font-bold text-ink">iGT Sales</p>
           <p className="text-[11px] text-ink-mute">AIESEC in Belgium</p>
@@ -60,6 +58,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <p className="truncate text-[11px] text-ink-mute">{ROLE_LABEL[user.role]}</p>
         </div>
       </div>
+      <Credits className="mt-2" />
     </aside>
   )
 }

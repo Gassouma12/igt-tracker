@@ -4,6 +4,7 @@
 import { Clock, LogOut, Mail, RefreshCw, ShieldX } from 'lucide-react'
 import { useSession } from '@/state/session'
 import { Button } from '@/components/ui/primitives'
+import { Credits } from '@/components/ui/Brand'
 import type { User } from '@/data/types'
 
 const CONTACT = 'kacem@aiesec.be'
@@ -42,6 +43,8 @@ export function AccountPending({ user }: { user: User }) {
             <LogOut size={15} /> Sign out
           </Button>
         </div>
+
+        <Credits className="mt-6" />
       </div>
     </div>
   )

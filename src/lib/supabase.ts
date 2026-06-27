@@ -13,6 +13,11 @@ const anonKey = env.VITE_SUPABASE_ANON_KEY
 export const isSupabaseConfigured = Boolean(url && anonKey)
 export const supabase: SupabaseClient | null = isSupabaseConfigured ? createClient(url!, anonKey!) : null
 
+// Real Supabase Auth (email + password) is opt-in: only when the DB is linked
+// AND this flag is on. Lets you link the DB first, then flip to real logins once
+// the data is seeded and an admin is bootstrapped (see SUPABASE.md).
+export const useSupabaseAuth = isSupabaseConfigured && env.VITE_USE_SUPABASE_AUTH === 'true'
+
 // Postgres table per store entity. Columns are named EXACTLY like the TypeScript
 // fields (quoted camelCase in the schema), so rows map 1:1 onto the entities and
 // no field-renaming layer is needed.
