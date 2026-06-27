@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { LayoutGrid, Plus, Table as TableIcon } from 'lucide-react'
+import { BarChart3, LayoutGrid, Plus, Table as TableIcon } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { OpportunityDialog } from './OpportunityDialog'
 import { AddOpportunityDialog } from './AddOpportunityDialog'
@@ -12,32 +12,52 @@ import { Button } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { Dropdown } from '@/components/ui/Dropdown'
+import { MonthRange } from '@/components/ui/MonthRange'
+import { PipelineSummary } from '@/features/shared/PipelineSummary'
 import { fmtDate, relativeDays } from '@/lib/format'
+import { availableMonths, inMonthRange } from '@/lib/dates'
 import { useFilters } from '@/state/filters'
 import { useSort } from '@/lib/useSort'
 import { cn } from '@/lib/cn'
 
 const COLUMNS: OpportunityStatus[] = [...FUNNEL, 'Lost']
+type View = 'board' | 'table' | 'summary'
 
 export default function MyPipeline() {
   const user = useCurrentUser()
-  const { opportunities, companyById, contactById } = useScopedData()
+  const { opportunities, activities, meetings, contracts, companyById, contactById } = useScopedData()
   const search = useFilters((s) => s.search)
-  const [view, setView] = useState<'board' | 'table'>('board')
+  const [view, setView] = useState<View>('board')
   const [statusFilter, setStatusFilter] = useState<OpportunityStatus | ''>('')
   const [openId, setOpenId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const [overCol, setOverCol] = useState<OpportunityStatus | null>(null)
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+
+  const months = useMemo(() => availableMonths(activities.map((a) => a.date)), [activities])
+
+  const ranged = useMemo(() => {
+    if (!from && !to) return { opps: opportunities, acts: activities, mtgs: meetings, cons: contracts }
+    const opps = opportunities.filter((o) => inMonthRange(o.lastActivityAt, from, to) || inMonthRange(o.createdAt, from, to))
+    const ids = new Set(opps.map((o) => o.id))
+    return {
+      opps,
+      acts: activities.filter((a) => ids.has(a.opportunityId) && inMonthRange(a.date, from, to)),
+      mtgs: meetings.filter((m) => ids.has(m.opportunityId) && inMonthRange(m.date, from, to)),
+      cons: contracts.filter((c) => ids.has(c.opportunityId)),
+    }
+  }, [opportunities, activities, meetings, contracts, from, to])
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
-    return opportunities.filter((o) => {
+    return ranged.opps.filter((o) => {
       if (statusFilter && o.status !== statusFilter) return false
-      if (term && !(companyById(o.companyId)?.name.toLowerCase().includes(term))) return false
+      if (term && !companyById(o.companyId)?.name.toLowerCase().includes(term)) return false
       return true
     })
-  }, [opportunities, statusFilter, search, companyById])
+  }, [ranged, statusFilter, search, companyById])
 
   const byStatus = (s: OpportunityStatus) => filtered.filter((o) => o.status === s)
 
@@ -56,26 +76,35 @@ export default function MyPipeline() {
     if (opp && opp.status !== status) advanceStage(user, opp, status)
     setDragId(null)
   }
-
   const dragStatus = dragId ? opportunities.find((o) => o.id === dragId)?.status : null
+
+  const VIEWS: { id: View; icon: typeof LayoutGrid }[] = [
+    { id: 'board', icon: LayoutGrid }, { id: 'table', icon: TableIcon }, { id: 'summary', icon: BarChart3 },
+  ]
 
   return (
     <div>
       <PageHeader
         title="My Pipeline"
-        subtitle={`${filtered.length} opportunities${search ? ` · filtered by “${search}”` : ''}`}
+        subtitle={`${filtered.length} opportunities${search ? ` · “${search}”` : ''}${from || to ? ' · date-filtered' : ''}`}
         actions={
           <>
+            <MonthRange months={months} from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
             <div className="flex overflow-hidden rounded-xl border border-line">
-              <button onClick={() => setView('board')} className={`grid h-10 w-10 place-items-center ${view === 'board' ? 'bg-surface-2 text-ink' : 'text-ink-mute'}`}><LayoutGrid size={16} /></button>
-              <button onClick={() => setView('table')} className={`grid h-10 w-10 place-items-center ${view === 'table' ? 'bg-surface-2 text-ink' : 'text-ink-mute'}`}><TableIcon size={16} /></button>
+              {VIEWS.map((v) => (
+                <button key={v.id} onClick={() => setView(v.id)} className={cn('grid h-10 w-10 place-items-center transition', view === v.id ? 'bg-surface-2 text-ink' : 'text-ink-mute hover:text-ink')}>
+                  <v.icon size={16} />
+                </button>
+              ))}
             </div>
             <Button onClick={() => setAdding(true)}><Plus size={16} /> New opportunity</Button>
           </>
         }
       />
 
-      {view === 'board' ? (
+      {view === 'summary' ? (
+        <PipelineSummary opps={ranged.opps} activities={ranged.acts} meetings={ranged.mtgs} contracts={ranged.cons} />
+      ) : view === 'board' ? (
         <div className="flex gap-3 overflow-x-auto pb-4">
           {COLUMNS.map((status) => {
             const items = byStatus(status)

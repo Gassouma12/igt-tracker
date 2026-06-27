@@ -17,6 +17,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/lcs', label: 'LC Management', icon: Building2 },
   { to: '/admin/users', label: 'User Management', icon: Users },
   { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/me/performance', label: 'Performance', icon: TrendingUp },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -25,6 +26,7 @@ const LC_NAV: NavItem[] = [
   { to: '/lc/pipeline', label: 'Pipeline', icon: Workflow },
   { to: '/lc/team', label: 'Team', icon: Users },
   { to: '/lc/goals', label: 'Goals', icon: Target },
+  { to: '/me/performance', label: 'Performance', icon: TrendingUp },
   { to: '/lc/reports', label: 'Reports', icon: FileText },
 ]
 

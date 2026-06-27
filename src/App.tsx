@@ -57,7 +57,7 @@ export default function App() {
           <Route path="/me/companies" element={guarded(['member', 'lcp', 'lcvp'], <Companies />)} />
           <Route path="/me/activities" element={guarded(['member', 'lcp', 'lcvp'], <Activities />)} />
           <Route path="/me/meetings" element={guarded(['member', 'lcp', 'lcvp'], <Meetings />)} />
-          <Route path="/me/performance" element={guarded(['member', 'lcp', 'lcvp'], <Performance />)} />
+          <Route path="/me/performance" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Performance />)} />
         </Route>
 
         <Route path="*" element={<RootRedirect />} />
