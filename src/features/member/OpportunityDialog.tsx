@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/primitives'
 import { Field, Input, Textarea } from '@/components/ui/Field'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { LinkedInLink } from '@/components/ui/LinkedInLink'
+import { CompanyPanelButtons } from './CompanyPanels'
 import { fmtDate, fmtMoney, relativeDays } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
@@ -56,7 +57,7 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
   async function logInteraction() {
     if (!user) return
     const date = intDate || todayISO()
-    if (type === 'Meeting') await addMeeting(user, opp!, { date })
+    if (type === 'Meeting') await addMeeting(user, opp!, { date, notes })
     else await logActivity(user, opp!, { type, phase, outcome, notes, date })
     setNotes(''); setIntDate('')
   }
@@ -75,11 +76,12 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
                   <><LinkedInLink url={contact.linkedin} size={13} />{contact.name}{contact.role ? ` · ${contact.role}` : ''}</>
                 ) : 'No contact yet'}
               </p>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <StatusBadge status={opp.status} />
                 {!canEdit && (
                   <span className="chip bg-surface-2 text-ink-mute"><Eye size={12} /> View only</span>
                 )}
+                <CompanyPanelButtons companyId={opp.companyId} />
               </div>
             </div>
             <Dialog.Close className="rounded-lg p-1 text-ink-mute transition hover:bg-surface-2 hover:text-ink"><X size={18} /></Dialog.Close>
@@ -163,9 +165,13 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
                     </>
                   )}
                 </div>
-                {!isMeeting && (
-                  <div className="mt-3"><Textarea placeholder="Notes (optional)…" value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
-                )}
+                <div className="mt-3">
+                  <Textarea
+                    placeholder={isMeeting ? 'Meeting notes — what was discussed, their interest, next steps…' : 'Notes (optional)…'}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
                 <div className="mt-3 flex justify-end">
                   <Button size="sm" onClick={logInteraction}>{isMeeting ? 'Log meeting' : 'Log interaction'}</Button>
                 </div>

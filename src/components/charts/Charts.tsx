@@ -1,6 +1,6 @@
 import {
   Area, AreaChart, Bar, BarChart, Cell, Funnel, FunnelChart, LabelList,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import type { OpportunityStatus } from '@/data/types'
 import { STATUS_STYLE } from '@/components/ui/StatusBadge'
@@ -135,6 +135,66 @@ export function TimelineArea({ data }: { data: { month: string; outreaches: numb
         <Area type="monotone" dataKey="outreaches" stroke="var(--brand)" strokeWidth={2} fill="url(#gOut)" isAnimationActive={false} />
         <Area type="monotone" dataKey="meetings" stroke="var(--accent)" strokeWidth={2} fill="url(#gMeet)" isAnimationActive={false} />
       </AreaChart>
+    </ResponsiveContainer>
+  )
+}
+
+// ---- Pie breakdown -------------------------------------------------------
+export function PieBreakdown({ data }: { data: { name: string; value: number; color: string }[] }) {
+  const shown = data.filter((d) => d.value > 0)
+  const total = shown.reduce((a, b) => a + b.value, 0) || 1
+  return (
+    <div className="flex flex-col items-center gap-3 sm:flex-row">
+      <ResponsiveContainer width="100%" height={220}>
+        <PieChart>
+          <Pie data={shown} dataKey="value" nameKey="name" innerRadius={48} outerRadius={84} paddingAngle={2} isAnimationActive={false} stroke="none">
+            {shown.map((d) => <Cell key={d.name} fill={d.color} />)}
+          </Pie>
+          <Tooltip
+            content={({ active, payload }) =>
+              active && payload?.length ? (
+                <TipBox>
+                  <p className="font-medium text-ink">{payload[0].payload.name}</p>
+                  <p className="text-ink-dim">{fmtNum(Number(payload[0].value))} · {fmtPct(Number(payload[0].value) / total, 1)}</p>
+                </TipBox>
+              ) : null
+            }
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <ul className="w-full space-y-1.5 sm:w-48">
+        {shown.map((d) => (
+          <li key={d.name} className="flex items-center gap-2 text-sm">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: d.color }} />
+            <span className="flex-1 truncate text-ink-dim">{d.name}</span>
+            <span className="text-ink-mute">{fmtPct(d.value / total, 0)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ---- Histogram (vertical bars) ------------------------------------------
+export function Histogram({ data, color = 'var(--brand)' }: { data: { label: string; value: number }[]; color?: string }) {
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <XAxis dataKey="label" tick={AXIS} interval={0} angle={-18} textAnchor="end" height={56} stroke={GRID} />
+        <YAxis tick={AXIS} stroke={GRID} allowDecimals={false} />
+        <Tooltip
+          cursor={{ fill: 'var(--surface-2)' }}
+          content={({ active, payload, label }) =>
+            active && payload?.length ? (
+              <TipBox>
+                <p className="font-medium text-ink">{label}</p>
+                <p className="text-ink-dim">{fmtNum(Number(payload[0].value))}</p>
+              </TipBox>
+            ) : null
+          }
+        />
+        <Bar dataKey="value" radius={[6, 6, 0, 0]} fill={color} isAnimationActive={false} />
+      </BarChart>
     </ResponsiveContainer>
   )
 }

@@ -1,6 +1,6 @@
 import {
   Activity, BarChart3, Briefcase, Building2, CalendarDays, FileText,
-  LayoutDashboard, Settings, Target, TrendingUp, Users, Workflow,
+  LayoutDashboard, Settings, Target, TrendingUp, UserSquare, Users, Workflow,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { Role } from '@/data/types'
@@ -23,7 +23,8 @@ const ADMIN_NAV: NavItem[] = [
 
 const LC_NAV: NavItem[] = [
   { to: '/lc', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/lc/pipeline', label: 'Pipeline', icon: Workflow },
+  { to: '/lc/pipeline', label: 'LC Pipeline', icon: Workflow },
+  { to: '/me', label: 'My Pipeline', icon: UserSquare, end: true },
   { to: '/lc/team', label: 'Team', icon: Users },
   { to: '/lc/goals', label: 'Goals', icon: Target },
   { to: '/me/performance', label: 'Performance', icon: TrendingUp },

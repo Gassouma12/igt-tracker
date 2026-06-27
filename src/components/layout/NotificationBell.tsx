@@ -1,5 +1,5 @@
 import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { AlarmClock, Bell, CalendarClock, CheckCheck, Handshake, Moon, Target, Users } from 'lucide-react'
+import { AlarmClock, BadgeEuro, Bell, CalendarClock, CheckCheck, Handshake, Moon, Target, Users } from 'lucide-react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDB } from '@/data/store'
@@ -87,8 +87,8 @@ export function NotificationBell() {
           )}
 
           {myNotifs.map((n) => {
-            const Icon = n.kind === 'contract' ? Handshake : n.kind === 'goal' ? Target : Users
-            const tone = n.kind === 'contract' ? 'text-success' : n.kind === 'goal' ? 'text-brand' : 'text-info'
+            const Icon = n.kind === 'contract' ? Handshake : n.kind === 'goal' ? Target : n.kind === 'revenue' ? BadgeEuro : Users
+            const tone = n.kind === 'contract' ? 'text-success' : n.kind === 'goal' ? 'text-brand' : n.kind === 'revenue' ? 'text-success' : 'text-info'
             return (
               <Dropdown.Item
                 key={n.id}

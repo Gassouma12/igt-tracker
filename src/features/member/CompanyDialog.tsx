@@ -8,6 +8,7 @@ import { visibleOwnerIds } from '@/lib/rbac'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Field, Input } from '@/components/ui/Field'
 import { LinkedInLink } from '@/components/ui/LinkedInLink'
+import { CompanyPanelButtons } from './CompanyPanels'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { relativeDays } from '@/lib/format'
 
@@ -61,6 +62,7 @@ export function CompanyDialog({
               <div>
                 <Dialog.Title className="font-display text-xl font-bold text-ink">{company.name}</Dialog.Title>
                 <p className="text-sm text-ink-mute">{company.industry ?? 'Company'}{company.country ? ` · ${company.country}` : ''}</p>
+                <div className="mt-2"><CompanyPanelButtons companyId={company.id} /></div>
               </div>
             </div>
             <Dialog.Close className="rounded-lg p-1 text-ink-mute transition hover:bg-surface-2 hover:text-ink"><X size={18} /></Dialog.Close>

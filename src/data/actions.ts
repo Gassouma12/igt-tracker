@@ -7,10 +7,8 @@ import { repo } from './repositories'
 import { supervisorsOf } from '@/lib/rbac'
 import type {
   Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
-  GoalMetric, NotificationKind, Opportunity, OpportunityStatus, User,
+  GoalCadence, GoalMetric, NotificationKind, Opportunity, OpportunityStatus, User,
 } from './types'
-
-const PERIOD = '2026-S1'
 
 function companyName(companyId: string): string {
   return db().companies.find((c) => c.id === companyId)?.name ?? 'company'
@@ -146,6 +144,18 @@ export async function setDealValue(actor: User, opp: Opportunity, value: number)
 export async function setRevenueReceived(actor: User, opp: Opportunity, received: boolean): Promise<void> {
   await repo.opportunities.update(opp.id, { revenueReceived: received, updatedAt: nowISO() })
   await log(actor, 'opportunity', opp.id, `marked ${companyName(opp.companyId)} revenue ${received ? 'received' : 'outstanding'}`)
+  // Tell supervisors money landed — include the amount and the partner.
+  if (received) {
+    const company = companyName(opp.companyId)
+    const amount = `€${(opp.value ?? 0).toLocaleString('en-US')}`
+    for (const recipientId of supervisorsOf(actor, db().users)) {
+      await repo.notifications.create({
+        id: newId('ntf'), recipientId, actorId: actor.id, opportunityId: opp.id,
+        kind: 'revenue', message: `${actor.name} received ${amount} from ${company}`,
+        read: false, at: nowISO(),
+      })
+    }
+  }
 }
 
 export async function scheduleFollowUp(
@@ -157,9 +167,13 @@ export async function scheduleFollowUp(
 
 export async function setGoal(
   actor: User, target: User, metric: GoalMetric, planned: number,
+  cadence: GoalCadence = 'semester', period = '2026-S1',
 ): Promise<void> {
+  // The (owner, metric, cadence, period) tuple is unique, so a weekly, monthly
+  // and semester target for the same metric never collide.
   const existing = db().goals.find(
-    (g) => g.scope === 'member' && g.ownerId === target.id && g.metric === metric && g.period === PERIOD,
+    (g) => g.scope === 'member' && g.ownerId === target.id && g.metric === metric
+      && (g.cadence ?? 'semester') === cadence && g.period === period,
   )
   if (existing) {
     if (existing.planned === planned) return
@@ -167,16 +181,21 @@ export async function setGoal(
   } else {
     await repo.goals.create({
       id: newId('goal'), scope: 'member', ownerId: target.id, lcId: target.lcId,
-      period: PERIOD, metric, planned,
+      period, cadence, metric, planned,
     })
   }
-  await log(actor, 'goal', target.id, `set ${target.name}'s ${metric} target to ${planned}`)
+  await log(actor, 'goal', target.id, `set ${target.name}'s ${cadence} ${metric} target to ${planned}`)
   // Let the person know a goal was set for them.
   await repo.notifications.create({
     id: newId('ntf'), recipientId: target.id, actorId: actor.id, opportunityId: null,
-    kind: 'goal', message: `${actor.name} set your ${metric} target to ${planned}`,
+    kind: 'goal', message: `${actor.name} set your ${cadence} ${metric} target to ${planned}`,
     read: false, at: nowISO(),
   })
+}
+
+export async function setCompanyNotes(actor: User, company: Company, notes: string): Promise<void> {
+  await repo.companies.update(company.id, { notes: notes.trim() || null })
+  await log(actor, 'company', company.id, `updated notes for ${company.name}`)
 }
 
 export async function updateUser(
@@ -192,12 +211,13 @@ export async function updateUser(
 
 export async function addMeeting(
   actor: User, opp: Opportunity,
-  data: { date: string; outcome?: string; nextAction?: string },
+  data: { date: string; outcome?: string; nextAction?: string; notes?: string },
 ): Promise<void> {
   const existing = db().meetings.filter((m) => m.opportunityId === opp.id).length
   await repo.meetings.create({
     id: newId('mtg'), opportunityId: opp.id, ownerId: actor.id, date: data.date,
     number: existing + 1, outcome: data.outcome ?? 'Held', nextAction: data.nextAction ?? null,
+    notes: data.notes?.trim() || null,
   })
   await repo.opportunities.update(opp.id, {
     lastActivityAt: data.date, updatedAt: nowISO(),

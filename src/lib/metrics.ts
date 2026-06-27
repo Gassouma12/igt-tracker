@@ -13,15 +13,50 @@ export const FUNNEL: OpportunityStatus[] = [
 const sum = (ns: number[]) => ns.reduce((a, b) => a + b, 0)
 const rank = (s: OpportunityStatus) => FUNNEL.indexOf(s)
 
+/** Raw touch volume (every logged activity). Used for channel-mix breakdowns. */
 export function totalOutreaches(activities: Activity[]): number {
   return sum(activities.map((a) => a.count || 1))
+}
+
+/**
+ * Outreach count = distinct COMPANIES contacted. Repeated touches on the same
+ * company are follow-ups, not new outreaches (one outreach per company).
+ */
+export function outreachCount(activities: Activity[], opps: Opportunity[]): number {
+  const companyOf = new Map(opps.map((o) => [o.id, o.companyId]))
+  const seen = new Set<string>()
+  for (const a of activities) {
+    const c = companyOf.get(a.opportunityId)
+    if (c) seen.add(c)
+  }
+  return seen.size
+}
+
+/** Follow-up touches (everything after the first contact on a company). */
+export function followupCount(activities: Activity[]): number {
+  return activities.filter((a) => a.phase === 'follow-up').length
+}
+
+/**
+ * Meetings split: `had` = meetings actually recorded through an interaction
+ * (each Meeting row), `scheduled` = opps parked at 'Meeting scheduled' that have
+ * no recorded meeting yet (booked but not yet held).
+ */
+export function meetingStats(opps: Opportunity[], meetings: Meeting[]): { had: number; scheduled: number } {
+  const withMeeting = new Set(meetings.map((m) => m.opportunityId))
+  return {
+    had: meetings.length,
+    scheduled: opps.filter((o) => o.status === 'Meeting scheduled' && !withMeeting.has(o.id)).length,
+  }
 }
 
 export interface Kpis {
   opportunities: number
   active: number
-  outreaches: number
+  outreaches: number // distinct companies contacted
+  followups: number
   meetings: number
+  meetingsScheduled: number
   signed: number
   conversion: number // signed / opportunities
   avgDaysToSign: number | null
@@ -35,11 +70,14 @@ export function kpis(
     (o) => o.status !== 'Prospect' && o.status !== 'Lost' && o.status !== 'Contract signed',
   ).length
   const days = contracts.map((c) => c.daysUntilSigned).filter((d): d is number => d != null && d > 0)
+  const mtg = meetingStats(opps, meetings)
   return {
     opportunities: opps.length,
     active,
-    outreaches: totalOutreaches(activities),
-    meetings: meetings.length,
+    outreaches: outreachCount(activities, opps),
+    followups: followupCount(activities),
+    meetings: mtg.had,
+    meetingsScheduled: mtg.scheduled,
     signed,
     conversion: opps.length ? signed / opps.length : 0,
     avgDaysToSign: days.length ? Math.round(sum(days) / days.length) : null,
@@ -80,7 +118,8 @@ export function statusDistribution(opps: Opportunity[]): Record<OpportunityStatu
 export interface PerformanceRow {
   id: string
   name: string
-  outreaches: number
+  outreaches: number // distinct companies contacted
+  followups: number
   opportunities: number
   meetings: number
   signed: number
@@ -103,7 +142,8 @@ function performanceBy(
     const signed = myOpps.filter((o) => o.status === 'Contract signed').length
     rows.push({
       id, name: nameOf(id),
-      outreaches: totalOutreaches(myActs),
+      outreaches: outreachCount(myActs, myOpps),
+      followups: followupCount(myActs),
       opportunities: myOpps.length,
       meetings: myMeetings.length,
       signed,
@@ -144,7 +184,7 @@ export function revenue(opps: Opportunity[]): { receivable: number; received: nu
 export function actualFor(
   metric: GoalMetric, activities: Activity[], meetings: Meeting[], opps: Opportunity[],
 ): number {
-  if (metric === 'outreaches') return totalOutreaches(activities)
+  if (metric === 'outreaches') return outreachCount(activities, opps)
   if (metric === 'meetings') return meetings.length
   if (metric === 'revenue') return revenue(opps).received
   return opps.filter((o) => o.status === 'Contract signed').length

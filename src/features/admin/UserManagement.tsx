@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Search, UserCheck, UserX } from 'lucide-react'
+import { Eye, Search, UserCheck, UserX } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import { updateUser } from '@/data/actions'
-import type { Role } from '@/data/types'
+import type { Role, User } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
 import { Dropdown } from '@/components/ui/Dropdown'
+import { MemberPipelineModal } from '@/features/shared/MemberPipelineModal'
 
 const ROLES: Role[] = ['admin', 'lcp', 'lcvp', 'member']
 const ROLE_OPTS = ROLES.map((r) => ({ value: r, label: r.toUpperCase() }))
@@ -19,6 +20,7 @@ export default function UserManagement() {
   const [q, setQ] = useState('')
   const [lcFilter, setLcFilter] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
+  const [viewing, setViewing] = useState<User | null>(null)
 
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase()
@@ -54,7 +56,7 @@ export default function UserManagement() {
       </div>
 
       <Table>
-        <THead><TR><TH>Member</TH><TH>Email</TH><TH>Role</TH><TH>Local Committee</TH><TH>Status</TH></TR></THead>
+        <THead><TR><TH>Member</TH><TH>Email</TH><TH>Role</TH><TH>Local Committee</TH><TH>Status</TH><TH>Pipeline</TH></TR></THead>
         <TBody>
           {rows.map((u) => (
             <TR key={u.id}>
@@ -90,10 +92,15 @@ export default function UserManagement() {
                   {u.active ? <><UserCheck size={14} /> Active</> : <><UserX size={14} /> Inactive</>}
                 </Button>
               </TD>
+              <TD>
+                <Button size="sm" variant="ghost" onClick={() => setViewing(u)}><Eye size={14} /> View</Button>
+              </TD>
             </TR>
           ))}
         </TBody>
       </Table>
+
+      <MemberPipelineModal member={viewing} open={!!viewing} onClose={() => setViewing(null)} />
       <p className="mt-2 text-xs text-ink-mute">{rows.length} shown · changes are recorded in the activity log · LC names: {lcs.map((l) => lcName(l.id)).join(', ')}</p>
     </div>
   )

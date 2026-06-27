@@ -1,16 +1,21 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Eye } from 'lucide-react'
 import { useLC } from './useLC'
-import { totalOutreaches } from '@/lib/metrics'
+import { followupCount, outreachCount } from '@/lib/metrics'
 import { fmtNum, fmtPct } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar, Badge, Card, SectionTitle } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
 import { RankingBars } from '@/components/charts/Charts'
+import { MemberPipelineModal } from '@/features/shared/MemberPipelineModal'
+import type { User } from '@/data/types'
 
 const ROLE_TONE = { admin: 'brand', lcp: 'brand', lcvp: 'info', member: 'neutral' } as const
 
 export default function Team() {
   const { members, opportunities, activities, meetings } = useLC()
+  const [viewing, setViewing] = useState<User | null>(null)
+  const memberById = (id: string) => members.find((m) => m.id === id) ?? null
 
   const rows = useMemo(() => {
     return members.map((m) => {
@@ -21,7 +26,7 @@ export default function Team() {
       const signed = myOpps.filter((o) => o.status === 'Contract signed').length
       return {
         id: m.id, name: m.name, role: m.role, position: m.position,
-        outreaches: totalOutreaches(myActs), opportunities: myOpps.length,
+        outreaches: outreachCount(myActs, myOpps), followups: followupCount(myActs), opportunities: myOpps.length,
         meetings: myMeetings.length, signed, conversion: myOpps.length ? signed / myOpps.length : 0,
       }
     }).sort((a, b) => b.outreaches - a.outreaches)
@@ -29,18 +34,18 @@ export default function Team() {
 
   return (
     <div>
-      <PageHeader title="Team" subtitle={`${members.length} members · individual performance`} />
+      <PageHeader title="Team" subtitle={`${members.length} members · click a member to view their pipeline`} />
 
       <Card className="mb-4">
-        <SectionTitle title="Member ranking" subtitle="By total outreaches" />
+        <SectionTitle title="Member ranking" subtitle="By companies reached" />
         <RankingBars data={rows} dataKey="outreaches" color="var(--accent)" />
       </Card>
 
       <Table>
-        <THead><TR><TH>Member</TH><TH>Role</TH><TH>Outreaches</TH><TH>Opportunities</TH><TH>Meetings</TH><TH>Signed</TH><TH>Conversion</TH></TR></THead>
+        <THead><TR><TH>Member</TH><TH>Role</TH><TH>Outreaches</TH><TH>Follow-ups</TH><TH>Opportunities</TH><TH>Meetings</TH><TH>Signed</TH><TH>Conversion</TH><TH></TH></TR></THead>
         <TBody>
           {rows.map((r) => (
-            <TR key={r.id}>
+            <TR key={r.id} onClick={() => setViewing(memberById(r.id))}>
               <TD>
                 <span className="flex items-center gap-2.5">
                   <Avatar name={r.name} size={30} />
@@ -49,14 +54,18 @@ export default function Team() {
               </TD>
               <TD><Badge tone={ROLE_TONE[r.role]}>{r.role.toUpperCase()}</Badge></TD>
               <TD className="font-medium text-ink">{fmtNum(r.outreaches)}</TD>
+              <TD>{fmtNum(r.followups)}</TD>
               <TD>{fmtNum(r.opportunities)}</TD>
               <TD>{fmtNum(r.meetings)}</TD>
               <TD>{fmtNum(r.signed)}</TD>
               <TD>{fmtPct(r.conversion, 1)}</TD>
+              <TD><span className="flex items-center gap-1 text-xs text-ink-mute"><Eye size={13} /> View</span></TD>
             </TR>
           ))}
         </TBody>
       </Table>
+
+      <MemberPipelineModal member={viewing} open={!!viewing} onClose={() => setViewing(null)} />
     </div>
   )
 }

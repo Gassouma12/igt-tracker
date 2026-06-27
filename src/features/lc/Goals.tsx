@@ -3,7 +3,7 @@ import { Target } from 'lucide-react'
 import { useLC } from './useLC'
 import { useCurrentUser } from '@/state/session'
 import { useDB } from '@/data/store'
-import { goalProgress, revenue, totalOutreaches } from '@/lib/metrics'
+import { goalProgress, outreachCount, revenue } from '@/lib/metrics'
 import { manageableUsers } from '@/lib/rbac'
 import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
 import type { GoalMetric } from '@/data/types'
@@ -26,12 +26,13 @@ export default function Goals() {
   const rev = useMemo(() => revenue(opportunities), [opportunities])
 
   const memberRows = useMemo(() => {
+    // Show semester targets in the LC table; weekly/monthly live on Performance.
     const plannedFor = (ownerId: string, metric: string) =>
-      memberGoals.find((g) => g.ownerId === ownerId && g.metric === metric)?.planned ?? 0
+      memberGoals.find((g) => g.ownerId === ownerId && g.metric === metric && (g.cadence ?? 'semester') === 'semester')?.planned ?? 0
     return members.map((m) => {
       const myOpps = opportunities.filter((o) => o.ownerId === m.id)
       const myOppIds = new Set(myOpps.map((o) => o.id))
-      const out = totalOutreaches(activities.filter((a) => myOppIds.has(a.opportunityId)))
+      const out = outreachCount(activities.filter((a) => myOppIds.has(a.opportunityId)), myOpps)
       const mtg = meetings.filter((mt) => myOppIds.has(mt.opportunityId)).length
       const signed = myOpps.filter((o) => o.status === 'Contract signed').length
       const planOut = plannedFor(m.id, 'outreaches')

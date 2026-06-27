@@ -21,6 +21,7 @@ export type ActivityPhase = 'first' | 'follow-up' | 'meeting'
 export type ActivityOutcome = 'positive' | 'neutral' | 'no-response'
 export type GoalMetric = 'outreaches' | 'meetings' | 'contracts' | 'revenue'
 export type GoalScope = 'member' | 'lc' | 'global'
+export type GoalCadence = 'weekly' | 'monthly' | 'semester'
 
 export interface User {
   id: string
@@ -97,6 +98,7 @@ export interface Meeting {
   number: number
   outcome: string | null
   nextAction: string | null
+  notes?: string | null
 }
 
 export interface Contract {
@@ -112,7 +114,8 @@ export interface Goal {
   scope: GoalScope
   ownerId: string | null
   lcId: string | null
-  period: string
+  period: string // period key within the cadence: '2026-S1' | '2026-06' | '2026-W26'
+  cadence?: GoalCadence // missing => 'semester' (legacy seed goals)
   metric: GoalMetric
   planned: number
 }
@@ -128,7 +131,7 @@ export interface LogEntry {
   at: string
 }
 
-export type NotificationKind = 'meeting' | 'contract' | 'goal'
+export type NotificationKind = 'meeting' | 'contract' | 'goal' | 'revenue'
 
 /** Stored, targeted notification (vs the derived reminders in metrics.ts). */
 export interface Notification {

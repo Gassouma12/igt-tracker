@@ -6,7 +6,8 @@ import { useCurrentUser } from '@/state/session'
 import { funnel, goalProgress, kpis, revenue, timeline } from '@/lib/metrics'
 import { goalContributorIds } from '@/lib/rbac'
 import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
-import { availableMonths, inMonthRange } from '@/lib/dates'
+import { availableMonths, currentPeriod, inDayRange, inMonthRange, periodLabel, periodRange } from '@/lib/dates'
+import type { GoalCadence } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, SectionTitle, StatCard } from '@/components/ui/primitives'
 import { Dropdown } from '@/components/ui/Dropdown'
@@ -25,6 +26,7 @@ export default function Performance() {
   const [memberId, setMemberId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [goalCadence, setGoalCadence] = useState<GoalCadence>('semester')
 
   const showLc = user?.role === 'admin'
   const showMember = user?.role !== 'member'
@@ -60,30 +62,33 @@ export default function Performance() {
   // a member's goal counts only themselves; an LCVP's goal aggregates their own
   // + their team's numbers (rbac.goalContributorIds).
   const goalCtx = useMemo(() => {
+    const ofCadence = (gs: typeof goals) => gs.filter((g) => (g.cadence ?? 'semester') === goalCadence)
     if (lcId && !memberId) {
       return {
-        subjectGoals: goals.filter((g) => g.scope === 'lc' && g.lcId === lcId),
+        subjectGoals: ofCadence(goals.filter((g) => g.scope === 'lc' && g.lcId === lcId)),
         contributors: new Set(allUsers.filter((u) => u.lcId === lcId).map((u) => u.id)),
       }
     }
     const subject = allUsers.find((u) => u.id === (memberId || user?.id))
     if (!subject) return { subjectGoals: [], contributors: new Set<string>() }
-    let subjectGoals = goals.filter((g) => g.scope === 'member' && g.ownerId === subject.id)
-    if (subjectGoals.length === 0 && subject.role === 'admin') subjectGoals = goals.filter((g) => g.scope === 'global')
-    if (subjectGoals.length === 0 && subject.role === 'lcp') subjectGoals = goals.filter((g) => g.scope === 'lc' && g.lcId === subject.lcId)
+    let subjectGoals = ofCadence(goals.filter((g) => g.scope === 'member' && g.ownerId === subject.id))
+    if (subjectGoals.length === 0 && subject.role === 'admin') subjectGoals = ofCadence(goals.filter((g) => g.scope === 'global'))
+    if (subjectGoals.length === 0 && subject.role === 'lcp') subjectGoals = ofCadence(goals.filter((g) => g.scope === 'lc' && g.lcId === subject.lcId))
     return { subjectGoals, contributors: new Set(goalContributorIds(subject, allUsers)) }
-  }, [goals, memberId, lcId, user, allUsers])
+  }, [goals, memberId, lcId, user, allUsers, goalCadence])
 
+  // Goal "done" is measured within the cadence's CURRENT period window (this
+  // week / month / semester), independent of the page's month-range filter.
   const goalsWithActuals = useMemo(() => {
     const { subjectGoals, contributors } = goalCtx
-    const noRange = !from && !to
-    const dated = (d: string | null | undefined) => noRange || inMonthRange(d, from, to)
-    const opps = opportunities.filter((o) => contributors.has(o.ownerId) && (noRange || dated(o.lastActivityAt) || dated(o.createdAt)))
+    const { from: pf, to: pt } = periodRange(goalCadence, currentPeriod(goalCadence))
+    const dated = (d: string | null | undefined) => inDayRange(d, pf, pt)
+    const opps = opportunities.filter((o) => contributors.has(o.ownerId))
     const ids = new Set(opps.map((o) => o.id))
     const acts = activities.filter((a) => ids.has(a.opportunityId) && dated(a.date))
     const mtgs = meetings.filter((m) => ids.has(m.opportunityId) && dated(m.date))
     return goalProgress(subjectGoals, acts, mtgs, opps)
-  }, [goalCtx, opportunities, activities, meetings, from, to])
+  }, [goalCtx, opportunities, activities, meetings, goalCadence])
 
   const who = memberId ? memberOptions.find((m) => m.id === memberId)?.name
     : lcId ? lcs.find((l) => l.id === lcId)?.name
@@ -125,10 +130,23 @@ export default function Performance() {
       </div>
 
       <Card className="mt-4">
-        <SectionTitle
-          title="Goal achievement"
-          subtitle={`Targets vs done · ${who}${user?.role === 'lcvp' && !memberId && !lcId ? ' (you + your team)' : ''}`}
-        />
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <SectionTitle
+            title="Goal achievement"
+            subtitle={`${periodLabel(goalCadence, currentPeriod(goalCadence))} · ${who}${user?.role === 'lcvp' && !memberId && !lcId ? ' (you + your team)' : ''}`}
+          />
+          <div className="flex gap-1 rounded-xl border border-line bg-bg-elev p-1">
+            {(['weekly', 'monthly', 'semester'] as GoalCadence[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => setGoalCadence(c)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition ${goalCadence === c ? 'bg-brand text-white' : 'text-ink-mute hover:text-ink'}`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
         <GoalCards goals={goalsWithActuals} />
       </Card>
 

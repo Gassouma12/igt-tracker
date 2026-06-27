@@ -7,7 +7,7 @@ import actsJson from '@/data/seed/activities.json'
 import meetingsJson from '@/data/seed/meetings.json'
 import contractsJson from '@/data/seed/contracts.json'
 import type { Activity, Contract, Meeting, Opportunity } from '@/data/types'
-import { funnel, kpis, performanceByMember, statusDistribution, totalOutreaches } from './metrics'
+import { funnel, kpis, outreachCount, performanceByMember, statusDistribution } from './metrics'
 
 export function runSelfCheck(): void {
   const opps = oppsJson as Opportunity[]
@@ -30,7 +30,7 @@ export function runSelfCheck(): void {
   // signed opps reconcile with contract records (sheet had 11 signed)
   const k = kpis(opps, acts, meetings, contracts)
   ok(k.signed === contracts.length, `signed (${k.signed}) != contracts (${contracts.length})`)
-  ok(k.outreaches === totalOutreaches(acts), 'kpi outreaches != total')
+  ok(k.outreaches === outreachCount(acts, opps), 'kpi outreaches != distinct companies')
 
   // Tijs is the heaviest contributor — 626 outreach rows in the sheet
   const tijs = performanceByMember(opps, acts, meetings, [{ id: 'usr_tijs', name: 'Tijs' } as never])
