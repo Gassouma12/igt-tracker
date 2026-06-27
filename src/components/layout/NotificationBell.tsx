@@ -1,5 +1,5 @@
 import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { AlarmClock, Bell, CalendarClock, CheckCheck, Handshake, Moon, Users } from 'lucide-react'
+import { AlarmClock, Bell, CalendarClock, CheckCheck, Handshake, Moon, Target, Users } from 'lucide-react'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDB } from '@/data/store'
@@ -87,18 +87,23 @@ export function NotificationBell() {
           )}
 
           {myNotifs.map((n) => {
-            const Icon = n.kind === 'contract' ? Handshake : Users
+            const Icon = n.kind === 'contract' ? Handshake : n.kind === 'goal' ? Target : Users
+            const tone = n.kind === 'contract' ? 'text-success' : n.kind === 'goal' ? 'text-brand' : 'text-info'
             return (
               <Dropdown.Item
                 key={n.id}
-                onSelect={() => { markNotificationRead(n.id); focusLead(n.opportunityId) }}
+                onSelect={() => {
+                  markNotificationRead(n.id)
+                  if (n.kind === 'goal') navigate('/me/performance')
+                  else if (n.opportunityId) focusLead(n.opportunityId)
+                }}
                 className={cn(
                   'flex cursor-pointer items-start gap-3 rounded-xl px-2 py-2 outline-none transition data-[highlighted]:bg-surface-2',
                   !n.read && 'bg-brand/5',
                 )}
               >
                 {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand" />}
-                <Icon size={16} className={cn('mt-0.5 shrink-0', n.kind === 'contract' ? 'text-success' : 'text-info', n.read && 'opacity-60')} />
+                <Icon size={16} className={cn('mt-0.5 shrink-0', tone, n.read && 'opacity-60')} />
                 <div className="min-w-0">
                   <p className={cn('text-sm', n.read ? 'text-ink-dim' : 'font-medium text-ink')}>{n.message}</p>
                   <p className="text-xs text-ink-mute">{relativeDays(n.at)}</p>

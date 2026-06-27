@@ -92,6 +92,25 @@ export function Progress({ value, tone = 'brand' }: { value: number; tone?: 'bra
   )
 }
 
+// ---- ProgressRing --------------------------------------------------------
+export function ProgressRing({ value, size = 72, stroke = 7, color = 'var(--brand)', label }: { value: number; size?: number; stroke?: number; color?: string; label?: ReactNode }) {
+  const r = (size - stroke) / 2
+  const circ = 2 * Math.PI * r
+  const pct = Math.min(Math.max(value, 0), 1)
+  return (
+    <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--surface-2)" strokeWidth={stroke} />
+        <circle
+          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} style={{ transition: 'stroke-dashoffset .6s ease' }}
+        />
+      </svg>
+      {label != null && <span className="absolute text-sm font-bold text-ink">{label}</span>}
+    </div>
+  )
+}
+
 // ---- StatCard ------------------------------------------------------------
 export function StatCard({ label, value, hint, icon, accent = 'var(--brand)' }: { label: string; value: ReactNode; hint?: ReactNode; icon?: ReactNode; accent?: string }) {
   return (

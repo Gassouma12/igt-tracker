@@ -1,20 +1,18 @@
 import { useMemo, useState } from 'react'
-import { Activity, CalendarCheck, Handshake, Target, TrendingUp } from 'lucide-react'
+import { Activity, CalendarCheck, Handshake, TrendingUp } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import { funnel, goalProgress, kpis, revenue, timeline } from '@/lib/metrics'
+import { goalContributorIds } from '@/lib/rbac'
 import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
-import type { GoalMetric } from '@/data/types'
 import { availableMonths, inMonthRange } from '@/lib/dates'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Card, Progress, SectionTitle, StatCard } from '@/components/ui/primitives'
+import { Card, SectionTitle, StatCard } from '@/components/ui/primitives'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { MonthRange } from '@/components/ui/MonthRange'
+import { GoalCards } from '@/features/shared/GoalCards'
 import { FunnelView, TimelineArea } from '@/components/charts/Charts'
-
-const METRIC_LABEL: Record<string, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed', revenue: 'Revenue received' }
-const goalVal = (m: GoalMetric, n: number) => (m === 'revenue' ? fmtMoney(n) : fmtNum(n))
 
 export default function Performance() {
   const user = useCurrentUser()
@@ -58,18 +56,34 @@ export default function Performance() {
     }
   }, [opportunities, activities, meetings, contracts, lcId, memberId, from, to])
 
-  const selectedGoals = useMemo(() => {
-    if (memberId) return goals.filter((g) => g.scope === 'member' && g.ownerId === memberId)
-    if (lcId) return goals.filter((g) => g.scope === 'lc' && g.lcId === lcId)
-    if (user?.role === 'member') return goals.filter((g) => g.scope === 'member' && g.ownerId === user.id)
-    if (user?.role === 'lcp' || user?.role === 'lcvp') return goals.filter((g) => g.scope === 'lc' && g.lcId === user.lcId)
-    return goals.filter((g) => g.scope === 'global')
-  }, [goals, memberId, lcId, user])
+  // Goals are computed against the *contributor* set, not the viewing filter:
+  // a member's goal counts only themselves; an LCVP's goal aggregates their own
+  // + their team's numbers (rbac.goalContributorIds).
+  const goalCtx = useMemo(() => {
+    if (lcId && !memberId) {
+      return {
+        subjectGoals: goals.filter((g) => g.scope === 'lc' && g.lcId === lcId),
+        contributors: new Set(allUsers.filter((u) => u.lcId === lcId).map((u) => u.id)),
+      }
+    }
+    const subject = allUsers.find((u) => u.id === (memberId || user?.id))
+    if (!subject) return { subjectGoals: [], contributors: new Set<string>() }
+    let subjectGoals = goals.filter((g) => g.scope === 'member' && g.ownerId === subject.id)
+    if (subjectGoals.length === 0 && subject.role === 'admin') subjectGoals = goals.filter((g) => g.scope === 'global')
+    if (subjectGoals.length === 0 && subject.role === 'lcp') subjectGoals = goals.filter((g) => g.scope === 'lc' && g.lcId === subject.lcId)
+    return { subjectGoals, contributors: new Set(goalContributorIds(subject, allUsers)) }
+  }, [goals, memberId, lcId, user, allUsers])
 
-  const goalsWithActuals = useMemo(
-    () => goalProgress(selectedGoals, sel.acts, sel.mtgs, sel.opps),
-    [selectedGoals, sel],
-  )
+  const goalsWithActuals = useMemo(() => {
+    const { subjectGoals, contributors } = goalCtx
+    const noRange = !from && !to
+    const dated = (d: string | null | undefined) => noRange || inMonthRange(d, from, to)
+    const opps = opportunities.filter((o) => contributors.has(o.ownerId) && (noRange || dated(o.lastActivityAt) || dated(o.createdAt)))
+    const ids = new Set(opps.map((o) => o.id))
+    const acts = activities.filter((a) => ids.has(a.opportunityId) && dated(a.date))
+    const mtgs = meetings.filter((m) => ids.has(m.opportunityId) && dated(m.date))
+    return goalProgress(subjectGoals, acts, mtgs, opps)
+  }, [goalCtx, opportunities, activities, meetings, from, to])
 
   const who = memberId ? memberOptions.find((m) => m.id === memberId)?.name
     : lcId ? lcs.find((l) => l.id === lcId)?.name
@@ -110,35 +124,30 @@ export default function Performance() {
         <StatCard label="Conversion" value={fmtPct(sel.k.conversion, 1)} icon={<TrendingUp size={18} />} accent="var(--warning)" />
       </div>
 
+      <Card className="mt-4">
+        <SectionTitle
+          title="Goal achievement"
+          subtitle={`Targets vs done · ${who}${user?.role === 'lcvp' && !memberId && !lcId ? ' (you + your team)' : ''}`}
+        />
+        <GoalCards goals={goalsWithActuals} />
+      </Card>
+
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>
           <SectionTitle title="Funnel" subtitle="Opportunities reaching each stage" />
           <FunnelView data={sel.funnel} />
         </Card>
         <Card>
-          <SectionTitle title="Goal progress" subtitle="Targets vs done" />
-          <div className="mb-4 grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-line bg-bg-elev p-3">
-              <p className="text-xs text-ink-mute">Revenue received</p>
-              <p className="font-display text-xl font-bold text-success">{fmtMoney(revenue(sel.opps).received)}</p>
+          <SectionTitle title="Revenue" subtitle="Pipeline value for this selection" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-success/30 bg-success/5 p-4">
+              <p className="text-xs text-ink-mute">Received</p>
+              <p className="mt-1 font-display text-2xl font-bold text-success">{fmtMoney(revenue(sel.opps).received)}</p>
             </div>
-            <div className="rounded-xl border border-line bg-bg-elev p-3">
+            <div className="rounded-2xl border border-warning/30 bg-warning/5 p-4">
               <p className="text-xs text-ink-mute">Receivable (outstanding)</p>
-              <p className="font-display text-xl font-bold text-warning">{fmtMoney(revenue(sel.opps).receivable)}</p>
+              <p className="mt-1 font-display text-2xl font-bold text-warning">{fmtMoney(revenue(sel.opps).receivable)}</p>
             </div>
-          </div>
-          <div className="space-y-4">
-            {goalsWithActuals.length === 0 && <p className="text-sm text-ink-mute">No goals for this selection.</p>}
-            {goalsWithActuals.map((g) => (
-              <div key={g.metric}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1.5 text-ink-dim"><Target size={14} /> {METRIC_LABEL[g.metric] ?? g.metric}</span>
-                  <span className="text-ink-mute">{goalVal(g.metric, g.done)} / {goalVal(g.metric, g.planned)}</span>
-                </div>
-                <Progress value={g.pct} tone={g.pct >= 1 ? 'success' : g.pct >= 0.5 ? 'brand' : 'warning'} />
-                <p className="mt-1 text-xs text-ink-mute">{fmtPct(g.pct)} achieved · gap {goalVal(g.metric, g.gap)}</p>
-              </div>
-            ))}
           </div>
         </Card>
       </div>

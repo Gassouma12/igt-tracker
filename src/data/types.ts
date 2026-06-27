@@ -128,14 +128,14 @@ export interface LogEntry {
   at: string
 }
 
-export type NotificationKind = 'meeting' | 'contract'
+export type NotificationKind = 'meeting' | 'contract' | 'goal'
 
 /** Stored, targeted notification (vs the derived reminders in metrics.ts). */
 export interface Notification {
   id: string
   recipientId: string
   actorId: string
-  opportunityId: string
+  opportunityId: string | null // null for goal notifications (no lead to open)
   kind: NotificationKind
   message: string
   read: boolean

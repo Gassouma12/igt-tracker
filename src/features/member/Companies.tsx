@@ -4,6 +4,7 @@ import { Building2, Plus, Search } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { AddOpportunityDialog } from './AddOpportunityDialog'
 import { OpportunityDialog } from './OpportunityDialog'
+import { CompanyDialog } from './CompanyDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button, EmptyState } from '@/components/ui/primitives'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
@@ -18,6 +19,7 @@ export default function Companies() {
   const navigate = useNavigate()
   const [adding, setAdding] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [companyOpen, setCompanyOpen] = useState<string | null>(null)
 
   const rows = useMemo(() => {
     const map = new Map<string, { id: string; name: string; industry: string | null; opps: number; lastOppId: string; lastActivity: string | null }>()
@@ -74,7 +76,7 @@ export default function Companies() {
           </THead>
           <TBody>
             {sorted.slice(0, 300).map((r) => (
-              <TR key={r.id} onClick={() => setOpenId(r.lastOppId)}>
+              <TR key={r.id} onClick={() => setCompanyOpen(r.id)}>
                 <TD className="font-medium text-ink">{r.name}</TD>
                 <TD>{r.industry ?? '—'}</TD>
                 <TD>{r.opps}</TD>
@@ -86,6 +88,7 @@ export default function Companies() {
         </Table>
       )}
 
+      <CompanyDialog companyId={companyOpen} onClose={() => setCompanyOpen(null)} onOpenOpp={(id) => { setCompanyOpen(null); setOpenId(id) }} />
       <OpportunityDialog oppId={openId} onClose={() => setOpenId(null)} />
       <AddOpportunityDialog open={adding} onClose={() => setAdding(false)} onCreated={(id) => setOpenId(id)} />
     </div>

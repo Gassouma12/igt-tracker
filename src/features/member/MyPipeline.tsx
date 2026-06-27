@@ -6,13 +6,13 @@ import { OpportunityDialog } from './OpportunityDialog'
 import { AddOpportunityDialog } from './AddOpportunityDialog'
 import { useCurrentUser } from '@/state/session'
 import { advanceStage } from '@/data/actions'
+import { canEditOwned } from '@/lib/rbac'
 import { FUNNEL } from '@/lib/metrics'
 import { OPPORTUNITY_STATUSES, type Opportunity, type OpportunityStatus } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
-import { Dropdown } from '@/components/ui/Dropdown'
 import { MonthRange } from '@/components/ui/MonthRange'
 import { PipelineSummary } from '@/features/shared/PipelineSummary'
 import { fmtDate, relativeDays } from '@/lib/format'
@@ -29,7 +29,8 @@ export default function MyPipeline() {
   const { opportunities, activities, meetings, contracts, companyById, contactById } = useScopedData()
   const search = useFilters((s) => s.search)
   const [view, setView] = useState<View>('board')
-  const [statusFilter, setStatusFilter] = useState<OpportunityStatus | ''>('')
+  const [stages, setStages] = useState<OpportunityStatus[]>([]) // empty = all stages
+  const editable = (o: Opportunity) => !!user && canEditOwned(user, o.ownerId)
   const [openId, setOpenId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
@@ -43,7 +44,7 @@ export default function MyPipeline() {
   const setHighlight = useFocus((s) => s.setHighlight)
   useEffect(() => {
     if (!highlightId) return
-    setView('table'); setStatusFilter(''); setFrom(''); setTo('')
+    setView('table'); setStages([]); setFrom(''); setTo('')
     const t1 = setTimeout(() => document.getElementById(`row-${highlightId}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120)
     const t2 = setTimeout(() => setHighlight(null), 3400)
     return () => { clearTimeout(t1); clearTimeout(t2) }
@@ -66,11 +67,11 @@ export default function MyPipeline() {
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
     return ranged.opps.filter((o) => {
-      if (statusFilter && o.status !== statusFilter) return false
+      if (stages.length && !stages.includes(o.status)) return false
       if (term && !companyById(o.companyId)?.name.toLowerCase().includes(term)) return false
       return true
     })
-  }, [ranged, statusFilter, search, companyById])
+  }, [ranged, stages, search, companyById])
 
   const byStatus = (s: OpportunityStatus) => filtered.filter((o) => o.status === s)
 
@@ -92,7 +93,7 @@ export default function MyPipeline() {
     setOverCol(null)
     if (!dragId || !user) return
     const opp = opportunities.find((o) => o.id === dragId)
-    if (opp && opp.status !== status) advanceStage(user, opp, status)
+    if (opp && editable(opp) && opp.status !== status) advanceStage(user, opp, status)
     setDragId(null)
   }
   const dragStatus = dragId ? opportunities.find((o) => o.id === dragId)?.status : null
@@ -155,12 +156,13 @@ export default function MyPipeline() {
                     return (
                       <button
                         key={o.id}
-                        draggable
-                        onDragStart={(e) => { setDragId(o.id); e.dataTransfer.effectAllowed = 'move' }}
+                        draggable={editable(o)}
+                        onDragStart={(e) => { if (!editable(o)) return; setDragId(o.id); e.dataTransfer.effectAllowed = 'move' }}
                         onDragEnd={() => { setDragId(null); setOverCol(null) }}
                         onClick={() => setOpenId(o.id)}
                         className={cn(
-                          'cursor-grab rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand/40 hover:shadow-card active:cursor-grabbing',
+                          'rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand/40 hover:shadow-card',
+                          editable(o) ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
                           dragId === o.id && 'rotate-1 opacity-40 ring-2 ring-brand/50',
                         )}
                       >
@@ -183,13 +185,24 @@ export default function MyPipeline() {
         </div>
       ) : (
         <>
-          <div className="mb-3 flex items-center gap-2">
-            <Dropdown
-              className="w-48"
-              value={statusFilter}
-              onChange={(v) => setStatusFilter(v as OpportunityStatus | '')}
-              options={[{ value: '', label: 'All stages' }, ...OPPORTUNITY_STATUSES.map((s) => ({ value: s, label: s }))]}
-            />
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium text-ink-mute">Stages:</span>
+            {OPPORTUNITY_STATUSES.map((s) => {
+              const on = stages.includes(s)
+              return (
+                <button
+                  key={s}
+                  onClick={() => setStages((p) => (on ? p.filter((x) => x !== s) : [...p, s]))}
+                  className={cn('chip border transition', on ? 'border-transparent' : 'border-line bg-transparent text-ink-mute hover:text-ink')}
+                  style={on ? { background: STATUS_STYLE[s].bg, color: STATUS_STYLE[s].text } : undefined}
+                >
+                  {s}
+                </button>
+              )
+            })}
+            {stages.length > 0 && (
+              <button onClick={() => setStages([])} className="ml-1 text-xs text-ink-mute underline transition hover:text-ink">clear</button>
+            )}
           </div>
           <Table>
             <THead>

@@ -72,14 +72,26 @@ export function scopeOpportunities(
   return opps.filter((o) => owners.has(o.ownerId))
 }
 
-/** May `user` edit a record owned by `ownerId`? */
-export function canEditOwned(user: User, ownerId: string, ownerLcId?: string | null): boolean {
+/**
+ * May `user` edit a record owned by `ownerId`? Only the owner and the MCVP
+ * (admin) edit; LCP/LCVP can view their members' pipelines but not change them
+ * (they can still edit their own opportunities).
+ */
+export function canEditOwned(user: User, ownerId: string): boolean {
   if (user.role === 'admin') return true
-  if (user.role === 'lcp') return ownerLcId === user.lcId
-  if (user.role === 'lcvp') {
-    if (ownerId === user.id) return true
-    const owner = ownerLcId
-    return owner === user.lcId
-  }
   return ownerId === user.id
+}
+
+/**
+ * Whose numbers roll up into a person's goal: a member counts only themselves;
+ * an LCVP's goal aggregates their own + their team members' (teamLeadId); an LCP
+ * spans their whole LC; the MCVP spans everyone.
+ */
+export function goalContributorIds(subject: User, allUsers: User[]): string[] {
+  if (subject.role === 'admin') return allUsers.map((u) => u.id)
+  if (subject.role === 'lcp') return allUsers.filter((u) => u.lcId === subject.lcId).map((u) => u.id)
+  if (subject.role === 'lcvp') {
+    return [subject.id, ...allUsers.filter((u) => u.teamLeadId === subject.id).map((u) => u.id)]
+  }
+  return [subject.id]
 }

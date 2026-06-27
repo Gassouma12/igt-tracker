@@ -131,6 +131,10 @@ export async function advanceStage(
   if (to === opp.status) return
   await repo.opportunities.update(opp.id, { status: to, updatedAt: nowISO() })
   await log(actor, 'opportunity', opp.id, `moved ${companyName(opp.companyId)}`, opp.status, to)
+  // Reaching these stages is a "win" worth notifying supervisors about — fired
+  // here so the kanban drag and the dialog's stage dropdown behave the same as
+  // logging a meeting / signing through the detail panel.
+  if (to === 'Meeting scheduled') await notify(actor, opp, 'meeting', 'scheduled a meeting with')
   if (to === 'Contract signed') await notify(actor, opp, 'contract', 'signed a contract with')
 }
 
@@ -167,6 +171,12 @@ export async function setGoal(
     })
   }
   await log(actor, 'goal', target.id, `set ${target.name}'s ${metric} target to ${planned}`)
+  // Let the person know a goal was set for them.
+  await repo.notifications.create({
+    id: newId('ntf'), recipientId: target.id, actorId: actor.id, opportunityId: null,
+    kind: 'goal', message: `${actor.name} set your ${metric} target to ${planned}`,
+    read: false, at: nowISO(),
+  })
 }
 
 export async function updateUser(
