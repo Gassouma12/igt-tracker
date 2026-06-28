@@ -8,11 +8,13 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar } from '@/components/ui/primitives'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { MonthRange } from '@/components/ui/MonthRange'
 import { fmtDate, relativeDays } from '@/lib/format'
 import { availableMonths, inMonthRange } from '@/lib/dates'
 import { useSort } from '@/lib/useSort'
+import { usePaged } from '@/lib/usePaged'
 import { cn } from '@/lib/cn'
 import { OPPORTUNITY_STATUSES, type OpportunityStatus } from '@/data/types'
 
@@ -71,6 +73,7 @@ export default function Pipeline() {
     const hit = highlightId && sorted.find((o) => o.id === highlightId)
     return hit ? [hit, ...sorted.filter((o) => o.id !== highlightId)] : sorted
   }, [sorted, highlightId])
+  const paged = usePaged(display, 25)
 
   return (
     <div>
@@ -126,7 +129,7 @@ export default function Pipeline() {
               </TR>
             </THead>
             <TBody>
-              {display.slice(0, 300).map((o) => (
+              {paged.slice.map((o) => (
                 <TR key={o.id} id={`row-${o.id}`} className={cn(highlightId === o.id && 'row-pulse')} onClick={() => setOpenId(o.id)}>
                   <TD className="font-medium text-ink">{companyById(o.companyId)?.name ?? '—'}</TD>
                   <TD>
@@ -143,6 +146,7 @@ export default function Pipeline() {
               ))}
             </TBody>
           </Table>
+          <Pagination page={paged.page} pageCount={paged.pageCount} from={paged.from} to={paged.to} total={paged.total} onChange={paged.setPage} />
         </>
       )}
 

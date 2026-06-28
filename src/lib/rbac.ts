@@ -39,6 +39,11 @@ export function canViewGlobalDashboard(user: User): boolean {
   return user.role === 'admin'
 }
 
+/** LCPs and LCVPs (and the MCVP) can assign members to a team lead in their LC. */
+export function canAssignMembers(user: User): boolean {
+  return user.role === 'admin' || user.role === 'lcp' || user.role === 'lcvp'
+}
+
 export function canManageUsers(user: User): boolean {
   return user.role === 'admin' || user.role === 'lcp'
 }

@@ -7,17 +7,11 @@ import { dirname, join } from 'node:path'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const seed = (f) => JSON.parse(readFileSync(join(root, 'src/data/seed', f), 'utf8'))
 
-// table name -> seed file, in FK-safe insert order
+// table name -> seed file, in FK-safe insert order.
+// Only the org structure (LCs + users) is seeded — no sales/pipeline data.
 const TABLES = [
   ['local_committees', 'localCommittees.json'],
   ['users', 'users.json'],
-  ['companies', 'companies.json'],
-  ['contacts', 'contacts.json'],
-  ['opportunities', 'opportunities.json'],
-  ['activities', 'activities.json'],
-  ['meetings', 'meetings.json'],
-  ['contracts', 'contracts.json'],
-  ['goals', 'goals.json'],
 ]
 
 function val(v) {

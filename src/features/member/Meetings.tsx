@@ -5,8 +5,10 @@ import { OpportunityDialog } from './OpportunityDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Badge, EmptyState } from '@/components/ui/primitives'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
 import { fmtDate } from '@/lib/format'
 import { useSort } from '@/lib/useSort'
+import { usePaged } from '@/lib/usePaged'
 
 export default function Meetings() {
   const { meetings, opportunities, companyById, contactById } = useScopedData()
@@ -35,6 +37,7 @@ export default function Meetings() {
     date: (m) => m.date ?? '',
     outcome: (m) => m.outcome ?? '',
   })
+  const paged = usePaged(sorted, 25)
 
   return (
     <div>
@@ -42,28 +45,31 @@ export default function Meetings() {
       {rows.length === 0 ? (
         <EmptyState icon={<CalendarDays size={28} />} title="No meetings yet" hint="Log a meeting from any opportunity to track it here." />
       ) : (
-        <Table>
-          <THead>
-            <TR>
-              <SortHeader label="Company" sortKey="company" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Contact" sortKey="contact" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Meeting" sortKey="number" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Date" sortKey="date" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Outcome" sortKey="outcome" sorts={sorts} onToggle={toggle} />
-            </TR>
-          </THead>
-          <TBody>
-            {sorted.slice(0, 200).map((m) => (
-              <TR key={m.id} onClick={() => setOpenId(m.opportunityId)}>
-                <TD className="font-medium text-ink">{m.company}</TD>
-                <TD>{m.contact}</TD>
-                <TD>#{m.number}</TD>
-                <TD>{fmtDate(m.date)}</TD>
-                <TD><Badge tone={m.number === 1 ? 'info' : 'brand'}>{m.outcome ?? 'Held'}</Badge></TD>
+        <>
+          <Table>
+            <THead>
+              <TR>
+                <SortHeader label="Company" sortKey="company" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Contact" sortKey="contact" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Meeting" sortKey="number" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Date" sortKey="date" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Outcome" sortKey="outcome" sorts={sorts} onToggle={toggle} />
               </TR>
-            ))}
-          </TBody>
-        </Table>
+            </THead>
+            <TBody>
+              {paged.slice.map((m) => (
+                <TR key={m.id} onClick={() => setOpenId(m.opportunityId)}>
+                  <TD className="font-medium text-ink">{m.company}</TD>
+                  <TD>{m.contact}</TD>
+                  <TD>#{m.number}</TD>
+                  <TD>{fmtDate(m.date)}</TD>
+                  <TD><Badge tone={m.number === 1 ? 'info' : 'brand'}>{m.outcome ?? 'Held'}</Badge></TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+          <Pagination page={paged.page} pageCount={paged.pageCount} from={paged.from} to={paged.to} total={paged.total} onChange={paged.setPage} />
+        </>
       )}
       <OpportunityDialog oppId={openId} onClose={() => setOpenId(null)} />
     </div>

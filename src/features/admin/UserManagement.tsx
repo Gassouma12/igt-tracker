@@ -7,8 +7,10 @@ import type { Role, User } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { MemberPipelineModal } from '@/features/shared/MemberPipelineModal'
+import { usePaged } from '@/lib/usePaged'
 
 const ROLES: Role[] = ['admin', 'lcp', 'lcvp', 'member']
 const ROLE_OPTS = ROLES.map((r) => ({ value: r, label: r.toUpperCase() }))
@@ -31,6 +33,7 @@ export default function UserManagement() {
   }, [users, q, lcFilter, roleFilter])
 
   const lcName = (id: string | null) => lcs.find((l) => l.id === id)?.name ?? '—'
+  const paged = usePaged(rows, 25)
 
   return (
     <div>
@@ -58,7 +61,7 @@ export default function UserManagement() {
       <Table>
         <THead><TR><TH>Member</TH><TH>Email</TH><TH>Role</TH><TH>Local Committee</TH><TH>Status</TH><TH>Pipeline</TH></TR></THead>
         <TBody>
-          {rows.map((u) => (
+          {paged.slice.map((u) => (
             <TR key={u.id}>
               <TD>
                 <span className="flex items-center gap-2.5">
@@ -99,6 +102,7 @@ export default function UserManagement() {
           ))}
         </TBody>
       </Table>
+      <Pagination page={paged.page} pageCount={paged.pageCount} from={paged.from} to={paged.to} total={paged.total} onChange={paged.setPage} />
 
       <MemberPipelineModal member={viewing} open={!!viewing} onClose={() => setViewing(null)} />
       <p className="mt-2 text-xs text-ink-mute">{rows.length} shown · changes are recorded in the activity log · LC names: {lcs.map((l) => lcName(l.id)).join(', ')}</p>

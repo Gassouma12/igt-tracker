@@ -3,7 +3,7 @@ import { Activity, CalendarCheck, Handshake, TrendingUp } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { funnel, goalProgress, kpis, revenue, timeline } from '@/lib/metrics'
+import { conversions, funnel, goalProgress, keyConversions, kpis, revenue, timeline } from '@/lib/metrics'
 import { goalContributorIds } from '@/lib/rbac'
 import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
 import { availableMonths, currentPeriod, inDayRange, inMonthRange, periodLabel, periodRange } from '@/lib/dates'
@@ -13,7 +13,7 @@ import { Card, SectionTitle, StatCard } from '@/components/ui/primitives'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { MonthRange } from '@/components/ui/MonthRange'
 import { GoalCards } from '@/features/shared/GoalCards'
-import { FunnelView, TimelineArea } from '@/components/charts/Charts'
+import { ConversionBars, ConversionStats, FunnelView, TimelineArea } from '@/components/charts/Charts'
 
 export default function Performance() {
   const user = useCurrentUser()
@@ -54,7 +54,9 @@ export default function Performance() {
       opps: oppsInRange, acts, mtgs, cons,
       k: kpis(oppsInRange, acts, mtgs, cons),
       funnel: funnel(oppsInRange),
-      tl: timeline(acts, mtgs, cons),
+      conv: conversions(oppsInRange),
+      keyConv: keyConversions(oppsInRange),
+      tl: timeline(acts, mtgs, cons, oppsInRange),
     }
   }, [opportunities, activities, meetings, contracts, lcId, memberId, from, to])
 
@@ -171,7 +173,16 @@ export default function Performance() {
       </div>
 
       <Card className="mt-4">
-        <SectionTitle title="Activity over time" subtitle="Monthly outreaches & meetings" />
+        <SectionTitle title="Stage conversion" subtitle="Drop-off between stages, and milestone rates" />
+        <ConversionBars data={sel.conv} />
+        <div className="mt-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-mute">Milestone conversion</p>
+          <ConversionStats data={sel.keyConv} />
+        </div>
+      </Card>
+
+      <Card className="mt-4">
+        <SectionTitle title="Activity over time" subtitle="Monthly outreaches, meetings & revenue" />
         <TimelineArea data={sel.tl} />
       </Card>
     </div>

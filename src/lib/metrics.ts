@@ -2,7 +2,7 @@
 // Everything takes plain arrays so it is trivially testable and memoizable.
 
 import type {
-  Activity, Contract, Goal, GoalMetric, Meeting, Opportunity, OpportunityStatus, User,
+  Activity, Company, Contract, Goal, GoalMetric, Meeting, Opportunity, OpportunityStatus, User,
 } from '@/data/types'
 
 export const FUNNEL: OpportunityStatus[] = [
@@ -124,7 +124,11 @@ export interface PerformanceRow {
   meetings: number
   signed: number
   conversion: number
+  revenue: number // received revenue
 }
+
+/** Metrics a member ranking can be sorted by. */
+export type RankMetric = 'outreaches' | 'followups' | 'meetings' | 'signed' | 'revenue' | 'conversion'
 
 function performanceBy(
   keyOf: (o: Opportunity) => string,
@@ -148,6 +152,7 @@ function performanceBy(
       meetings: myMeetings.length,
       signed,
       conversion: myOpps.length ? signed / myOpps.length : 0,
+      revenue: revenue(myOpps).received,
     })
   }
   return rows.sort((a, b) => b.outreaches - a.outreaches)
@@ -221,14 +226,17 @@ export interface TimelinePoint {
   outreaches: number
   meetings: number
   contracts: number
+  revenue: number
 }
 
 export function timeline(
-  activities: Activity[], meetings: Meeting[], contracts: Contract[],
+  activities: Activity[], meetings: Meeting[], contracts: Contract[], opps: Opportunity[] = [],
 ): TimelinePoint[] {
+  // Received revenue per opportunity, realised in the month its contract signed.
+  const receivedByOpp = new Map(opps.map((o) => [o.id, o.revenueReceived ? (o.value ?? 0) : 0]))
   const map = new Map<string, TimelinePoint>()
   const get = (m: string) =>
-    map.get(m) ?? map.set(m, { month: m, outreaches: 0, meetings: 0, contracts: 0 }).get(m)!
+    map.get(m) ?? map.set(m, { month: m, outreaches: 0, meetings: 0, contracts: 0, revenue: 0 }).get(m)!
   for (const a of activities) {
     const m = monthKey(a.date)
     if (m) get(m).outreaches += a.count || 1
@@ -239,9 +247,24 @@ export function timeline(
   }
   for (const c of contracts) {
     const m = monthKey(c.dateSigned || c.dateSent)
-    if (m) get(m).contracts++
+    if (m) {
+      get(m).contracts++
+      get(m).revenue += receivedByOpp.get(c.opportunityId) ?? 0
+    }
   }
   return [...map.values()].sort((a, b) => a.month.localeCompare(b.month))
+}
+
+/** Milestone conversion rates across the funnel (cumulative, not just adjacent). */
+export function keyConversions(opps: Opportunity[]): { label: string; rate: number }[] {
+  const reached = Object.fromEntries(funnel(opps).map((f) => [f.stage, f.count])) as Record<OpportunityStatus, number>
+  const safe = (a: number, b: number) => (b ? a / b : 0)
+  return [
+    { label: 'Contacted → Meeting', rate: safe(reached['Meeting scheduled'], reached['Contacted']) },
+    { label: 'Meeting → Contract', rate: safe(reached['Contract sent'], reached['Meeting scheduled']) },
+    { label: 'Contract → Signed', rate: safe(reached['Contract signed'], reached['Contract sent']) },
+    { label: 'Overall (Contacted → Signed)', rate: safe(reached['Contract signed'], reached['Contacted']) },
+  ]
 }
 
 // ---- reminders (derived, not stored) -------------------------------------
@@ -281,4 +304,61 @@ export function reminders(
     }
   }
   return out
+}
+
+// ---- duplicate partner detection -----------------------------------------
+export interface DuplicateCompany {
+  id: string
+  name: string
+  lcIds: string[]
+  ownerIds: string[]
+  opps: number
+}
+export interface DuplicateGroup {
+  key: string // normalized name
+  name: string // first display variant
+  crossLc: boolean // duplicated across different LCs (vs all in one LC)
+  lcIds: string[] // every LC touching this partner
+  companies: DuplicateCompany[]
+}
+
+/** Normalised company name for matching — drops legal suffixes & punctuation. */
+function normCompany(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\b(nv|sa|bv|bvba|sprl|srl|gmbh|ltd|llc|inc|co|comm\.?v|the|group|groep|belgium|belgie|belgië|luxembourg)\b/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim()
+}
+
+/**
+ * Companies that look like the same partner (same normalised name) — flags
+ * data-entry duplicates both across LCs and within a single LC.
+ */
+export function duplicateCompanyGroups(companies: Company[], opportunities: Opportunity[]): DuplicateGroup[] {
+  const byKey = new Map<string, Company[]>()
+  for (const c of companies) {
+    const k = normCompany(c.name)
+    if (!k) continue
+    byKey.set(k, [...(byKey.get(k) ?? []), c])
+  }
+  const oppsByCompany = new Map<string, Opportunity[]>()
+  for (const o of opportunities) oppsByCompany.set(o.companyId, [...(oppsByCompany.get(o.companyId) ?? []), o])
+
+  const groups: DuplicateGroup[] = []
+  for (const [key, comps] of byKey) {
+    if (comps.length < 2) continue
+    const detail: DuplicateCompany[] = comps.map((c) => {
+      const os = oppsByCompany.get(c.id) ?? []
+      return {
+        id: c.id, name: c.name,
+        lcIds: [...new Set(os.map((o) => o.lcId).filter(Boolean))],
+        ownerIds: [...new Set(os.map((o) => o.ownerId))],
+        opps: os.length,
+      }
+    })
+    const lcIds = [...new Set(detail.flatMap((d) => d.lcIds))]
+    groups.push({ key, name: comps[0].name, crossLc: lcIds.length > 1, lcIds, companies: detail })
+  }
+  return groups.sort((a, b) => b.companies.length - a.companies.length)
 }

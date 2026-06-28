@@ -13,12 +13,14 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Button } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
 import { MonthRange } from '@/components/ui/MonthRange'
 import { PipelineSummary } from '@/features/shared/PipelineSummary'
 import { fmtDate, relativeDays } from '@/lib/format'
 import { availableMonths, inMonthRange } from '@/lib/dates'
 import { useFilters } from '@/state/filters'
 import { useSort } from '@/lib/useSort'
+import { usePaged } from '@/lib/usePaged'
 import { cn } from '@/lib/cn'
 
 const COLUMNS: OpportunityStatus[] = [...FUNNEL, 'Lost']
@@ -101,6 +103,7 @@ export default function MyPipeline() {
     const hit = highlightId && sorted.find((o) => o.id === highlightId)
     return hit ? [hit, ...sorted.filter((o) => o.id !== highlightId)] : sorted
   }, [sorted, highlightId])
+  const paged = usePaged(display, 25)
 
   function onDrop(status: OpportunityStatus) {
     setOverCol(null)
@@ -228,7 +231,7 @@ export default function MyPipeline() {
               </TR>
             </THead>
             <TBody>
-              {display.slice(0, 200).map((o: Opportunity) => {
+              {paged.slice.map((o: Opportunity) => {
                 const c = companyById(o.companyId)
                 const ct = contactById(o.contactId)
                 return (
@@ -243,6 +246,7 @@ export default function MyPipeline() {
               })}
             </TBody>
           </Table>
+          <Pagination page={paged.page} pageCount={paged.pageCount} from={paged.from} to={paged.to} total={paged.total} onChange={paged.setPage} />
         </>
       )}
 

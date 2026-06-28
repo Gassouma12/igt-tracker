@@ -9,18 +9,23 @@ import { meetingStats } from '@/lib/metrics'
 import { fmtDate, fmtNum, relativeDays } from '@/lib/format'
 import { Modal } from '@/components/ui/Modal'
 import { StatCard } from '@/components/ui/primitives'
+import { CompanyDialog } from '@/features/member/CompanyDialog'
+import { OpportunityDialog } from '@/features/member/OpportunityDialog'
 import type { Meeting, Opportunity, User } from '@/data/types'
 
 export function MeetingBreakdown({ opps, meetings, users }: { opps: Opportunity[]; meetings: Meeting[]; users: User[] }) {
   const companies = useDB((s) => s.companies)
   const [open, setOpen] = useState<null | 'had' | 'scheduled'>(null)
+  const [companyOpen, setCompanyOpen] = useState<string | null>(null)
+  const [oppOpen, setOppOpen] = useState<string | null>(null)
 
   const stats = meetingStats(opps, meetings)
-  const companyOf = (oppId: string) => {
-    const o = opps.find((x) => x.id === oppId)
-    return companies.find((c) => c.id === o?.companyId)?.name ?? '—'
-  }
+  const companyIdOf = (oppId: string) => opps.find((x) => x.id === oppId)?.companyId ?? null
+  const companyOf = (oppId: string) => companies.find((c) => c.id === companyIdOf(oppId))?.name ?? '—'
   const ownerOf = (id: string) => users.find((u) => u.id === id)?.name ?? '—'
+
+  // Open a company's data modal from a meeting row (closes the meeting list first).
+  const openCompany = (companyId: string | null) => { if (companyId) { setOpen(null); setCompanyOpen(companyId) } }
 
   // "had" rows = recorded meetings; "scheduled" rows = opps booked but not held.
   const hadRows = useMemo(
@@ -55,7 +60,11 @@ export function MeetingBreakdown({ opps, meetings, users }: { opps: Opportunity[
         ) : (
           <ul className="space-y-2">
             {hadRows.map((m) => (
-              <li key={m.id} className="rounded-xl border border-line bg-bg-elev p-3">
+              <li
+                key={m.id}
+                onClick={() => openCompany(companyIdOf(m.opportunityId))}
+                className="cursor-pointer rounded-xl border border-line bg-bg-elev p-3 transition hover:border-brand/40"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium text-ink">{companyOf(m.opportunityId)}</p>
                   <span className="text-xs text-ink-mute">{fmtDate(m.date)}</span>
@@ -80,7 +89,11 @@ export function MeetingBreakdown({ opps, meetings, users }: { opps: Opportunity[
         ) : (
           <ul className="space-y-2">
             {scheduledRows.map((o) => (
-              <li key={o.id} className="rounded-xl border border-line bg-bg-elev p-3">
+              <li
+                key={o.id}
+                onClick={() => openCompany(o.companyId)}
+                className="cursor-pointer rounded-xl border border-line bg-bg-elev p-3 transition hover:border-brand/40"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium text-ink">{companyOf(o.id)}</p>
                   <span className="text-xs text-ink-mute">{relativeDays(o.lastActivityAt)}</span>
@@ -93,6 +106,9 @@ export function MeetingBreakdown({ opps, meetings, users }: { opps: Opportunity[
           </ul>
         )}
       </Modal>
+
+      <CompanyDialog companyId={companyOpen} onClose={() => setCompanyOpen(null)} onOpenOpp={(id) => { setCompanyOpen(null); setOppOpen(id) }} />
+      <OpportunityDialog oppId={oppOpen} onClose={() => setOppOpen(null)} />
     </>
   )
 }

@@ -22,7 +22,7 @@ export function BrandMark({ size = 36, rounded = 'rounded-xl' }: { size?: number
 export function Credits({ className = '' }: { className?: string }) {
   return (
     <p className={`flex items-center justify-center gap-1.5 text-[11px] text-ink-mute ${className}`}>
-      <span>Designed &amp; developed by <span className="text-ink-dim">Aboulkacem Ben Arab</span></span>
+      <span>Made with 🩵 by <span className="text-ink-dim">Aboulkacem</span></span>
       <LinkedInLink url={AUTHOR_LINKEDIN} size={13} />
     </p>
   )

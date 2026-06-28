@@ -4,7 +4,7 @@ import {
 } from 'recharts'
 import type { OpportunityStatus } from '@/data/types'
 import { STATUS_STYLE } from '@/components/ui/StatusBadge'
-import { fmtMonth, fmtNum, fmtPct } from '@/lib/format'
+import { fmtMonth, fmtMoney, fmtNum, fmtPct } from '@/lib/format'
 
 const AXIS = { fontSize: 11, fill: 'var(--ink-mute)' }
 const GRID = 'var(--line)'
@@ -68,16 +68,20 @@ export function ConversionBars({ data }: { data: { from: OpportunityStatus; to: 
 }
 
 // ---- Ranking (horizontal) ------------------------------------------------
-export function RankingBars({ data, dataKey = 'outreaches', color = 'var(--accent)' }: {
-  data: { name: string; outreaches: number; signed: number; meetings: number }[]
-  dataKey?: 'outreaches' | 'signed' | 'meetings'
+export function RankingBars({ data, dataKey = 'outreaches', color = 'var(--accent)', label, format = fmtNum }: {
+  data: { name: string }[]
+  dataKey?: string
   color?: string
+  label?: string
+  format?: (n: number) => string
 }) {
-  const shaped = [...data].slice(0, 8)
+  // Sort by the chosen metric so the ranking reflects the selected criteria.
+  const num = (r: { name: string }) => Number((r as Record<string, unknown>)[dataKey] ?? 0)
+  const shaped = [...data].sort((a, b) => num(b) - num(a)).slice(0, 8)
   return (
     <ResponsiveContainer width="100%" height={Math.max(shaped.length * 38, 120)}>
       <BarChart data={shaped} layout="vertical" margin={{ left: 8, right: 16 }}>
-        <XAxis type="number" tick={AXIS} stroke={GRID} />
+        <XAxis type="number" tick={AXIS} stroke={GRID} tickFormatter={(v) => format(Number(v))} />
         <YAxis type="category" dataKey="name" tick={AXIS} width={110} stroke={GRID} />
         <Tooltip
           cursor={{ fill: 'var(--surface-2)' }}
@@ -85,7 +89,7 @@ export function RankingBars({ data, dataKey = 'outreaches', color = 'var(--accen
             active && payload?.length ? (
               <TipBox>
                 <p className="font-medium text-ink">{payload[0].payload.name}</p>
-                <p className="text-ink-dim">{fmtNum(Number(payload[0].value))} {dataKey}</p>
+                <p className="text-ink-dim">{format(Number(payload[0].value))} {label ?? dataKey}</p>
               </TipBox>
             ) : null
           }
@@ -101,7 +105,8 @@ export function RankingBars({ data, dataKey = 'outreaches', color = 'var(--accen
 }
 
 // ---- Timeline area -------------------------------------------------------
-export function TimelineArea({ data }: { data: { month: string; outreaches: number; meetings: number; contracts: number }[] }) {
+export function TimelineArea({ data }: { data: { month: string; outreaches: number; meetings: number; contracts: number; revenue?: number }[] }) {
+  const hasRevenue = data.some((d) => (d.revenue ?? 0) > 0)
   return (
     <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
@@ -114,9 +119,14 @@ export function TimelineArea({ data }: { data: { month: string; outreaches: numb
             <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.45} />
             <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
           </linearGradient>
+          <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--success)" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="var(--success)" stopOpacity={0} />
+          </linearGradient>
         </defs>
         <XAxis dataKey="month" tickFormatter={fmtMonth} tick={AXIS} stroke={GRID} />
-        <YAxis tick={AXIS} stroke={GRID} />
+        <YAxis yAxisId="count" tick={AXIS} stroke={GRID} />
+        {hasRevenue && <YAxis yAxisId="rev" orientation="right" tick={AXIS} stroke={GRID} tickFormatter={(v) => fmtMoney(Number(v))} width={56} />}
         <Tooltip
           cursor={{ stroke: 'var(--line)' }}
           content={({ active, payload, label }) =>
@@ -125,17 +135,32 @@ export function TimelineArea({ data }: { data: { month: string; outreaches: numb
                 <p className="mb-1 font-medium text-ink">{fmtMonth(String(label))}</p>
                 {payload.map((p) => (
                   <p key={p.name} className="text-ink-dim">
-                    <span style={{ color: p.color }}>●</span> {p.name}: {fmtNum(Number(p.value))}
+                    <span style={{ color: p.color }}>●</span> {p.name}: {p.name === 'revenue' ? fmtMoney(Number(p.value)) : fmtNum(Number(p.value))}
                   </p>
                 ))}
               </TipBox>
             ) : null
           }
         />
-        <Area type="monotone" dataKey="outreaches" stroke="var(--brand)" strokeWidth={2} fill="url(#gOut)" isAnimationActive={false} />
-        <Area type="monotone" dataKey="meetings" stroke="var(--accent)" strokeWidth={2} fill="url(#gMeet)" isAnimationActive={false} />
+        <Area yAxisId="count" type="monotone" dataKey="outreaches" stroke="var(--brand)" strokeWidth={2} fill="url(#gOut)" isAnimationActive={false} />
+        <Area yAxisId="count" type="monotone" dataKey="meetings" stroke="var(--accent)" strokeWidth={2} fill="url(#gMeet)" isAnimationActive={false} />
+        {hasRevenue && <Area yAxisId="rev" type="monotone" dataKey="revenue" stroke="var(--success)" strokeWidth={2} fill="url(#gRev)" isAnimationActive={false} />}
       </AreaChart>
     </ResponsiveContainer>
+  )
+}
+
+// ---- Conversion stat chips (milestone rates) -----------------------------
+export function ConversionStats({ data }: { data: { label: string; rate: number }[] }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {data.map((d) => (
+        <div key={d.label} className="rounded-xl border border-line bg-bg-elev p-3 text-center">
+          <p className="font-display text-xl font-bold text-ink">{fmtPct(d.rate, 0)}</p>
+          <p className="mt-0.5 text-[11px] leading-tight text-ink-mute">{d.label}</p>
+        </div>
+      ))}
+    </div>
   )
 }
 

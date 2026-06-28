@@ -2,18 +2,28 @@
 // progress and rankings. Used by the Admin Global Dashboard and the LC Overview;
 // callers pass already-scoped data so the same component serves any altitude.
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Activity, CalendarCheck, Handshake, Target, TrendingUp } from 'lucide-react'
 import {
-  conversions, funnel, goalProgress, kpis, performanceByLC, performanceByMember, timeline,
+  conversions, funnel, goalProgress, keyConversions, kpis, performanceByLC, performanceByMember, timeline,
 } from '@/lib/metrics'
 import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
 import { Card, Progress, SectionTitle, StatCard } from '@/components/ui/primitives'
-import { ConversionBars, FunnelView, RankingBars, TimelineArea } from '@/components/charts/Charts'
+import { Dropdown } from '@/components/ui/Dropdown'
+import { ConversionBars, ConversionStats, FunnelView, RankingBars, TimelineArea } from '@/components/charts/Charts'
 import type { Activity as Act, Contract, Goal, GoalMetric, LocalCommittee, Meeting, Opportunity, User } from '@/data/types'
 
 const METRIC_LABEL: Record<GoalMetric, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed', revenue: 'Revenue received' }
 const goalVal = (m: GoalMetric, n: number) => (m === 'revenue' ? fmtMoney(n) : fmtNum(n))
+
+// Member-ranking criteria the viewer can switch between.
+export const RANK_CRITERIA: { value: string; label: string; format: (n: number) => string }[] = [
+  { value: 'outreaches', label: 'Outreaches', format: fmtNum },
+  { value: 'meetings', label: 'Meetings', format: fmtNum },
+  { value: 'signed', label: 'Contracts signed', format: fmtNum },
+  { value: 'conversion', label: 'Conversion rate', format: (n) => fmtPct(n, 1) },
+  { value: 'revenue', label: 'Revenue generated', format: fmtMoney },
+]
 
 export interface DashboardProps {
   opps: Opportunity[]
@@ -30,13 +40,17 @@ export interface DashboardProps {
 export function Dashboard({
   opps, activities, meetings, contracts, users, lcs, goals, showLcRanking, goalSubtitle = 'Plan vs done · 2026 S1',
 }: DashboardProps) {
+  const [criteria, setCriteria] = useState('outreaches')
+  const crit = RANK_CRITERIA.find((c) => c.value === criteria) ?? RANK_CRITERIA[0]
+
   const d = useMemo(() => ({
     k: kpis(opps, activities, meetings, contracts),
     funnel: funnel(opps),
     conv: conversions(opps),
+    keyConv: keyConversions(opps),
     byLC: performanceByLC(opps, activities, meetings, lcs),
     byMember: performanceByMember(opps, activities, meetings, users),
-    tl: timeline(activities, meetings, contracts),
+    tl: timeline(activities, meetings, contracts, opps),
     goals: goalProgress(goals, activities, meetings, opps),
   }), [opps, activities, meetings, contracts, users, lcs, goals])
 
@@ -57,12 +71,16 @@ export function Dashboard({
         <Card>
           <SectionTitle title="Stage conversion" subtitle="Drop-off between consecutive stages" />
           <ConversionBars data={d.conv} />
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-mute">Milestone conversion</p>
+            <ConversionStats data={d.keyConv} />
+          </div>
         </Card>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <SectionTitle title="Activity over time" subtitle="Monthly outreaches & meetings" />
+          <SectionTitle title="Activity over time" subtitle="Monthly outreaches, meetings & revenue" />
           <TimelineArea data={d.tl} />
         </Card>
         <Card>
@@ -86,13 +104,24 @@ export function Dashboard({
       <div className={`mt-4 grid gap-4 ${showLcRanking ? 'lg:grid-cols-2' : ''}`}>
         {showLcRanking && (
           <Card>
-            <SectionTitle title="LC ranking" subtitle="By total outreaches" />
-            <RankingBars data={d.byLC} dataKey="outreaches" color="var(--brand)" />
+            <SectionTitle title="LC ranking" subtitle={`By ${crit.label.toLowerCase()}`} />
+            <RankingBars data={d.byLC} dataKey={crit.value} label={crit.label.toLowerCase()} format={crit.format} color="var(--brand)" />
           </Card>
         )}
         <Card>
-          <SectionTitle title={showLcRanking ? 'Top members' : 'Member ranking'} subtitle="By total outreaches" />
-          <RankingBars data={d.byMember} dataKey="outreaches" color="var(--accent)" />
+          <SectionTitle
+            title={showLcRanking ? 'Top members' : 'Member ranking'}
+            subtitle={`By ${crit.label.toLowerCase()}`}
+            action={
+              <Dropdown
+                className="w-44"
+                value={criteria}
+                onChange={setCriteria}
+                options={RANK_CRITERIA.map((c) => ({ value: c.value, label: c.label }))}
+              />
+            }
+          />
+          <RankingBars data={d.byMember} dataKey={crit.value} label={crit.label.toLowerCase()} format={crit.format} color="var(--accent)" />
         </Card>
       </div>
     </>

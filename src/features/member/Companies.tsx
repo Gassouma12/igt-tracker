@@ -8,12 +8,19 @@ import { CompanyDialog } from './CompanyDialog'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button, EmptyState } from '@/components/ui/primitives'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
+import { Pagination } from '@/components/ui/Pagination'
+import { DuplicatesPanel } from '@/features/shared/DuplicatesPanel'
 import { fmtDate } from '@/lib/format'
 import { useSort } from '@/lib/useSort'
+import { usePaged } from '@/lib/usePaged'
 import { useFilters } from '@/state/filters'
 
 export default function Companies() {
-  const { opportunities, contacts, companyById } = useScopedData()
+  const { opportunities, contacts, companies, companyById } = useScopedData()
+  const scopedCompanies = useMemo(() => {
+    const ids = new Set(opportunities.map((o) => o.companyId))
+    return companies.filter((c) => ids.has(c.id))
+  }, [companies, opportunities])
   const search = useFilters((s) => s.search)
   const setFilters = useFilters((s) => s.set)
   const navigate = useNavigate()
@@ -46,6 +53,7 @@ export default function Companies() {
     contacts: (r) => r.contacts,
     activity: (r) => r.lastActivity ?? '',
   })
+  const paged = usePaged(sorted, 25)
 
   return (
     <div>
@@ -60,32 +68,37 @@ export default function Companies() {
         <input className="input pl-9" placeholder="Filter companies…" value={search} onChange={(e) => setFilters({ search: e.target.value })} />
       </div>
 
+      <DuplicatesPanel companies={scopedCompanies} opportunities={opportunities} onOpenCompany={setCompanyOpen} />
+
       {rows.length === 0 ? (
         <EmptyState icon={<Building2 size={28} />} title="No companies yet" hint="Create your first opportunity to start building your pipeline."
           action={<Button onClick={() => setAdding(true)}><Plus size={16} /> New opportunity</Button>} />
       ) : (
-        <Table>
-          <THead>
-            <TR>
-              <SortHeader label="Company" sortKey="name" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Industry" sortKey="industry" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Opportunities" sortKey="opps" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Contacts" sortKey="contacts" sorts={sorts} onToggle={toggle} />
-              <SortHeader label="Last activity" sortKey="activity" sorts={sorts} onToggle={toggle} />
-            </TR>
-          </THead>
-          <TBody>
-            {sorted.slice(0, 300).map((r) => (
-              <TR key={r.id} onClick={() => setCompanyOpen(r.id)}>
-                <TD className="font-medium text-ink">{r.name}</TD>
-                <TD>{r.industry ?? '—'}</TD>
-                <TD>{r.opps}</TD>
-                <TD>{r.contacts}</TD>
-                <TD>{fmtDate(r.lastActivity)}</TD>
+        <>
+          <Table>
+            <THead>
+              <TR>
+                <SortHeader label="Company" sortKey="name" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Industry" sortKey="industry" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Opportunities" sortKey="opps" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Contacts" sortKey="contacts" sorts={sorts} onToggle={toggle} />
+                <SortHeader label="Last activity" sortKey="activity" sorts={sorts} onToggle={toggle} />
               </TR>
-            ))}
-          </TBody>
-        </Table>
+            </THead>
+            <TBody>
+              {paged.slice.map((r) => (
+                <TR key={r.id} onClick={() => setCompanyOpen(r.id)}>
+                  <TD className="font-medium text-ink">{r.name}</TD>
+                  <TD>{r.industry ?? '—'}</TD>
+                  <TD>{r.opps}</TD>
+                  <TD>{r.contacts}</TD>
+                  <TD>{fmtDate(r.lastActivity)}</TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+          <Pagination page={paged.page} pageCount={paged.pageCount} from={paged.from} to={paged.to} total={paged.total} onChange={paged.setPage} />
+        </>
       )}
 
       <CompanyDialog companyId={companyOpen} onClose={() => setCompanyOpen(null)} onOpenOpp={(id) => { setCompanyOpen(null); setOpenId(id) }} />

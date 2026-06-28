@@ -1,18 +1,18 @@
--- Stream row changes to connected clients (realtime). Run once after schema.sql.
--- Adds every app table to the `supabase_realtime` publication; safe to re-run.
-do $$
-declare t text;
-begin
-  foreach t in array array['users','local_committees','companies','contacts',
-    'opportunities','activities','meetings','contracts','goals','activity_log','notifications']
-  loop
-    begin
-      execute format('alter publication supabase_realtime add table %I', t);
-    exception when duplicate_object then null; -- already in the publication
-    end;
-  end loop;
-end $$;
+-- Enable realtime: add the app tables to the supabase_realtime publication.
+-- Run once after schema.sql + seed.sql, in the Supabase SQL editor.
+-- (Run on a fresh project. If a table is already published, that one line errors
+--  with "already member of publication" — harmless, just skip it.)
 
--- Realtime respects RLS: a client only receives changes to rows it could SELECT.
--- The permissive starter policies (schema.sql) let any authenticated user receive
--- all changes — tighten alongside the SELECT policies when you scope RLS.
+alter publication supabase_realtime add table users;
+alter publication supabase_realtime add table local_committees;
+alter publication supabase_realtime add table companies;
+alter publication supabase_realtime add table contacts;
+alter publication supabase_realtime add table opportunities;
+alter publication supabase_realtime add table activities;
+alter publication supabase_realtime add table meetings;
+alter publication supabase_realtime add table contracts;
+alter publication supabase_realtime add table goals;
+alter publication supabase_realtime add table activity_log;
+alter publication supabase_realtime add table notifications;
+
+-- Realtime respects RLS: a client only receives changes to rows it can SELECT.

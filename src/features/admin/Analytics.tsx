@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, Progress, SectionTitle } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
 import { TimelineArea } from '@/components/charts/Charts'
+import { DuplicatesPanel } from '@/features/shared/DuplicatesPanel'
 import type { ActivityType } from '@/data/types'
 
 const CHANNELS: ActivityType[] = ['LinkedIn', 'Email', 'Cold call', 'Meeting']
@@ -16,6 +17,7 @@ export default function Analytics() {
   const meetings = useDB((s) => s.meetings)
   const contracts = useDB((s) => s.contracts)
   const lcs = useDB((s) => s.localCommittees)
+  const companies = useDB((s) => s.companies)
 
   const d = useMemo(() => {
     const byLC = performanceByLC(opportunities, activities, meetings, lcs)
@@ -31,6 +33,8 @@ export default function Analytics() {
   return (
     <div>
       <PageHeader title="Analytics" subtitle="Cross-LC sales analytics" />
+
+      <DuplicatesPanel companies={companies} opportunities={opportunities} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
