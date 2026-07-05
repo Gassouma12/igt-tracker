@@ -28,8 +28,11 @@ begin;
 `
 
 for (const [table, file] of TABLES) {
-  const rows = seed(file)
+  let rows = seed(file)
   if (!rows.length) continue
+  // users has a self-FK (teamLeadId -> users.id): insert team leads (no lead)
+  // before the members that point at them.
+  if (table === 'users') rows = [...rows].sort((a, b) => (a.teamLeadId ? 1 : 0) - (b.teamLeadId ? 1 : 0))
   out += `\n-- ${table} (${rows.length})\n`
   for (const row of rows) {
     const cols = Object.keys(row)

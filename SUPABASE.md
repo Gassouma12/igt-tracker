@@ -36,18 +36,28 @@ UI (reads, reactive)
 
 `.env` is already filled in with the project URL + publishable key, so the DB is
 **linked** (the app hydrates from it; an empty DB keeps the bundled demo data).
-To go fully live — seeded data, real logins, realtime — do these in order:
 
-**1. Create the tables** — SQL Editor → run `supabase/schema.sql`.
+> ✅ **Steps 1–3 are already applied** to the linked project (region `eu-west-1`):
+> tables created, org seeded (3 LCs + 22 users, no sales data), realtime enabled.
+> To re-run or apply to another project, use the one-shot script:
+> ```bash
+> npm install pg
+> # Settings → Database → Connection string → "Session pooler" (URI):
+> SUPABASE_DB_URL="postgresql://postgres.<ref>:PASSWORD@aws-0-<region>.pooler.supabase.com:6543/postgres" \
+>   node scripts/setup-supabase.mjs
+> ```
 
-**2. Seed the data** — SQL Editor → run `supabase/seed.sql` (auto-generated from
-the migrated spreadsheet; regenerate with `node scripts/gen-seed-sql.mjs`). This
-loads the 3 LCs, users, ~companies/opportunities/activities/meetings/contracts.
-> The publishable (anon) key **can't** insert (RLS) — that's why seeding goes
-> through the SQL editor, which bypasses RLS.
+The remaining steps to go fully live — real logins + images:
 
-**3. Enable realtime** — SQL Editor → run `supabase/realtime.sql` (adds the tables
-to the `supabase_realtime` publication). The app already subscribes on startup.
+**1. Create the tables** — SQL Editor → run `supabase/schema.sql`. *(done)*
+
+**2. Seed the org** — SQL Editor → run `supabase/seed.sql` (LCs + users only; no
+sales data). Regenerate with `node scripts/gen-seed-sql.mjs`. *(done)*
+> The publishable (anon) key **can't** insert (RLS) — seeding goes through the
+> SQL editor or the pooler script above, which bypass RLS.
+
+**3. Enable realtime** — SQL Editor → run `supabase/realtime.sql`. The app already
+subscribes on startup. *(done)*
 
 **4. Upload the images** to the `images` bucket. Either drag `src/images/bg.png`
 and `gem.png` into the bucket in the dashboard, **or**:
