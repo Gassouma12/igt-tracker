@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { AlertTriangle, Plus, Trash2 } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import { createCompany, createContact, createOpportunity } from '@/data/actions'
@@ -10,6 +10,8 @@ import { Field, Input } from '@/components/ui/Field'
 interface ContactDraft { name: string; role: string; phone: string; email: string; linkedin: string }
 const emptyContact = (): ContactDraft => ({ name: '', role: '', phone: '', email: '', linkedin: '' })
 
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+
 export function AddOpportunityDialog({ open, onClose, onCreated }: {
   open: boolean
   onClose: () => void
@@ -17,6 +19,9 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
 }) {
   const user = useCurrentUser()
   const companies = useDB((s) => s.companies)
+  const allOpps = useDB((s) => s.opportunities)
+  const users = useDB((s) => s.users)
+  const lcs = useDB((s) => s.localCommittees)
   const [companyName, setCompanyName] = useState('')
   const [contacts, setContacts] = useState<ContactDraft[]>([emptyContact()])
   const [busy, setBusy] = useState(false)
@@ -24,16 +29,33 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
   const setContact = (i: number, patch: Partial<ContactDraft>) =>
     setContacts((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)))
 
+  // Duplicate-partner guard: if the typed name matches a company already worked
+  // by someone, surface who has it (member + LC) and block re-adding it.
+  const existing = useMemo(() => {
+    const n = norm(companyName)
+    if (!n) return null
+    const co = companies.find((c) => norm(c.name) === n)
+    if (!co) return null
+    const ownerIds = [...new Set(allOpps.filter((o) => o.companyId === co.id).map((o) => o.ownerId))]
+    const holders = ownerIds.map((id) => {
+      const u = users.find((x) => x.id === id)
+      return { id, name: u?.name ?? 'Someone', lc: lcs.find((l) => l.id === u?.lcId)?.name ?? 'No LC' }
+    })
+    return { company: co, holders }
+  }, [companyName, companies, allOpps, users, lcs])
+
+  const mine = !!existing && !!user && existing.holders.some((h) => h.id === user.id)
+  const blocked = !!existing && existing.holders.length > 0
+
   function reset() {
     setCompanyName(''); setContacts([emptyContact()])
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user || !companyName.trim()) return
+    if (!user || !companyName.trim() || blocked) return
     setBusy(true)
-    const existing = companies.find((c) => c.name.toLowerCase() === companyName.trim().toLowerCase())
-    const company = existing ?? (await createCompany(user, { name: companyName }))
+    const company = existing?.company ?? (await createCompany(user, { name: companyName }))
     let firstContactId: string | null = null
     for (const c of contacts) {
       if (!c.name.trim()) continue
@@ -59,6 +81,20 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
             {companies.slice(0, 1000).map((c) => <option key={c.id} value={c.name} />)}
           </datalist>
         </Field>
+
+        {blocked && existing && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-danger" />
+            <div>
+              <p className="font-medium text-danger">
+                {mine ? 'You already have this partner.' : `${existing.company.name} is already a partner — you can't add it again.`}
+              </p>
+              <p className="mt-0.5 text-ink-dim">
+                Worked by {existing.holders.map((h) => `${h.name} (${h.lc})`).join(', ')}.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div>
           <div className="mb-2 flex items-center justify-between">
@@ -95,7 +131,7 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={busy || !companyName.trim()}>Create opportunity</Button>
+          <Button type="submit" disabled={busy || !companyName.trim() || blocked}>Create opportunity</Button>
         </div>
       </form>
     </Modal>

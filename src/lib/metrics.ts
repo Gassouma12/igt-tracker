@@ -173,7 +173,7 @@ export function performanceByLC(
   return performanceBy((o) => o.lcId, name, opps, activities, meetings)
 }
 
-// ---- revenue -------------------------------------------------------------
+// ---- revenue / credit ----------------------------------------------------
 export function revenue(opps: Opportunity[]): { receivable: number; received: number } {
   let receivable = 0
   let received = 0
@@ -183,6 +183,28 @@ export function revenue(opps: Opportunity[]): { receivable: number; received: nu
     else if (o.status === 'Contract signed' || o.status === 'Contract sent') receivable += v
   }
   return { receivable, received }
+}
+
+// Likelihood of closing per open stage — for the weighted (expected) forecast.
+const CLOSE_PROB: Partial<Record<OpportunityStatus, number>> = {
+  Contacted: 0.05, 'Follow-up': 0.1, 'Meeting scheduled': 0.3, Negotiation: 0.5, 'Contract sent': 0.8,
+}
+
+/**
+ * Forward-looking money. `expected` = raw € of open deals (not won/lost);
+ * `weighted` = each open deal's € × its stage close-probability.
+ */
+export function pipelineValue(opps: Opportunity[]): { expected: number; weighted: number } {
+  let expected = 0
+  let weighted = 0
+  for (const o of opps) {
+    if (o.status === 'Contract signed' || o.status === 'Lost') continue
+    const v = o.value ?? 0
+    if (v <= 0) continue
+    expected += v
+    weighted += v * (CLOSE_PROB[o.status] ?? 0)
+  }
+  return { expected, weighted }
 }
 
 // ---- goals ---------------------------------------------------------------

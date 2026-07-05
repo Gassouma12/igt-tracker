@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Building2, Plus, Search } from 'lucide-react'
+import { Building2, Download, Plus, Search } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { AddOpportunityDialog } from './AddOpportunityDialog'
 import { OpportunityDialog } from './OpportunityDialog'
@@ -11,6 +11,7 @@ import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { Pagination } from '@/components/ui/Pagination'
 import { DuplicatesPanel } from '@/features/shared/DuplicatesPanel'
 import { fmtDate } from '@/lib/format'
+import { downloadCSV } from '@/lib/csv'
 import { useSort } from '@/lib/useSort'
 import { usePaged } from '@/lib/usePaged'
 import { useFilters } from '@/state/filters'
@@ -55,12 +56,30 @@ export default function Companies() {
   })
   const paged = usePaged(sorted, 25)
 
+  function exportContacts() {
+    const ids = new Set(scopedCompanies.map((c) => c.id))
+    const nameById = new Map(companies.map((c) => [c.id, c.name]))
+    const header = ['Company', 'Name', 'Position', 'Email', 'Phone', 'LinkedIn']
+    const body = contacts
+      .filter((ct) => ids.has(ct.companyId))
+      .sort((a, b) => (nameById.get(a.companyId) ?? '').localeCompare(nameById.get(b.companyId) ?? ''))
+      .map((ct) => [nameById.get(ct.companyId) ?? '', ct.name, ct.role ?? '', ct.email ?? '', ct.phone ?? '', ct.linkedin ?? ''])
+    downloadCSV(`igt-contacts-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...body])
+  }
+
   return (
     <div>
       <PageHeader
         title="Companies"
         subtitle={`${rows.length} companies in your pipeline`}
-        actions={<Button onClick={() => setAdding(true)}><Plus size={16} /> New opportunity</Button>}
+        actions={
+          <>
+            <Button variant="secondary" onClick={exportContacts} disabled={!contacts.some((ct) => scopedCompanies.some((c) => c.id === ct.companyId))}>
+              <Download size={16} /> Export contacts
+            </Button>
+            <Button onClick={() => setAdding(true)}><Plus size={16} /> New opportunity</Button>
+          </>
+        }
       />
 
       <div className="relative mb-3 max-w-md">

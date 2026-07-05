@@ -3,9 +3,9 @@ import { Activity, CalendarCheck, Handshake, TrendingUp } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { conversions, funnel, goalProgress, keyConversions, kpis, revenue, timeline } from '@/lib/metrics'
+import { conversions, funnel, goalProgress, keyConversions, kpis, pipelineValue, revenue, timeline } from '@/lib/metrics'
 import { goalContributorIds } from '@/lib/rbac'
-import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
+import { fmtMoney, fmtMonth, fmtNum, fmtPct } from '@/lib/format'
 import { availableMonths, currentPeriod, inDayRange, inMonthRange, periodLabel, periodRange } from '@/lib/dates'
 import type { GoalCadence } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -57,6 +57,8 @@ export default function Performance() {
       conv: conversions(oppsInRange),
       keyConv: keyConversions(oppsInRange),
       tl: timeline(acts, mtgs, cons, oppsInRange),
+      rev: revenue(oppsInRange),
+      pipe: pipelineValue(oppsInRange),
     }
   }, [opportunities, activities, meetings, contracts, lcId, memberId, from, to])
 
@@ -158,17 +160,42 @@ export default function Performance() {
           <FunnelView data={sel.funnel} />
         </Card>
         <Card>
-          <SectionTitle title="Revenue" subtitle="Pipeline value for this selection" />
+          <SectionTitle title="Credit & revenue" subtitle={`Collected, outstanding & expected · ${who}`} />
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl border border-success/30 bg-success/5 p-4">
               <p className="text-xs text-ink-mute">Received</p>
-              <p className="mt-1 font-display text-2xl font-bold text-success">{fmtMoney(revenue(sel.opps).received)}</p>
+              <p className="mt-1 font-display text-2xl font-bold text-success">{fmtMoney(sel.rev.received)}</p>
+              <p className="mt-0.5 text-[11px] text-ink-mute">collected</p>
             </div>
             <div className="rounded-2xl border border-warning/30 bg-warning/5 p-4">
-              <p className="text-xs text-ink-mute">Receivable (outstanding)</p>
-              <p className="mt-1 font-display text-2xl font-bold text-warning">{fmtMoney(revenue(sel.opps).receivable)}</p>
+              <p className="text-xs text-ink-mute">Receivable</p>
+              <p className="mt-1 font-display text-2xl font-bold text-warning">{fmtMoney(sel.rev.receivable)}</p>
+              <p className="mt-0.5 text-[11px] text-ink-mute">signed, awaiting payment</p>
+            </div>
+            <div className="rounded-2xl border border-info/30 bg-info/5 p-4">
+              <p className="text-xs text-ink-mute">Expected pipeline</p>
+              <p className="mt-1 font-display text-2xl font-bold text-info">{fmtMoney(sel.pipe.expected)}</p>
+              <p className="mt-0.5 text-[11px] text-ink-mute">open deals in range</p>
+            </div>
+            <div className="rounded-2xl border border-brand/30 bg-brand/5 p-4">
+              <p className="text-xs text-ink-mute">Weighted forecast</p>
+              <p className="mt-1 font-display text-2xl font-bold text-brand">{fmtMoney(Math.round(sel.pipe.weighted))}</p>
+              <p className="mt-0.5 text-[11px] text-ink-mute">× stage close-rate</p>
             </div>
           </div>
+          {sel.tl.some((p) => p.revenue > 0) && (
+            <div className="mt-3">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-mute">Received by month</p>
+              <ul className="divide-y divide-line rounded-xl border border-line">
+                {sel.tl.filter((p) => p.revenue > 0).map((p) => (
+                  <li key={p.month} className="flex items-center justify-between px-3 py-1.5 text-sm">
+                    <span className="text-ink-dim">{fmtMonth(p.month)}</span>
+                    <span className="font-medium text-ink">{fmtMoney(p.revenue)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </Card>
       </div>
 
