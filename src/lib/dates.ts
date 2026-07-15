@@ -30,7 +30,9 @@ export function inMonthRange(d: string | null | undefined, from: string, to: str
 // resolves to a concrete date window so "done" is measured within that window.
 
 const pad = (n: number) => String(n).padStart(2, '0')
-const iso = (d: Date) => d.toISOString().slice(0, 10)
+// Build from LOCAL components — toISOString() shifts local midnight to the
+// previous day for timezones ahead of UTC (CET), skewing every period window.
+const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
 /** ISO-8601 week number of a date (weeks start Monday). */
 export function isoWeek(d: Date): { year: number; week: number } {

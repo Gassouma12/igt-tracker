@@ -28,7 +28,12 @@ async function runFile(name, { ignoreErrors = false } = {}) {
     return
   }
   // Run statement-by-statement so one "already exists" doesn't abort the rest.
-  for (const stmt of sql.split(';').map((s) => s.trim()).filter((s) => s && !s.startsWith('--'))) {
+  // Strip comment LINES first — a leading comment must not discard the whole
+  // statement it precedes (that silently dropped `users` from the publication once).
+  const stmts = sql
+    .split('\n').filter((l) => !l.trim().startsWith('--')).join('\n')
+    .split(';').map((s) => s.trim()).filter(Boolean)
+  for (const stmt of stmts) {
     try { await client.query(stmt) } catch (e) { console.log(`  · skipped: ${e.message}`) }
   }
   console.log(`✓ ${name}`)

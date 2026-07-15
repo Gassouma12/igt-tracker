@@ -21,7 +21,14 @@ jobs:
 
       - run: npm install
 
+      # Supabase env baked into the bundle. Until the repo secrets are set these
+      # are empty and the site runs in demo/mock mode — set them under
+      # Settings → Secrets and variables → Actions to take the live site live.
       - run: npx vite build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_USE_SUPABASE_AUTH: ${{ secrets.VITE_USE_SUPABASE_AUTH }}
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
