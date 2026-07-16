@@ -2,7 +2,7 @@
 // and additionally write the audit trail (activityLog) and keep derived fields
 // (status, lastActivityAt) consistent — the "smart" layer over plain CRUD.
 
-import { db, newId, nowISO, todayISO } from './store'
+import { db, newId, nowISO, todayISO, useDB } from './store'
 import { repo } from './repositories'
 import { supervisorsOf } from '@/lib/rbac'
 import { supabase, useSupabaseAuth } from '@/lib/supabase'
@@ -135,6 +135,60 @@ export async function advanceStage(
   // logging a meeting / signing through the detail panel.
   if (to === 'Meeting scheduled') await notify(actor, opp, 'meeting', 'scheduled a meeting with')
   if (to === 'Contract signed') await notify(actor, opp, 'contract', 'signed a contract with')
+  // Keep the contract record in step with the stage, so dateSent/dateSigned/
+  // daysUntilSigned are live data — not just migrated history.
+  if (to === 'Contract sent' || to === 'Contract signed') await touchContract(opp, to)
+}
+
+async function touchContract(opp: Opportunity, stage: 'Contract sent' | 'Contract signed'): Promise<void> {
+  const existing = db().contracts.find((k) => k.opportunityId === opp.id)
+  const today = todayISO()
+  if (!existing) {
+    await repo.contracts.create({
+      id: newId('con'), opportunityId: opp.id,
+      dateSent: stage === 'Contract sent' ? today : null,
+      dateSigned: stage === 'Contract signed' ? today : null,
+      daysUntilSigned: null,
+    })
+    return
+  }
+  if (stage === 'Contract sent' && !existing.dateSent) {
+    await repo.contracts.update(existing.id, { dateSent: today })
+  } else if (stage === 'Contract signed' && !existing.dateSigned) {
+    const days = existing.dateSent
+      ? Math.max(0, Math.round((new Date(today).getTime() - new Date(existing.dateSent).getTime()) / 86_400_000))
+      : null
+    await repo.contracts.update(existing.id, { dateSigned: today, daysUntilSigned: days })
+  }
+}
+
+/** When is this deal's money expected? Feeds the receivables schedule. */
+export async function setExpectedPayment(actor: User, opp: Opportunity, date: string | null): Promise<void> {
+  await repo.opportunities.update(opp.id, { expectedPaymentDate: date, updatedAt: nowISO() })
+  await log(actor, 'opportunity', opp.id, `expects payment from ${companyName(opp.companyId)} on ${date ?? '—'}`)
+}
+
+/** Delete a lead and its local children (the DB cascades from the one delete). */
+export async function deleteOpportunity(actor: User, opp: Opportunity): Promise<void> {
+  const d = db()
+  useDB.getState().patch({
+    activities: d.activities.filter((a) => a.opportunityId !== opp.id),
+    meetings: d.meetings.filter((m) => m.opportunityId !== opp.id),
+    contracts: d.contracts.filter((k) => k.opportunityId !== opp.id),
+    notifications: d.notifications.filter((n) => n.opportunityId !== opp.id),
+  })
+  await repo.opportunities.remove(opp.id)
+  await log(actor, 'opportunity', opp.id, `deleted opportunity for ${companyName(opp.companyId)}`)
+}
+
+export async function deleteContact(actor: User, contact: Contact): Promise<void> {
+  const d = db()
+  // The DB FK sets opportunities.contactId null on delete; mirror that locally.
+  useDB.getState().patch({
+    opportunities: d.opportunities.map((o) => (o.contactId === contact.id ? { ...o, contactId: null } : o)),
+  })
+  await repo.contacts.remove(contact.id)
+  await log(actor, 'contact', contact.id, `removed contact ${contact.name}`)
 }
 
 export async function setDealValue(actor: User, opp: Opportunity, value: number): Promise<void> {
@@ -252,6 +306,14 @@ export async function setUserStatus(actor: User, userId: string, status: Account
   const before = db().users.find((u) => u.id === userId)
   await repo.users.update(userId, { status })
   await log(actor, 'user', userId, `${status} account for ${before?.name ?? 'user'}`)
+  // Tell the person the gate lifted (their pending screen also flips live via realtime).
+  if (status === 'approved') {
+    await repo.notifications.create({
+      id: newId('ntf'), recipientId: userId, actorId: actor.id, opportunityId: null,
+      kind: 'goal', message: 'Your account was approved — welcome to iGT! 🎉',
+      read: false, at: nowISO(),
+    })
+  }
 }
 
 export async function addMeeting(

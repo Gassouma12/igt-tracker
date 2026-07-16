@@ -47,6 +47,13 @@ UI (reads, reactive)
 >   node scripts/setup-supabase.mjs
 > ```
 
+> ✅ **Also applied (2026-07-06):** scoped RLS (`supabase/rls.sql` — run it right
+> after schema.sql on any fresh project), `expectedPaymentDate` migration, the 3
+> GitHub Actions secrets, `.env` auth flag ON, and email-confirm disabled.
+> **Only remaining step:** sign up in the app, then
+> `SUPABASE_DB_URL="<pooler URI>" node scripts/promote-admin.mjs <your-email>`.
+> Live QA: `scripts/qa-live.mjs` (needs SUPABASE_DB_URL + the two VITE vars).
+
 The remaining steps to go fully live — real logins + images:
 
 **1. Create the tables** — SQL Editor → run `supabase/schema.sql`. *(done)*

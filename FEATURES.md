@@ -61,9 +61,13 @@ LCVP `usr_tijs` · Member `usr_kobe`. Sign-up: name/email/phone/position/LC/role
 - **Branding**: gem.png mark + favicon; login bg.png fade; "Made with 🩵 by
   Aboulkacem" + LinkedIn everywhere (`ui/Brand.tsx`).
 
-## Known gaps (deliberate, tracked in MEMORY.md)
-No contract-record creation UI (dateSent/dateSigned/daysUntilSigned are demo-only);
-no receivable due dates (forecast is stage-weighted); no delete/edit UI for
-companies/contacts/opportunities; approved users aren't push-notified (realtime
-flips the gate live in auth mode); mock sign-in checks no password (by design);
-RLS permissive until tightened.
+## Added 2026-07-06
+Contract records auto-maintained by stage moves (dateSent on "Contract sent",
+dateSigned + daysUntilSigned on "Contract signed"); **Payment expected** date on
+leads + receivables-by-month schedule in Credit & revenue; delete opportunity
+(danger zone in lead detail) and delete contact (CompanyDialog); approval
+notification to the new user; scoped RLS live (see CLAUDE.md security_state).
+
+## Known gaps (tracked in MEMORY.md)
+Company delete/edit UI; images bucket unused (assets bundled); mock sign-in
+checks no password (demo mode only).

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { CalendarPlus, Eye, Mail, MessageSquare, Phone, Users, X } from 'lucide-react'
+import { CalendarPlus, Eye, Mail, MessageSquare, Phone, Trash2, Users, X } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useDB, todayISO } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import {
-  addMeeting, advanceStage, logActivity, scheduleFollowUp, setDealValue, setRevenueReceived,
+  addMeeting, advanceStage, deleteOpportunity, logActivity, scheduleFollowUp,
+  setDealValue, setExpectedPayment, setRevenueReceived,
 } from '@/data/actions'
 import { canEditOwned } from '@/lib/rbac'
 import { OPPORTUNITY_STATUSES, type ActivityOutcome, type ActivityType } from '@/data/types'
@@ -48,6 +49,7 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
   const [intDate, setIntDate] = useState('')
   const [faDate, setFaDate] = useState('')
   const [faText, setFaText] = useState('')
+  const [confirmDel, setConfirmDel] = useState(false)
 
   if (!opp || !user) return null
   const canEdit = canEditOwned(user, opp.ownerId)
@@ -111,7 +113,7 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
 
             {/* revenue */}
             {canEdit ? (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <Field label="Deal value (€)">
                   <Input type="number" min={0} key={opp.value} defaultValue={opp.value} onBlur={(e) => setDealValue(user, opp, Number(e.target.value) || 0)} />
                 </Field>
@@ -123,6 +125,9 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
                   >
                     {opp.revenueReceived ? 'Received ✓' : 'Mark as received'}
                   </button>
+                </Field>
+                <Field label="Payment expected">
+                  <Input type="date" value={opp.expectedPaymentDate ?? ''} onChange={(e) => setExpectedPayment(user, opp, e.target.value || null)} />
                 </Field>
               </div>
             ) : opp.value > 0 ? (
@@ -198,6 +203,28 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
                 <p className="font-semibold text-success">Contract</p>
                 <p className="mt-1 text-ink-dim">Sent {fmtDate(contract.dateSent)} · Signed {fmtDate(contract.dateSigned)}
                   {contract.daysUntilSigned != null && ` · ${contract.daysUntilSigned}d to sign`}</p>
+              </div>
+            )}
+
+            {/* danger zone */}
+            {canEdit && (
+              <div className="flex items-center justify-between rounded-2xl border border-danger/30 bg-danger/5 p-3">
+                {confirmDel ? (
+                  <>
+                    <span className="text-sm text-ink-dim">Delete this lead and its history?</span>
+                    <span className="flex gap-2">
+                      <Button size="sm" variant="danger" onClick={async () => { await deleteOpportunity(user, opp); onClose() }}>Yes, delete</Button>
+                      <Button size="sm" variant="ghost" onClick={() => setConfirmDel(false)}>Cancel</Button>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm text-ink-mute">Remove this opportunity permanently.</span>
+                    <Button size="sm" variant="ghost" className="text-danger" onClick={() => setConfirmDel(true)}>
+                      <Trash2 size={14} /> Delete
+                    </Button>
+                  </>
+                )}
               </div>
             )}
 

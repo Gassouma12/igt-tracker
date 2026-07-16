@@ -190,6 +190,20 @@ const CLOSE_PROB: Partial<Record<OpportunityStatus, number>> = {
   Contacted: 0.05, 'Follow-up': 0.1, 'Meeting scheduled': 0.3, Negotiation: 0.5, 'Contract sent': 0.8,
 }
 
+/** Outstanding receivables grouped by expected payment month ('' = unscheduled). */
+export function receivablesByMonth(opps: Opportunity[]): { month: string; amount: number }[] {
+  const map = new Map<string, number>()
+  for (const o of opps) {
+    if (o.revenueReceived || (o.status !== 'Contract signed' && o.status !== 'Contract sent')) continue
+    const v = o.value ?? 0
+    if (v <= 0) continue
+    const m = o.expectedPaymentDate?.slice(0, 7) ?? ''
+    map.set(m, (map.get(m) ?? 0) + v)
+  }
+  return [...map.entries()].map(([month, amount]) => ({ month, amount }))
+    .sort((a, b) => (a.month || '9999').localeCompare(b.month || '9999'))
+}
+
 /**
  * Forward-looking money. `expected` = raw € of open deals (not won/lost);
  * `weighted` = each open deal's € × its stage close-probability.

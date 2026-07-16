@@ -3,7 +3,7 @@ import { Activity, CalendarCheck, Handshake, TrendingUp } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { conversions, funnel, goalProgress, keyConversions, kpis, pipelineValue, revenue, timeline } from '@/lib/metrics'
+import { conversions, funnel, goalProgress, keyConversions, kpis, pipelineValue, receivablesByMonth, revenue, timeline } from '@/lib/metrics'
 import { goalContributorIds } from '@/lib/rbac'
 import { fmtMoney, fmtMonth, fmtNum, fmtPct } from '@/lib/format'
 import { availableMonths, currentPeriod, inDayRange, inMonthRange, periodLabel, periodRange } from '@/lib/dates'
@@ -183,6 +183,19 @@ export default function Performance() {
               <p className="mt-0.5 text-[11px] text-ink-mute">× stage close-rate</p>
             </div>
           </div>
+          {receivablesByMonth(sel.opps).length > 0 && (
+            <div className="mt-3">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-mute">Receivables schedule (expected)</p>
+              <ul className="divide-y divide-line rounded-xl border border-line">
+                {receivablesByMonth(sel.opps).map((r) => (
+                  <li key={r.month || 'none'} className="flex items-center justify-between px-3 py-1.5 text-sm">
+                    <span className="text-ink-dim">{r.month ? fmtMonth(r.month) : 'No date set'}</span>
+                    <span className="font-medium text-warning">{fmtMoney(r.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {sel.tl.some((p) => p.revenue > 0) && (
             <div className="mt-3">
               <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-mute">Received by month</p>

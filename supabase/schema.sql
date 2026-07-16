@@ -68,6 +68,7 @@ create table if not exists opportunities (
   "revenueReceived" boolean not null default false,
   "nextAction"      text,
   "nextActionDate"  date,
+  "expectedPaymentDate" date,          -- when the receivable is expected to land
   "lastActivityAt"  date,
   "createdAt"       date,
   "updatedAt"       timestamptz
@@ -171,24 +172,5 @@ alter table goals             enable row level security;
 alter table activity_log      enable row level security;
 alter table notifications     enable row level security;
 
--- Permissive starter policies — every authenticated user can read/write.
-do $$
-declare t text;
-begin
-  foreach t in array array['users','local_committees','companies','contacts',
-    'opportunities','activities','meetings','contracts','goals','activity_log','notifications']
-  loop
-    execute format('drop policy if exists %I_auth_all on %I;', t, t);
-    execute format(
-      'create policy %I_auth_all on %I for all to authenticated using (true) with check (true);', t, t);
-  end loop;
-end $$;
-
--- Example of a tighter scope (enable once users.id maps to auth.uid()):
--- create policy opportunities_scoped on opportunities for select to authenticated
---   using (
---     "ownerId" = auth.uid()::text
---     or exists (select 1 from users me where me.id = auth.uid()::text
---                and (me.role = 'admin'
---                     or (me.role in ('lcp','lcvp') and me."lcId" = opportunities."lcId")))
---   );
+-- Policies live in rls.sql (scoped, mirrors src/lib/rbac.ts). Run it right
+-- after this file — with RLS enabled and no policies, all access is denied.

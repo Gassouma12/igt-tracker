@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, Mail, Phone, Plus, UserPlus, X } from 'lucide-react'
+import { Building2, Mail, Phone, Trash2, UserPlus, X } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { createContact } from '@/data/actions'
+import { createContact, deleteContact } from '@/data/actions'
 import { visibleOwnerIds } from '@/lib/rbac'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Field, Input } from '@/components/ui/Field'
@@ -108,6 +108,13 @@ export function CompanyDialog({
                         {ct.phone && <span className="inline-flex items-center gap-1"><Phone size={11} /> {ct.phone}</span>}
                       </p>
                     </div>
+                    <button
+                      onClick={() => { if (confirm(`Remove ${ct.name}?`)) deleteContact(user!, ct) }}
+                      className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-danger/10 hover:text-danger"
+                      title="Remove contact"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 ))}
               </div>

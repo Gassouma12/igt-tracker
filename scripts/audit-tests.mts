@@ -3,8 +3,8 @@
 import assert from 'node:assert/strict'
 import {
   outreachCount, followupCount, meetingStats, kpis, funnel, conversions,
-  keyConversions, statusDistribution, revenue, pipelineValue, timeline,
-  goalProgress, duplicateCompanyGroups, performanceByMember, reminders,
+  keyConversions, statusDistribution, revenue, pipelineValue, receivablesByMonth,
+  timeline, goalProgress, duplicateCompanyGroups, performanceByMember, reminders,
 } from '../src/lib/metrics'
 import { isoWeek, currentPeriod, periodRange, periodLabel, inMonthRange, inDayRange, availableMonths } from '../src/lib/dates'
 import { supervisorsOf, canSetGoalFor, goalContributorIds, visibleOwnerIds, canEditOwned, scopeOpportunities } from '../src/lib/rbac'
@@ -96,6 +96,16 @@ t('pipelineValue excludes signed/lost/zero-value; weighted ≤ expected', () => 
     opp({ id: 'o4', status: 'Prospect', value: 0 }),
   ])
   assert.equal(p.expected, 1000); assert.equal(p.weighted, 500)
+})
+t('receivablesByMonth: groups by expected month, unscheduled last, received/open excluded', () => {
+  const rows = receivablesByMonth([
+    opp({ id: 'o1', status: 'Contract signed', value: 100, expectedPaymentDate: '2026-09-15' }),
+    opp({ id: 'o2', status: 'Contract sent', value: 50, expectedPaymentDate: '2026-09-01' }),
+    opp({ id: 'o3', status: 'Contract signed', value: 70 }), // no date
+    opp({ id: 'o4', status: 'Contract signed', value: 999, revenueReceived: true }), // already paid
+    opp({ id: 'o5', status: 'Negotiation', value: 999 }), // not signed/sent yet
+  ])
+  assert.deepEqual(rows, [{ month: '2026-09', amount: 150 }, { month: '', amount: 70 }])
 })
 t('timeline books received revenue in the contract month', () => {
   const cons: Contract[] = [{ id: 'k1', opportunityId: 'o1', dateSent: '2026-05-02', dateSigned: '2026-06-15', daysUntilSigned: 44 }]

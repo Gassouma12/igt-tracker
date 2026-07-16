@@ -6,6 +6,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useDB } from '@/data/store'
+import { hydrateFromSupabase } from '@/data/repositories'
 import { supabase, useSupabaseAuth } from '@/lib/supabase'
 import type { User } from '@/data/types'
 
@@ -34,8 +35,11 @@ if (useSupabaseAuth && supabase) {
   supabase.auth.getSession().then(({ data }) => {
     useSession.setState({ currentUserId: data.session?.user.id ?? null })
   })
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
     useSession.setState({ currentUserId: session?.user.id ?? null })
+    // Startup hydrate ran anonymous (RLS returned nothing). Re-pull now that the
+    // JWT is attached so the store fills with the rows this user may see.
+    if (event === 'SIGNED_IN') void hydrateFromSupabase()
   })
 }
 

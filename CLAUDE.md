@@ -90,12 +90,20 @@ SUPABASE_DB_URL="<session-pooler URI>" node scripts/setup-supabase.mjs  # idempo
 
 ## security_state (read before any auth/RLS work)
 
-- RLS = permissive starter (`*_auth_all`, ALL for authenticated): any logged-in
-  user can write anything incl. `users.role` — **privilege escalation is open by
-  design until policies are tightened** to mirror rbac.ts. Do not ship real
-  multi-user auth without that.
+- RLS = **scoped** (`supabase/rls.sql`, applied live 2026-07-06): security-definer
+  helpers (`uid/me_role/me_lc/is_admin/is_approved`), approved-gate on everything,
+  owner+admin-only writes on opportunities/activities/meetings, goal hierarchy,
+  recipient-only notifications, admin-only audit log, self-escalation blocked.
+  Verified by `scripts/qa-live.mjs` (27 live checks). Change rbac.ts ⇒ change rls.sql.
+- Known ceilings (documented, accepted): SELECT on sales data is org-wide once
+  approved (duplicate detection is cross-LC by requirement — UI still scopes);
+  LCP/LCVP row-level update on their LC's members can touch any column of those
+  rows (column-level control needs a trigger); notification INSERT only requires
+  actorId = self (pending users must reach admins at signup).
 - DB password is NOT in the repo; `.env` (URL + publishable key) is gitignored.
-- Pending-account gate is client-side (`RequireAuth`); enforce in RLS when tightening.
+- QA suites: `npx tsx scripts/audit-tests.mts` (pure logic) and
+  `SUPABASE_DB_URL=... VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... node scripts/qa-live.mjs`
+  (live RLS matrix; creates + removes its own auth user).
 
 ## verification
 

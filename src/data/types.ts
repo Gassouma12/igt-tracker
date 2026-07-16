@@ -77,6 +77,7 @@ export interface Opportunity {
   revenueReceived: boolean // money actually collected
   nextAction: string | null
   nextActionDate: string | null
+  expectedPaymentDate?: string | null // when the receivable is expected to land
   lastActivityAt: string | null
   createdAt: string | null
   updatedAt: string | null

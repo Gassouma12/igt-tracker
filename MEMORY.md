@@ -38,22 +38,29 @@
   statement preceded by comments). Publication fixed live; runner fixed.
 - deploy.yml now passes VITE_SUPABASE_* from Actions secrets (empty ⇒ demo).
 
+## closed_2026-07-06 (production hardening pass)
+
+- RLS tightened + applied live (`supabase/rls.sql`, 38 policies; permissive block
+  removed from schema.sql) — verified by `scripts/qa-live.mjs`: **27/27** live
+  checks incl. escalation attempts, owner-only writes, cascade deletes, cleanup.
+- Actions secrets set via API (VITE_SUPABASE_URL / ANON_KEY / USE_SUPABASE_AUTH=true)
+  → Pages builds bake real env. `.env` local auth flag → true.
+- Features: auto contract rows on Contract sent/signed (real daysUntilSigned);
+  `expectedPaymentDate` (+ live DB migration) with "Payment expected" field and
+  receivables-by-month schedule on Performance; delete opportunity (danger zone,
+  local child cascade) + delete contact; approval notification; hydrate re-runs
+  on SIGNED_IN (startup hydrate is anonymous under RLS).
+
 ## open_gaps (priority order)
 
-1. **RLS tightening** — permissive policies allow any authenticated user to
-   escalate (`update users set role='admin'`). Mirror rbac.ts as policies before
-   real rollout; enforce `status='approved'` server-side. Scoped example in schema.sql.
-2. **Owner dashboard steps to go live**: Auth → Email → disable "Confirm email";
-   set `VITE_USE_SUPABASE_AUTH=true`; sign up; SQL `update users set role='admin',
-   status='approved' where email='…'`; add the 3 Actions secrets for Pages.
-3. **Contracts flow**: reaching 'Contract signed' never creates a `contracts` row
-   (dateSent/dateSigned/daysUntilSigned demo-only; avgDaysToSign stale for new data).
-4. **Receivable due dates** (Roxy): forecast is stage-weighted, not date-scheduled —
-   add expectedPaymentDate to opportunities for true per-period credit planning.
-5. No delete/edit UI: companies, contacts, opportunities (notes are editable).
-6. Approval push: approved user must "Check again" in mock mode (realtime handles it in auth mode).
-7. images bucket empty (bundled assets used; upload optional via scripts/upload-images.mjs + service key).
-8. Perf polish: 1.3MB shared chunk (Recharts) — code-split if needed.
+1. **Admin bootstrap incomplete**: auth.users is EMPTY — the owner's "admin set"
+   hit the seeded demo row. They must sign up in the app (auth mode on), then:
+   `SUPABASE_DB_URL=... node scripts/promote-admin.mjs <their-email>`.
+2. images bucket empty (bundled assets used; upload optional via scripts/upload-images.mjs + service key).
+3. Company delete/edit UI (admin-only concern; contacts + opportunities covered).
+4. Perf polish: 1.3MB shared chunk (Recharts) — code-split if needed.
+5. RLS ceilings accepted: org-wide SELECT for approved users; LC leads can update
+   any column on their LC's member rows; see CLAUDE.md security_state.
 
 ## environment_quirks
 
