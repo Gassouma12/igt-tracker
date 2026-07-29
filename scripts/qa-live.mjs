@@ -26,13 +26,16 @@ const ts = Date.now().toString(36)
 const email = `igt.qa.${ts}@example.org`
 const FOREIGN_OPP = `qa_foreign_${ts}`
 let uid = null
+// A real admin id (post clean-slate the seeded usr_admin is gone).
+const { rows: [adminRow] } = await admin.query(`select id from users where role='admin' and active limit 1`)
+const ADMIN_ID = adminRow?.id
 
 try {
   // ---- anon --------------------------------------------------------------
   console.log('— anon —')
   const anon = createClient(URL, ANON, { auth: { persistSession: false } })
   const lcs = await anon.from('local_committees').select('id')
-  ok('anon reads LCs (signup dropdown)', (lcs.data ?? []).length === 3, JSON.stringify(lcs.error))
+  ok('anon reads LCs (signup dropdown)', (lcs.data ?? []).length >= 3, JSON.stringify(lcs.error))
   const anonUsers = await anon.from('users').select('id')
   ok('anon reads zero users', (anonUsers.data ?? []).length === 0)
   const anonWrite = await anon.from('companies').insert({ id: `qa_x_${ts}`, name: 'x' })
@@ -55,7 +58,7 @@ try {
   ok('PENDING self-escalation to admin blocked', (esc1.data ?? []).length === 0)
   const oppPending = await qa.from('opportunities').insert({ id: `qa_opp_p_${ts}`, companyId: 'x', ownerId: uid, lcId: 'lc_ghent', status: 'Prospect', value: 0, revenueReceived: false })
   ok('pending user cannot create opportunities', !!oppPending.error)
-  const ntf = await qa.from('notifications').insert({ id: `qa_ntf_${ts}`, recipientId: 'usr_admin', actorId: uid, opportunityId: null, kind: 'goal', message: 'QA requested an account', read: false, at: new Date().toISOString() })
+  const ntf = await qa.from('notifications').insert({ id: `qa_ntf_${ts}`, recipientId: ADMIN_ID, actorId: uid, opportunityId: null, kind: 'goal', message: 'QA requested an account', read: false, at: new Date().toISOString() })
   ok('signup notification to admin allowed (actor = self)', !ntf.error, JSON.stringify(ntf.error))
   const readUsersPending = await qa.from('users').select('id')
   ok('pending user sees only own row', (readUsersPending.data ?? []).length === 1)
@@ -64,7 +67,7 @@ try {
   await admin.query(`update users set status='approved' where id=$1`, [uid])
   console.log('— approved member —')
   const readUsers = await qa.from('users').select('id')
-  ok('approved sees the org (≥22 users)', (readUsers.data ?? []).length >= 22)
+  ok('approved sees the whole org (more than own row)', (readUsers.data ?? []).length >= 2)
   const esc2 = await qa.from('users').update({ role: 'admin' }).eq('id', uid).select()
   ok('APPROVED self-escalation still blocked', (esc2.data ?? []).length === 0)
   await admin.query(`select role from users where id=$1`, [uid]).then(({ rows }) =>
@@ -88,7 +91,7 @@ try {
 
   // canEditOwned server-enforced: foreign opp untouchable
   await admin.query(`insert into opportunities (id,"companyId","ownerId","lcId",status,value,"revenueReceived")
-    values ($1,$2,'usr_tijs','lc_ghent','Prospect',0,false)`, [FOREIGN_OPP, `qa_co_${ts}`])
+    values ($1,$2,$3,'lc_ghent','Prospect',0,false)`, [FOREIGN_OPP, `qa_co_${ts}`, ADMIN_ID])
   const updF = await qa.from('opportunities').update({ status: 'Lost' }).eq('id', FOREIGN_OPP).select()
   ok("cannot edit another member's opportunity", (updF.data ?? []).length === 0)
   const delF = await qa.from('opportunities').delete().eq('id', FOREIGN_OPP).select()
