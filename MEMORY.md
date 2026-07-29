@@ -3,17 +3,23 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
-## state_snapshot
+## state_snapshot (updated 2026-07-29 — LIVE)
 
 - Repo: `C:\Users\abena\Desktop\AiB IGT Master Tracker` → github.com/Gassouma12/igt-tracker (main)
-- Live: https://gassouma12.github.io/igt-tracker/ — **demo mode** (no Supabase secrets in CI yet; env passthrough is wired in deploy.yml, secrets missing)
-- Build: tsc + vite green · `npx tsx scripts/audit-tests.mts` → 30/30
-- Supabase project `sayuohpchlpmykdvwtdo` (**eu-west-1**): schema applied, org
-  seeded (3 LCs, 22 users, zero sales rows — intentional), realtime publication =
-  all 11 tables (users was missing; fixed 2026-07-06), auth.users = 0, RLS =
-  permissive authenticated-ALL. DB password known to owner only — NOT in repo.
-- `.env` local: URL + publishable key set, `VITE_USE_SUPABASE_AUTH=false`
-- App state: mock data + demo sign-in until auth flag flips.
+- Live: https://gassouma12.github.io/igt-tracker/ — **PRODUCTION** (real Supabase
+  auth; secrets set in CI; deploy verified serving new bundle).
+- Build: tsc + vite green · `npx tsx scripts/audit-tests.mts` → 31/31 ·
+  `scripts/qa-live.mjs` → 27/27 (updated for clean slate).
+- Supabase project `sayuohpchlpmykdvwtdo` (**eu-west-1**): scoped RLS live (38
+  policies), realtime on all 11 tables, `expectedPaymentDate` migration, plus
+  `notify_admins_on_signup` trigger (supabase/triggers.sql). DB password owner-only.
+- **Clean slate done**: the 22 demo users are DELETED. Only real account =
+  `kacem@aiesec.be` (admin/approved, LC=`lc_mc` "MC", pos "MCVP BD&EwA"). LCs =
+  Antwerp/Ghent/Leuven + MC. All sales tables empty (real data starts here).
+- `.env` local + CI: URL + publishable key + `VITE_USE_SUPABASE_AUTH=true`.
+- App: real auth. hydrate adopts the DB as source of truth in real-auth mode
+  (empty table => empty store), so no bundled demo leaks into production.
+- Error boundary + write-failure toasts (revert optimistic update) shipped.
 
 ## decisions (why things are the way they are)
 
@@ -53,10 +59,13 @@
 
 ## open_gaps (priority order)
 
-1. **Admin bootstrap incomplete**: auth.users is EMPTY — the owner's "admin set"
-   hit the seeded demo row. They must sign up in the app (auth mode on), then:
-   `SUPABASE_DB_URL=... node scripts/promote-admin.mjs <their-email>`.
-2. images bucket empty (bundled assets used; upload optional via scripts/upload-images.mjs + service key).
+1. **Password reset is manual** — no self-service flow (deliberate). Login shows
+   "forgot password → email kacem@aiesec.be"; admin resets from Supabase dash
+   (Auth → Users → … → Send recovery / set password). Self-service reset would
+   need resetPasswordForEmail + a recovery screen + email templates.
+2. **Only 3+MC LCs** — Antwerp/Ghent/Leuven + MC. Add the rest of AiB's LCs when
+   known (no in-app "create LC" UI yet → insert via SQL or add one).
+3. images bucket empty (bundled assets used; upload optional via scripts/upload-images.mjs + service key).
 3. Company delete/edit UI (admin-only concern; contacts + opportunities covered).
 4. Perf polish: 1.3MB shared chunk (Recharts) — code-split if needed.
 5. RLS ceilings accepted: org-wide SELECT for approved users; LC leads can update
