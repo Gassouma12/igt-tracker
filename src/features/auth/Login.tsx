@@ -98,6 +98,19 @@ export default function Login() {
       {/* brand panel */}
       <div className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
         <div className="absolute inset-0 -z-10 bg-gradient-to-br from-brand/30 via-bg to-bg" />
+        {/* background image — low opacity, strongest on the left, fading toward the center */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            backgroundImage: `url(${bg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.16,
+            maskImage: 'linear-gradient(to right, black 0%, rgba(0,0,0,0.5) 45%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, black 0%, rgba(0,0,0,0.5) 45%, transparent 100%)',
+          }}
+        />
         <div className="absolute -left-20 top-40 -z-10 h-80 w-80 rounded-full bg-brand/20 blur-3xl" />
         <div className="flex items-center gap-2.5">
           <BrandMark size={40} />
@@ -124,19 +137,6 @@ export default function Login() {
 
       {/* form panel */}
       <div className="relative flex items-center justify-center overflow-hidden p-6">
-        {/* background image — low opacity, fading in from left to right */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            backgroundImage: `url(${bg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            opacity: 0.16,
-            maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 55%, black 100%)',
-            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.5) 55%, black 100%)',
-          }}
-        />
         <div className="w-full max-w-sm">
           <h2 className="font-display text-2xl font-bold text-ink">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>
           <p className="mt-1 text-sm text-ink-mute">
@@ -153,6 +153,14 @@ export default function Login() {
               </Field>
               {error && <p className="text-sm text-danger">{error}</p>}
               <Button type="submit" className="w-full" disabled={busy}>Sign in <ArrowRight size={16} /></Button>
+              {useSupabaseAuth && (
+                <a
+                  href="mailto:kacem@aiesec.be?subject=iGT%20password%20reset"
+                  className="block text-center text-xs text-ink-mute transition hover:text-brand"
+                >
+                  Forgot your password? Email kacem@aiesec.be
+                </a>
+              )}
             </form>
           ) : (
             <form key="signup" onSubmit={submitSignUp} className="mt-6 space-y-3">

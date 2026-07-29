@@ -284,13 +284,18 @@ export async function signUp(data: {
     teamLeadId: null, active: true, phone: data.phone?.trim() || null, status: 'pending',
   }
   await repo.users.create(user)
-  // Notify every admin (MCVP) that an account is awaiting approval.
-  for (const admin of db().users.filter((u) => u.role === 'admin' && u.active)) {
-    await repo.notifications.create({
-      id: newId('ntf'), recipientId: admin.id, actorId: user.id, opportunityId: null,
-      kind: 'goal', message: `${user.name} requested an account — approval needed`,
-      read: false, at: nowISO(),
-    })
+  // Notify admins that an account is awaiting approval. In real-auth mode a DB
+  // trigger (notify_admins_on_signup) does this server-side — the client can't
+  // read the real admin list under RLS, and would only hit demo ids. So only run
+  // it client-side in the pure-mock demo, where there is no trigger.
+  if (!useSupabaseAuth) {
+    for (const admin of db().users.filter((u) => u.role === 'admin' && u.active)) {
+      await repo.notifications.create({
+        id: newId('ntf'), recipientId: admin.id, actorId: user.id, opportunityId: null,
+        kind: 'goal', message: `${user.name} requested an account — approval needed`,
+        read: false, at: nowISO(),
+      })
+    }
   }
   return user
 }

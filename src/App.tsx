@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { RequireAuth, RoleRoute } from '@/components/layout/guards'
 import { Spinner } from '@/components/ui/primitives'
+import { Toaster } from '@/components/ui/Toaster'
 import { useCurrentUser } from '@/state/session'
 import { homePathFor } from '@/app/nav'
 import type { Role } from '@/data/types'
@@ -34,6 +35,7 @@ const guarded = (roles: Role[], el: React.ReactNode) => <RoleRoute roles={roles}
 
 export default function App() {
   return (
+    <>
     <Suspense fallback={<div className="grid min-h-screen place-items-center"><Spinner /></div>}>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -65,5 +67,7 @@ export default function App() {
         <Route path="*" element={<RootRedirect />} />
       </Routes>
     </Suspense>
+    <Toaster />
+    </>
   )
 }

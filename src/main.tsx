@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import gem from '@/images/gem.png'
 import { hydrateFromSupabase } from '@/data/repositories'
 import { startRealtime } from '@/data/realtime'
@@ -20,8 +21,10 @@ void hydrateFromSupabase().then(() => startRealtime())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <App />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <App />
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

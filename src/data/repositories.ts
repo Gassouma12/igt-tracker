@@ -5,19 +5,25 @@
 
 import { db, useDB } from './store'
 import type { DB, EntityKey } from './types'
-import { isSupabaseConfigured, supabase, TABLE } from '@/lib/supabase'
+import { isSupabaseConfigured, supabase, TABLE, useSupabaseAuth } from '@/lib/supabase'
+import { toast } from '@/lib/toast'
 
 type Identified = { id: string }
 
-// Mirror a write to Supabase when configured. Errors are logged, not thrown, so
-// a transient backend issue never blocks the local (reactive) update.
-async function mirror(run: () => PromiseLike<{ error: unknown }>): Promise<void> {
-  if (!isSupabaseConfigured) return
+const SAVE_FAILED = "Couldn't save your change to the server — check your connection and try again."
+
+// Mirror a write to Supabase when configured. Returns whether it succeeded, so
+// the caller can revert its optimistic local update instead of silently keeping
+// a change the server rejected. Never throws — a failure is reported, not fatal.
+async function mirror(run: () => PromiseLike<{ error: unknown }>): Promise<boolean> {
+  if (!isSupabaseConfigured) return true
   try {
     const { error } = await run()
-    if (error) console.error('[supabase] write failed', error)
+    if (error) { console.error('[supabase] write failed', error); return false }
+    return true
   } catch (e) {
     console.error('[supabase] write threw', e)
+    return false
   }
 }
 
@@ -31,20 +37,31 @@ function makeRepo<K extends keyof DB, T extends Identified = DB[K][number]>(key:
     async get(id: string): Promise<T | undefined> {
       return read().find((r) => r.id === id)
     },
+    // Each write updates the store first (instant UI), then mirrors to Supabase.
+    // On failure we roll the store back to `prev` so the UI reflects what the
+    // server actually holds, and toast the user. ponytail: `prev` snapshot is
+    // fine for this app's sequential single-user edits; concurrent in-flight
+    // writes to the same table could race — add per-entity queueing if that bites.
     async create(item: T): Promise<T> {
-      useDB.getState().patch({ [key]: [...read(), item] } as Partial<DB>)
-      await mirror(() => supabase!.from(table).insert(item as object))
+      const prev = read()
+      useDB.getState().patch({ [key]: [...prev, item] } as Partial<DB>)
+      const ok = await mirror(() => supabase!.from(table).insert(item as object))
+      if (!ok) { useDB.getState().patch({ [key]: prev } as Partial<DB>); toast.error(SAVE_FAILED) }
       return item
     },
     async update(id: string, patch: Partial<T>): Promise<T | undefined> {
-      const next = read().map((r) => (r.id === id ? { ...r, ...patch } : r))
+      const prev = read()
+      const next = prev.map((r) => (r.id === id ? { ...r, ...patch } : r))
       useDB.getState().patch({ [key]: next } as Partial<DB>)
-      await mirror(() => supabase!.from(table).update(patch as object).eq('id', id))
-      return next.find((r) => r.id === id)
+      const ok = await mirror(() => supabase!.from(table).update(patch as object).eq('id', id))
+      if (!ok) { useDB.getState().patch({ [key]: prev } as Partial<DB>); toast.error(SAVE_FAILED) }
+      return (ok ? next : prev).find((r) => r.id === id)
     },
     async remove(id: string): Promise<void> {
-      useDB.getState().patch({ [key]: read().filter((r) => r.id !== id) } as Partial<DB>)
-      await mirror(() => supabase!.from(table).delete().eq('id', id))
+      const prev = read()
+      useDB.getState().patch({ [key]: prev.filter((r) => r.id !== id) } as Partial<DB>)
+      const ok = await mirror(() => supabase!.from(table).delete().eq('id', id))
+      if (!ok) { useDB.getState().patch({ [key]: prev } as Partial<DB>); toast.error(SAVE_FAILED) }
     },
   }
 }
@@ -77,9 +94,12 @@ export async function hydrateFromSupabase(): Promise<boolean> {
     keys.forEach((k, i) => {
       const { data, error } = results[i]
       if (error) throw error
-      // Only replace a table when Supabase actually has rows — so an empty (not
-      // yet seeded) project keeps the bundled demo data instead of going blank.
-      if (data && data.length) (next as Record<string, unknown>)[k] = data
+      // Real-auth (production): the DB is the whole truth — adopt every table
+      // even when empty, so a clean project starts empty instead of showing the
+      // bundled demo. Demo/linked mode keeps the seed for empty tables so the
+      // unseeded demo still works.
+      if (useSupabaseAuth) (next as Record<string, unknown>)[k] = data ?? []
+      else if (data && data.length) (next as Record<string, unknown>)[k] = data
     })
     if (Object.keys(next).length) useDB.getState().patch(next)
     return true
