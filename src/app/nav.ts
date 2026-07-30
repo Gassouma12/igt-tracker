@@ -18,6 +18,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/users', label: 'User Management', icon: Users },
   { to: '/admin/approvals', label: 'Approvals', icon: ShieldCheck },
   { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/me', label: 'My Pipeline', icon: UserSquare, end: true },
   { to: '/me/performance', label: 'Performance', icon: TrendingUp },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]

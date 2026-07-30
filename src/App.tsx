@@ -56,11 +56,11 @@ export default function App() {
           <Route path="/lc/goals" element={guarded(['lcp', 'lcvp'], <LCGoals />)} />
           <Route path="/lc/reports" element={guarded(['lcp', 'lcvp'], <LCReports />)} />
 
-          {/* Member workspace */}
-          <Route path="/me" element={guarded(['member', 'lcp', 'lcvp'], <MyPipeline />)} />
-          <Route path="/me/companies" element={guarded(['member', 'lcp', 'lcvp'], <Companies />)} />
-          <Route path="/me/activities" element={guarded(['member', 'lcp', 'lcvp'], <Activities />)} />
-          <Route path="/me/meetings" element={guarded(['member', 'lcp', 'lcvp'], <Meetings />)} />
+          {/* Member workspace (admins/MCVPs run their own pipeline too) */}
+          <Route path="/me" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <MyPipeline />)} />
+          <Route path="/me/companies" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Companies />)} />
+          <Route path="/me/activities" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Activities />)} />
+          <Route path="/me/meetings" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Meetings />)} />
           <Route path="/me/performance" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Performance />)} />
         </Route>
 

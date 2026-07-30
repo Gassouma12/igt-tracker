@@ -44,7 +44,9 @@ create policy users_select on users for select to authenticated
 -- signup: only your own row, only as pending, never as admin
 create policy users_insert_self on users for insert to authenticated
   with check (id = public.uid() and status = 'pending' and role in ('member','lcvp','lcp'));
--- admin manages everyone
+-- admin manages everyone (create/provision profiles, incl. demo/mock members)
+create policy users_admin_insert on users for insert to authenticated
+  with check (public.is_admin());
 create policy users_admin_update on users for update to authenticated
   using (public.is_admin()) with check (public.is_admin());
 create policy users_admin_delete on users for delete to authenticated

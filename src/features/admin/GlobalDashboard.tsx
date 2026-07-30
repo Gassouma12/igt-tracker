@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Eraser, Sparkles, Trash2 } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { Dashboard } from '@/features/shared/Dashboard'
 import { MeetingBreakdown } from '@/features/shared/MeetingBreakdown'
 import { useFilters } from '@/state/filters'
+import { isSupabaseConfigured } from '@/lib/supabase'
+import { generateMockData, resetMockData } from '@/data/mockData'
+import { toast } from '@/lib/toast'
 
 export default function GlobalDashboard() {
   const opportunities = useDB((s) => s.opportunities)
@@ -20,10 +23,31 @@ export default function GlobalDashboard() {
   const lcFilter = useFilters((s) => s.lcId)
   const setFilters = useFilters((s) => s.set)
   const [confirming, setConfirming] = useState(false)
+  const [mockBusy, setMockBusy] = useState<false | 'gen' | 'reset'>(false)
 
   function clearSalesData() {
     patch({ companies: [], contacts: [], opportunities: [], activities: [], meetings: [], contracts: [], activityLog: [], notifications: [] })
     setConfirming(false)
+  }
+
+  async function addMockData() {
+    setMockBusy('gen')
+    try {
+      const r = await generateMockData()
+      toast.success(`Added demo data — ${r.users} members, ${r.opportunities} opportunities across the LCs.`)
+    } catch (e) {
+      toast.error(`Could not add demo data: ${(e as Error).message}`)
+    } finally { setMockBusy(false) }
+  }
+
+  async function clearMockData() {
+    setMockBusy('reset')
+    try {
+      await resetMockData()
+      toast.info('Demo data cleared — real users kept.')
+    } catch (e) {
+      toast.error(`Could not clear demo data: ${(e as Error).message}`)
+    } finally { setMockBusy(false) }
   }
 
   const scoped = useMemo(() => {
@@ -62,6 +86,27 @@ export default function GlobalDashboard() {
               <button onClick={() => setConfirming(true)} className="flex items-center gap-1.5 rounded-lg border border-danger/40 px-3 py-1.5 text-sm text-danger transition hover:bg-danger/10">
                 <Trash2 size={14} /> Reset data
               </button>
+            )}
+            {isSupabaseConfigured && (
+              // Temporary demo tools: populate / clear mock data across the LCs.
+              <>
+                <button
+                  onClick={addMockData}
+                  disabled={!!mockBusy}
+                  title="Fill every LC with demo members, pipeline, meetings & contracts"
+                  className="flex items-center gap-1.5 rounded-lg border border-brand/40 px-3 py-1.5 text-sm text-brand transition hover:bg-brand/10 disabled:opacity-50"
+                >
+                  <Sparkles size={14} /> {mockBusy === 'gen' ? 'Adding…' : 'Add demo data'}
+                </button>
+                <button
+                  onClick={clearMockData}
+                  disabled={!!mockBusy}
+                  title="Remove all demo data (keeps real users)"
+                  className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-ink-mute transition hover:text-ink disabled:opacity-50"
+                >
+                  <Eraser size={14} /> {mockBusy === 'reset' ? 'Clearing…' : 'Clear demo'}
+                </button>
+              </>
             )}
           </>
         }
