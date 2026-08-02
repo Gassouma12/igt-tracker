@@ -71,7 +71,8 @@ SUPABASE_DB_URL="<session-pooler URI>" node scripts/setup-supabase.mjs  # idempo
 - edit: **owner + admin only** (`canEditOwned`) — everyone else view-only on others
 - goals (`canSetGoalFor`): **admin→lcvp · lcvp→team_leader(same LC) · team_leader→own
   members**; LCP is view-only. Contributors: team_leader = self+members, lcvp/lcp = whole LC.
-- assignment: `canAssignMembers` = lcp/lcvp/admin (Team page dropdown)
+- assignment: `canAssignMembers` = **lcvp only** — assigns each member to a team
+  leader in their LC (Team page dropdown lists team_leaders). One LCVP per LC.
 - Enforced server-side by scoped RLS (see security_state); rbac.ts is the client mirror.
 
 ## ui_conventions

@@ -3,7 +3,22 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
-## state_snapshot (updated 2026-08-02 — LIVE)
+## state_snapshot (updated 2026-08-03 — LIVE)
+
+- **UX/BA pass 2026-08-03**: one LCVP per LC (demo generator reuses an existing
+  real LCP/LCVP instead of adding a second); member assignment is LCVP-only and
+  targets team leaders (`canAssignMembers` = lcvp); Goals page has an S1/S2
+  toggle (done windowed to the semester); new app-styled `DateRangePicker` (dual
+  calendar + shortcuts) replaced MonthRange on My Pipeline / LC Pipeline /
+  Performance / Reports (`inRange` day filter); Activities+Meetings merged into
+  one **Interactions** page (`/me/interactions`). Deleted MonthRange/Activities/
+  Meetings. Date filters: `filters.from/to` are now DAY strings.
+- BA backlog (documented, not yet done — needs sign-off): pipeline appears on
+  "My Pipeline" + "LC Pipeline" (could unify with a scope toggle); Overview vs
+  Reports vs Performance share funnel/conversion charts (could differentiate);
+  admin Global Dashboard vs Analytics overlap.
+
+## state_snapshot (2026-08-02)
 
 - **team_leader role added** (2026-08-02): hierarchy admin › lcp › lcvp ›
   team_leader › member; linked via `teamLeadId`. rbac.ts + DB role CHECK +
