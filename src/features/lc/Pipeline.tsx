@@ -10,9 +10,9 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { Pagination } from '@/components/ui/Pagination'
 import { Dropdown } from '@/components/ui/Dropdown'
-import { MonthRange } from '@/components/ui/MonthRange'
+import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { fmtDate, relativeDays } from '@/lib/format'
-import { availableMonths, inMonthRange } from '@/lib/dates'
+import { inRange } from '@/lib/dates'
 import { useSort } from '@/lib/useSort'
 import { usePaged } from '@/lib/usePaged'
 import { cn } from '@/lib/cn'
@@ -38,16 +38,14 @@ export default function Pipeline() {
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [highlightId, setHighlight])
 
-  const months = useMemo(() => availableMonths(activities.map((a) => a.date)), [activities])
-
   const ranged = useMemo(() => {
     if (!from && !to) return { opps: opportunities, acts: activities, mtgs: meetings, cons: contracts }
-    const opps = opportunities.filter((o) => inMonthRange(o.lastActivityAt, from, to) || inMonthRange(o.createdAt, from, to))
+    const opps = opportunities.filter((o) => inRange(o.lastActivityAt, from, to) || inRange(o.createdAt, from, to))
     const ids = new Set(opps.map((o) => o.id))
     return {
       opps,
-      acts: activities.filter((a) => ids.has(a.opportunityId) && inMonthRange(a.date, from, to)),
-      mtgs: meetings.filter((m) => ids.has(m.opportunityId) && inMonthRange(m.date, from, to)),
+      acts: activities.filter((a) => ids.has(a.opportunityId) && inRange(a.date, from, to)),
+      mtgs: meetings.filter((m) => ids.has(m.opportunityId) && inRange(m.date, from, to)),
       cons: contracts.filter((c) => ids.has(c.opportunityId)),
     }
   }, [opportunities, activities, meetings, contracts, from, to])
@@ -82,7 +80,7 @@ export default function Pipeline() {
         subtitle={`${rows.length} of ${opportunities.length} opportunities`}
         actions={
           <>
-            <MonthRange months={months} from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
+            <DateRangePicker from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
             <div className="flex overflow-hidden rounded-xl border border-line">
               {([['table', TableIcon], ['summary', BarChart3]] as const).map(([id, Icon]) => (
                 <button key={id} onClick={() => setView(id)} className={cn('grid h-10 w-10 place-items-center transition', view === id ? 'bg-surface-2 text-ink' : 'text-ink-mute hover:text-ink')}>

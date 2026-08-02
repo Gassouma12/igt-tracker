@@ -45,9 +45,9 @@ export function canViewGlobalDashboard(user: User): boolean {
   return user.role === 'admin'
 }
 
-/** Who can (re)assign people to a team leader / an LCVP within their LC. */
+/** Only the LCVP organises their LC — assigning each member to a team leader. */
 export function canAssignMembers(user: User): boolean {
-  return user.role === 'admin' || user.role === 'lcp' || user.role === 'lcvp'
+  return user.role === 'lcvp'
 }
 
 export function canManageUsers(user: User): boolean {

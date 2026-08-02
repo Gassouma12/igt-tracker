@@ -110,3 +110,12 @@ export function inDayRange(d: string | null | undefined, from: string, to: strin
   const day = d.slice(0, 10)
   return day >= from && day <= to
 }
+
+/** Open-ended inclusive day range — empty `from`/`to` means unbounded on that side. */
+export function inRange(d: string | null | undefined, from: string, to: string): boolean {
+  if (!d) return false
+  const day = d.slice(0, 10)
+  if (from && day < from) return false
+  if (to && day > to) return false
+  return true
+}

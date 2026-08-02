@@ -25,16 +25,17 @@ const CADENCES: { key: GoalCadence; label: string }[] = [
 ]
 
 export function GoalEditorModal({
-  open, onClose, actor, users,
+  open, onClose, actor, users, defaultPeriod,
 }: {
   open: boolean
   onClose: () => void
   actor: User
   users: User[]
+  defaultPeriod?: string // pre-select a semester (e.g. the one being viewed)
 }) {
   const goals = useDB((s) => s.goals)
   const [cadence, setCadence] = useState<GoalCadence>('semester')
-  const [period, setPeriod] = useState(() => currentPeriod('semester'))
+  const [period, setPeriod] = useState(() => defaultPeriod ?? currentPeriod('semester'))
 
   function pickCadence(c: GoalCadence) {
     setCadence(c)

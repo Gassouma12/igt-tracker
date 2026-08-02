@@ -22,8 +22,7 @@ const LCGoals = lazy(() => import('@/features/lc/Goals'))
 const LCReports = lazy(() => import('@/features/lc/Reports'))
 const MyPipeline = lazy(() => import('@/features/member/MyPipeline'))
 const Companies = lazy(() => import('@/features/member/Companies'))
-const Activities = lazy(() => import('@/features/member/Activities'))
-const Meetings = lazy(() => import('@/features/member/Meetings'))
+const Interactions = lazy(() => import('@/features/member/Interactions'))
 const Performance = lazy(() => import('@/features/member/Performance'))
 
 function RootRedirect() {
@@ -62,8 +61,7 @@ export default function App() {
           {/* Member workspace (everyone who sells runs their own pipeline) */}
           <Route path="/me" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <MyPipeline />)} />
           <Route path="/me/companies" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Companies />)} />
-          <Route path="/me/activities" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Activities />)} />
-          <Route path="/me/meetings" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Meetings />)} />
+          <Route path="/me/interactions" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Interactions />)} />
           <Route path="/me/performance" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Performance />)} />
         </Route>
 

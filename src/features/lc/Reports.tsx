@@ -3,11 +3,11 @@ import { AlertTriangle, Download, Moon, TimerReset, TrendingDown } from 'lucide-
 import { useLC } from './useLC'
 import { conversions, kpis, reminders, statusDistribution, timeline, FUNNEL } from '@/lib/metrics'
 import { fmtMonth, fmtNum, fmtPct } from '@/lib/format'
-import { availableMonths, inMonthRange } from '@/lib/dates'
+import { inRange } from '@/lib/dates'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button, Card, SectionTitle, StatCard } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
-import { MonthRange } from '@/components/ui/MonthRange'
+import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { ConversionBars, Histogram, PieBreakdown } from '@/components/charts/Charts'
 
 function toCSV(rows: string[][]): string {
@@ -19,16 +19,14 @@ export default function Reports() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
-  const months = useMemo(() => availableMonths(activities.map((a) => a.date)), [activities])
-
   const ranged = useMemo(() => {
     if (!from && !to) return { opps: opportunities, acts: activities, mtgs: meetings, cons: contracts }
-    const opps = opportunities.filter((o) => inMonthRange(o.lastActivityAt, from, to) || inMonthRange(o.createdAt, from, to))
+    const opps = opportunities.filter((o) => inRange(o.lastActivityAt, from, to) || inRange(o.createdAt, from, to))
     const ids = new Set(opps.map((o) => o.id))
     return {
       opps,
-      acts: activities.filter((a) => ids.has(a.opportunityId) && inMonthRange(a.date, from, to)),
-      mtgs: meetings.filter((m) => ids.has(m.opportunityId) && inMonthRange(m.date, from, to)),
+      acts: activities.filter((a) => ids.has(a.opportunityId) && inRange(a.date, from, to)),
+      mtgs: meetings.filter((m) => ids.has(m.opportunityId) && inRange(m.date, from, to)),
       cons: contracts.filter((c) => ids.has(c.opportunityId)),
     }
   }, [opportunities, activities, meetings, contracts, from, to])
@@ -80,7 +78,7 @@ export default function Reports() {
         subtitle={`${lc?.name ?? 'LC'} · pipeline health${from || to ? ' · date-filtered' : ''}`}
         actions={
           <>
-            <MonthRange months={months} from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
+            <DateRangePicker from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
             <Button variant="secondary" onClick={exportCSV}><Download size={16} /> Export CSV</Button>
           </>
         }

@@ -14,10 +14,10 @@ import { Button } from '@/components/ui/primitives'
 import { StatusBadge, STATUS_STYLE } from '@/components/ui/StatusBadge'
 import { SortHeader, Table, TBody, TD, THead, TR } from '@/components/ui/Table'
 import { Pagination } from '@/components/ui/Pagination'
-import { MonthRange } from '@/components/ui/MonthRange'
+import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { PipelineSummary } from '@/features/shared/PipelineSummary'
 import { fmtDate, relativeDays } from '@/lib/format'
-import { availableMonths, inMonthRange } from '@/lib/dates'
+import { inRange } from '@/lib/dates'
 import { useFilters } from '@/state/filters'
 import { useSort } from '@/lib/useSort'
 import { usePaged } from '@/lib/usePaged'
@@ -65,16 +65,14 @@ export default function MyPipeline() {
     }
   }, [opportunities, activities, meetings, contracts, user])
 
-  const months = useMemo(() => availableMonths(owned.acts.map((a) => a.date)), [owned])
-
   const ranged = useMemo(() => {
     if (!from && !to) return owned
-    const opps = owned.opps.filter((o) => inMonthRange(o.lastActivityAt, from, to) || inMonthRange(o.createdAt, from, to))
+    const opps = owned.opps.filter((o) => inRange(o.lastActivityAt, from, to) || inRange(o.createdAt, from, to))
     const ids = new Set(opps.map((o) => o.id))
     return {
       opps,
-      acts: owned.acts.filter((a) => ids.has(a.opportunityId) && inMonthRange(a.date, from, to)),
-      mtgs: owned.mtgs.filter((m) => ids.has(m.opportunityId) && inMonthRange(m.date, from, to)),
+      acts: owned.acts.filter((a) => ids.has(a.opportunityId) && inRange(a.date, from, to)),
+      mtgs: owned.mtgs.filter((m) => ids.has(m.opportunityId) && inRange(m.date, from, to)),
       cons: owned.cons.filter((c) => ids.has(c.opportunityId)),
     }
   }, [owned, from, to])
@@ -125,7 +123,7 @@ export default function MyPipeline() {
         subtitle={`${filtered.length} opportunities${search ? ` · “${search}”` : ''}${from || to ? ' · date-filtered' : ''}`}
         actions={
           <>
-            <MonthRange months={months} from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
+            <DateRangePicker from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
             <div className="flex overflow-hidden rounded-xl border border-line">
               {VIEWS.map((v) => (
                 <button key={v.id} onClick={() => setView(v.id)} className={cn('grid h-10 w-10 place-items-center transition', view === v.id ? 'bg-surface-2 text-ink' : 'text-ink-mute hover:text-ink')}>

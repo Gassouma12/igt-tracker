@@ -6,12 +6,12 @@ import { useCurrentUser } from '@/state/session'
 import { conversions, funnel, goalProgress, keyConversions, kpis, pipelineValue, receivablesByMonth, revenue, timeline } from '@/lib/metrics'
 import { goalContributorIds } from '@/lib/rbac'
 import { fmtMoney, fmtMonth, fmtNum, fmtPct } from '@/lib/format'
-import { availableMonths, currentPeriod, inDayRange, inMonthRange, periodLabel, periodRange } from '@/lib/dates'
+import { currentPeriod, inDayRange, inRange, periodLabel, periodRange } from '@/lib/dates'
 import type { GoalCadence } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, SectionTitle, StatCard } from '@/components/ui/primitives'
 import { Dropdown } from '@/components/ui/Dropdown'
-import { MonthRange } from '@/components/ui/MonthRange'
+import { DateRangePicker } from '@/components/ui/DateRangePicker'
 import { GoalCards } from '@/features/shared/GoalCards'
 import { ConversionBars, ConversionStats, FunnelView, TimelineArea } from '@/components/charts/Charts'
 
@@ -30,8 +30,6 @@ export default function Performance() {
 
   const showLc = user?.role === 'admin'
   const showMember = user?.role !== 'member'
-  const months = useMemo(() => availableMonths(activities.map((a) => a.date)), [activities])
-
   // members that actually own opportunities in the current scope (optionally an LC)
   const memberOptions = useMemo(() => {
     const owners = new Set(opportunities.map((o) => o.ownerId))
@@ -45,7 +43,7 @@ export default function Performance() {
     if (lcId) opps = opps.filter((o) => o.lcId === lcId)
     if (memberId) opps = opps.filter((o) => o.ownerId === memberId)
     const ids = new Set(opps.map((o) => o.id))
-    const dated = (date: string | null | undefined) => !from && !to ? true : inMonthRange(date, from, to)
+    const dated = (date: string | null | undefined) => !from && !to ? true : inRange(date, from, to)
     const acts = activities.filter((a) => ids.has(a.opportunityId) && dated(a.date))
     const mtgs = meetings.filter((m) => ids.has(m.opportunityId) && dated(m.date))
     const cons = contracts.filter((c) => ids.has(c.opportunityId))
@@ -105,7 +103,7 @@ export default function Performance() {
         subtitle={`${who} · 2026 S1`}
         actions={
           <>
-            <MonthRange months={months} from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
+            <DateRangePicker from={from} to={to} onChange={(f, t) => { setFrom(f); setTo(t) }} />
             {showLc && (
               <Dropdown
                 className="w-40"

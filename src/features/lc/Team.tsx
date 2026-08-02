@@ -23,9 +23,9 @@ export default function Team() {
   const memberById = (id: string) => members.find((m) => m.id === id) ?? null
 
   const canAssign = !!actor && canAssignMembers(actor)
-  // Team leads members can be assigned to = the LC's VPs (and LCP).
-  const leads = useMemo(() => members.filter((m) => m.role === 'lcvp' || m.role === 'lcp'), [members])
-  const leadOptions = [{ value: '', label: 'Unassigned' }, ...leads.map((l) => ({ value: l.id, label: l.name }))]
+  // The LCVP assigns each member to one of the LC's team leaders.
+  const teamLeaders = useMemo(() => members.filter((m) => m.role === 'team_leader'), [members])
+  const leadOptions = [{ value: '', label: 'Unassigned' }, ...teamLeaders.map((l) => ({ value: l.id, label: l.name }))]
 
   const rows = useMemo(() => {
     return members.map((m) => {

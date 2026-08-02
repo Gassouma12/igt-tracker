@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, Briefcase, Building2, CalendarDays, FileText,
+  Activity, BarChart3, Briefcase, Building2, FileText,
   LayoutDashboard, Settings, ShieldCheck, Target, TrendingUp, UserSquare, Users, Workflow,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
@@ -37,8 +37,7 @@ const LC_NAV: NavItem[] = [
 const MEMBER_NAV: NavItem[] = [
   { to: '/me', label: 'My Pipeline', icon: Workflow, end: true },
   { to: '/me/companies', label: 'Companies', icon: Briefcase },
-  { to: '/me/activities', label: 'Activities', icon: Activity },
-  { to: '/me/meetings', label: 'Meetings', icon: CalendarDays },
+  { to: '/me/interactions', label: 'Interactions', icon: Activity },
   { to: '/me/performance', label: 'Performance', icon: TrendingUp },
 ]
 

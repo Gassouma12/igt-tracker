@@ -5,6 +5,7 @@
 // real users or their data. Writes straight to Supabase (admin RLS lets this
 // through), then re-hydrates so the UI + every other client reflect it.
 import { isSupabaseConfigured, supabase, TABLE } from '@/lib/supabase'
+import { db } from './store'
 import { hydrateFromSupabase } from './repositories'
 import { OPPORTUNITY_STATUSES } from './types'
 import type {
@@ -38,7 +39,7 @@ const daysAgo = (n: number) => iso(new Date(Date.now() - n * 86400000))
 const daysFromNow = (n: number) => iso(new Date(Date.now() + n * 86400000))
 const person = () => `${pick(FIRST)} ${pick(LAST)}`
 
-function buildMock() {
+function buildMock(existing: User[]) {
   const users: User[] = []
   const companies: Company[] = []
   const contacts: Contact[] = []
@@ -56,11 +57,15 @@ function buildMock() {
 
   LC_IDS.forEach((lcId, li) => {
     const slug = lcId.replace('lc_', '')
-    const lcpId = `usr_mock_${slug}_lcp`
-    const lcvpId = `usr_mock_${slug}_lcvp`
+    // Reuse a real (non-mock) LCP/LCVP already in this LC so demo data never adds
+    // a SECOND one — exactly one LCVP per LC. Falls back to a mock leader if none.
+    const realLcp = existing.find((u) => u.role === 'lcp' && u.lcId === lcId && !u.id.startsWith('usr_mock_'))
+    const realLcvp = existing.find((u) => u.role === 'lcvp' && u.lcId === lcId && !u.id.startsWith('usr_mock_'))
+    const lcpId = realLcp?.id ?? `usr_mock_${slug}_lcp`
+    const lcvpId = realLcvp?.id ?? `usr_mock_${slug}_lcvp`
     // leaders first (members reference the lcvp as team lead → must precede them)
-    users.push(mkUser(lcpId, 'lcp', lcId, null, 'LC President'))
-    users.push(mkUser(lcvpId, 'lcvp', lcId, null, 'LCVP Sales'))
+    if (!realLcp) users.push(mkUser(lcpId, 'lcp', lcId, null, 'LC President'))
+    if (!realLcvp) users.push(mkUser(lcvpId, 'lcvp', lcId, null, 'LCVP Sales'))
     // Team leaders report to the LCVP; members are split across them.
     const tlIds: string[] = []
     for (let t = 0; t < 2; t++) {
@@ -153,7 +158,7 @@ const INSERT_ORDER = ['users', 'companies', 'contacts', 'opportunities', 'activi
 export async function generateMockData(): Promise<{ users: number; opportunities: number }> {
   if (!isSupabaseConfigured || !supabase) throw new Error('Supabase not configured')
   await resetMockData()
-  const data = buildMock()
+  const data = buildMock(db().users)
   for (const key of INSERT_ORDER) {
     const rows = data[key] as object[]
     if (rows.length) {
