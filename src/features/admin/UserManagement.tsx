@@ -12,8 +12,8 @@ import { Dropdown } from '@/components/ui/Dropdown'
 import { MemberPipelineModal } from '@/features/shared/MemberPipelineModal'
 import { usePaged } from '@/lib/usePaged'
 
-const ROLES: Role[] = ['admin', 'lcp', 'lcvp', 'member']
-const ROLE_OPTS = ROLES.map((r) => ({ value: r, label: r.toUpperCase() }))
+const ROLES: Role[] = ['admin', 'lcp', 'lcvp', 'team_leader', 'member']
+const ROLE_OPTS = ROLES.map((r) => ({ value: r, label: r === 'team_leader' ? 'TEAM LEADER' : r.toUpperCase() }))
 
 export default function UserManagement() {
   const actor = useCurrentUser()

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Eraser, Sparkles, Trash2 } from 'lucide-react'
+import { Eraser, Sparkles } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Dropdown } from '@/components/ui/Dropdown'
@@ -19,16 +19,9 @@ export default function GlobalDashboard() {
   const lcs = useDB((s) => s.localCommittees)
   const goals = useDB((s) => s.goals)
 
-  const patch = useDB((s) => s.patch)
   const lcFilter = useFilters((s) => s.lcId)
   const setFilters = useFilters((s) => s.set)
-  const [confirming, setConfirming] = useState(false)
   const [mockBusy, setMockBusy] = useState<false | 'gen' | 'reset'>(false)
-
-  function clearSalesData() {
-    patch({ companies: [], contacts: [], opportunities: [], activities: [], meetings: [], contracts: [], activityLog: [], notifications: [] })
-    setConfirming(false)
-  }
 
   async function addMockData() {
     setMockBusy('gen')
@@ -76,17 +69,6 @@ export default function GlobalDashboard() {
               onChange={(v) => setFilters({ lcId: v || null })}
               options={[{ value: '', label: 'All LCs' }, ...lcs.map((lc) => ({ value: lc.id, label: lc.name }))]}
             />
-            {confirming ? (
-              <span className="flex items-center gap-2">
-                <span className="text-sm text-ink-mute">Delete all sales data?</span>
-                <button onClick={clearSalesData} className="rounded-lg bg-danger px-3 py-1.5 text-sm font-medium text-white transition hover:opacity-90">Yes, clear</button>
-                <button onClick={() => setConfirming(false)} className="rounded-lg border border-line px-3 py-1.5 text-sm text-ink-mute transition hover:text-ink">Cancel</button>
-              </span>
-            ) : (
-              <button onClick={() => setConfirming(true)} className="flex items-center gap-1.5 rounded-lg border border-danger/40 px-3 py-1.5 text-sm text-danger transition hover:bg-danger/10">
-                <Trash2 size={14} /> Reset data
-              </button>
-            )}
             {isSupabaseConfigured && (
               // Temporary demo tools: populate / clear mock data across the LCs.
               <>

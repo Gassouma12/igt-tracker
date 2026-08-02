@@ -5,8 +5,8 @@
 import { useMemo, useState } from 'react'
 import { CalendarCheck, CalendarClock } from 'lucide-react'
 import { useDB } from '@/data/store'
-import { meetingStats } from '@/lib/metrics'
-import { fmtDate, fmtNum, relativeDays } from '@/lib/format'
+import { meetingStats, todayLocal } from '@/lib/metrics'
+import { fmtDate, fmtNum } from '@/lib/format'
 import { Modal } from '@/components/ui/Modal'
 import { StatCard } from '@/components/ui/primitives'
 import { CompanyDialog } from '@/features/member/CompanyDialog'
@@ -27,15 +27,27 @@ export function MeetingBreakdown({ opps, meetings, users }: { opps: Opportunity[
   // Open a company's data modal from a meeting row (closes the meeting list first).
   const openCompany = (companyId: string | null) => { if (companyId) { setOpen(null); setCompanyOpen(companyId) } }
 
-  // "had" rows = recorded meetings; "scheduled" rows = opps booked but not held.
+  // "had" = meetings already held (past/undated); "scheduled" = future-dated
+  // meetings + opps booked at the stage with no meeting row yet.
+  const today = todayLocal()
   const hadRows = useMemo(
-    () => [...meetings].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')),
-    [meetings],
+    () => meetings.filter((m) => !m.date || m.date <= today)
+      .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? '')),
+    [meetings, today],
   )
   const scheduledRows = useMemo(() => {
-    const withMeeting = new Set(meetings.map((m) => m.opportunityId))
-    return opps.filter((o) => o.status === 'Meeting scheduled' && !withMeeting.has(o.id))
-  }, [opps, meetings])
+    const anyMeeting = new Set(meetings.map((m) => m.opportunityId))
+    const future = meetings.filter((m) => m.date && m.date > today).map((m) => ({
+      key: m.id, oppId: m.opportunityId, companyId: companyIdOf(m.opportunityId),
+      ownerId: m.ownerId, date: m.date, note: `Meeting #${m.number}`,
+    }))
+    const stageOnly = opps.filter((o) => o.status === 'Meeting scheduled' && !anyMeeting.has(o.id)).map((o) => ({
+      key: o.id, oppId: o.id, companyId: o.companyId,
+      ownerId: o.ownerId, date: o.nextActionDate, note: o.nextAction ?? 'Booked',
+    }))
+    return [...future, ...stageOnly].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opps, meetings, today])
 
   return (
     <>
@@ -88,19 +100,17 @@ export function MeetingBreakdown({ opps, meetings, users }: { opps: Opportunity[
           <p className="py-6 text-center text-sm text-ink-mute">No scheduled meetings.</p>
         ) : (
           <ul className="space-y-2">
-            {scheduledRows.map((o) => (
+            {scheduledRows.map((it) => (
               <li
-                key={o.id}
-                onClick={() => openCompany(o.companyId)}
+                key={it.key}
+                onClick={() => openCompany(it.companyId)}
                 className="cursor-pointer rounded-xl border border-line bg-bg-elev p-3 transition hover:border-brand/40"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-medium text-ink">{companyOf(o.id)}</p>
-                  <span className="text-xs text-ink-mute">{relativeDays(o.lastActivityAt)}</span>
+                  <p className="font-medium text-ink">{companies.find((c) => c.id === it.companyId)?.name ?? '—'}</p>
+                  <span className="text-xs text-ink-mute">{it.date ? fmtDate(it.date) : '—'}</span>
                 </div>
-                <p className="text-xs text-ink-mute">
-                  {ownerOf(o.ownerId)}{o.nextAction ? ` · ${o.nextAction} (${fmtDate(o.nextActionDate)})` : ''}
-                </p>
+                <p className="text-xs text-ink-mute">{ownerOf(it.ownerId)} · {it.note}</p>
               </li>
             ))}
           </ul>

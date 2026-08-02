@@ -61,10 +61,17 @@ function buildMock() {
     // leaders first (members reference the lcvp as team lead → must precede them)
     users.push(mkUser(lcpId, 'lcp', lcId, null, 'LC President'))
     users.push(mkUser(lcvpId, 'lcvp', lcId, null, 'LCVP Sales'))
+    // Team leaders report to the LCVP; members are split across them.
+    const tlIds: string[] = []
+    for (let t = 0; t < 2; t++) {
+      const tlId = `usr_mock_${slug}_tl${t}`
+      users.push(mkUser(tlId, 'team_leader', lcId, lcvpId, 'Team Leader'))
+      tlIds.push(tlId)
+    }
     const memberIds: string[] = []
     for (let m = 0; m < 4; m++) {
       const id = `usr_mock_${slug}_m${m}`
-      users.push(mkUser(id, 'member', lcId, lcvpId, 'iGT Member'))
+      users.push(mkUser(id, 'member', lcId, tlIds[m % tlIds.length], 'iGT Member'))
       memberIds.push(id)
     }
 
@@ -80,7 +87,7 @@ function buildMock() {
 
     // opportunities for every member + the LCVP (own pipeline), with matching
     // activities / meetings / contracts so the funnel + charts are coherent.
-    for (const ownerId of [...memberIds, lcvpId]) {
+    for (const ownerId of [...memberIds, ...tlIds, lcvpId]) {
       const count = 3 + rand(4)
       for (let o = 0; o < count; o++) {
         const status = pick(STAGE_BAG)
@@ -121,13 +128,18 @@ function buildMock() {
       }
     }
 
-    // goals: LC targets (owned by the LCVP) + a per-member meetings goal
+    // goals across the hierarchy so every role's Goals page shows targets:
+    // LC targets (LCVP-owned), team-leader targets, and per-member targets.
     const targets: Record<GoalMetric, number> = { outreaches: 40, meetings: 30, contracts: 10, revenue: 30000 }
     ;(Object.keys(targets) as GoalMetric[]).forEach((metric) => {
-      goals.push({ id: `mock_goal_${goalN++}`, scope: 'lc', ownerId: lcvpId, lcId, period: '2026-S2', cadence: 'semester', metric, planned: targets[metric] })
+      goals.push({ id: `mock_goal_${goalN++}`, scope: 'lc', ownerId: lcvpId, lcId, period: '2026-S1', cadence: 'semester', metric, planned: targets[metric] })
     })
+    for (const tlId of tlIds) {
+      goals.push({ id: `mock_goal_${goalN++}`, scope: 'member', ownerId: tlId, lcId, period: '2026-S1', cadence: 'semester', metric: 'meetings', planned: 15 + rand(10) })
+      goals.push({ id: `mock_goal_${goalN++}`, scope: 'member', ownerId: tlId, lcId, period: '2026-S1', cadence: 'semester', metric: 'outreaches', planned: 20 + rand(15) })
+    }
     for (const mid of memberIds) {
-      goals.push({ id: `mock_goal_${goalN++}`, scope: 'member', ownerId: mid, lcId, period: '2026-S2', cadence: 'semester', metric: 'meetings', planned: 8 + rand(8) })
+      goals.push({ id: `mock_goal_${goalN++}`, scope: 'member', ownerId: mid, lcId, period: '2026-S1', cadence: 'semester', metric: 'meetings', planned: 8 + rand(8) })
     }
   })
 

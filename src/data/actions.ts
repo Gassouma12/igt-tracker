@@ -3,7 +3,7 @@
 // (status, lastActivityAt) consistent — the "smart" layer over plain CRUD.
 
 import { db, newId, nowISO, todayISO, useDB } from './store'
-import { repo } from './repositories'
+import { repo, hydrateFromSupabase } from './repositories'
 import { supervisorsOf } from '@/lib/rbac'
 import { supabase, useSupabaseAuth } from '@/lib/supabase'
 import type {
@@ -65,7 +65,6 @@ export async function createCompany(
     linkedin: data.linkedin ?? null, notes: data.notes ?? null,
   }
   await repo.companies.create(company)
-  await log(actor, 'company', company.id, `added company ${company.name}`)
   return company
 }
 
@@ -78,7 +77,6 @@ export async function createContact(
     phone: data.phone ?? null, linkedin: data.linkedin ?? null,
   }
   await repo.contacts.create(contact)
-  await log(actor, 'contact', contact.id, `added contact ${contact.name}`)
   return contact
 }
 
@@ -116,7 +114,7 @@ export async function logActivity(
   await repo.opportunities.update(opp.id, {
     lastActivityAt: activity.date, updatedAt: nowISO(), status: nextStatus,
   })
-  await log(actor, 'opportunity', opp.id, `logged ${data.type} (${data.phase}) for ${companyName(opp.companyId)}`)
+  // Only the stage move is worth an audit entry — the raw touch is not (volume).
   if (nextStatus !== opp.status) {
     await log(actor, 'opportunity', opp.id, `moved ${companyName(opp.companyId)}`, opp.status, nextStatus)
   }
@@ -165,7 +163,6 @@ async function touchContract(opp: Opportunity, stage: 'Contract sent' | 'Contrac
 /** When is this deal's money expected? Feeds the receivables schedule. */
 export async function setExpectedPayment(actor: User, opp: Opportunity, date: string | null): Promise<void> {
   await repo.opportunities.update(opp.id, { expectedPaymentDate: date, updatedAt: nowISO() })
-  await log(actor, 'opportunity', opp.id, `expects payment from ${companyName(opp.companyId)} on ${date ?? '—'}`)
 }
 
 /** Delete a lead and its local children (the DB cascades from the one delete). */
@@ -188,12 +185,10 @@ export async function deleteContact(actor: User, contact: Contact): Promise<void
     opportunities: d.opportunities.map((o) => (o.contactId === contact.id ? { ...o, contactId: null } : o)),
   })
   await repo.contacts.remove(contact.id)
-  await log(actor, 'contact', contact.id, `removed contact ${contact.name}`)
 }
 
 export async function setDealValue(actor: User, opp: Opportunity, value: number): Promise<void> {
   await repo.opportunities.update(opp.id, { value: Math.max(0, value), updatedAt: nowISO() })
-  await log(actor, 'opportunity', opp.id, `set ${companyName(opp.companyId)} deal value to €${Math.max(0, value)}`)
 }
 
 export async function setRevenueReceived(actor: User, opp: Opportunity, received: boolean): Promise<void> {
@@ -217,7 +212,6 @@ export async function scheduleFollowUp(
   actor: User, opp: Opportunity, nextActionDate: string, nextAction: string,
 ): Promise<void> {
   await repo.opportunities.update(opp.id, { nextAction, nextActionDate, updatedAt: nowISO() })
-  await log(actor, 'opportunity', opp.id, `scheduled "${nextAction}" on ${nextActionDate} for ${companyName(opp.companyId)}`)
 }
 
 export async function setGoal(
@@ -250,7 +244,6 @@ export async function setGoal(
 
 export async function setCompanyNotes(actor: User, company: Company, notes: string): Promise<void> {
   await repo.companies.update(company.id, { notes: notes.trim() || null })
-  await log(actor, 'company', company.id, `updated notes for ${company.name}`)
 }
 
 export async function updateUser(
@@ -305,6 +298,9 @@ export async function signInWithPassword(email: string, password: string): Promi
   if (!useSupabaseAuth || !supabase) return
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
   if (error) throw error
+  // Pull the profile + data now (with the JWT attached) so the app doesn't route
+  // on an empty store the instant after sign-in.
+  await hydrateFromSupabase()
 }
 
 export async function setUserStatus(actor: User, userId: string, status: AccountStatus): Promise<void> {

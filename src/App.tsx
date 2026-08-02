@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { RequireAuth, RoleRoute } from '@/components/layout/guards'
 import { Spinner } from '@/components/ui/primitives'
 import { Toaster } from '@/components/ui/Toaster'
-import { useCurrentUser } from '@/state/session'
+import { useCurrentUser, useSession } from '@/state/session'
 import { homePathFor } from '@/app/nav'
 import type { Role } from '@/data/types'
 
@@ -27,7 +27,10 @@ const Meetings = lazy(() => import('@/features/member/Meetings'))
 const Performance = lazy(() => import('@/features/member/Performance'))
 
 function RootRedirect() {
+  const sessionId = useSession((s) => s.currentUserId)
   const user = useCurrentUser()
+  // Signed in but profile still hydrating — wait instead of bouncing to /login.
+  if (sessionId && !user) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
   return <Navigate to={user ? homePathFor(user.role) : '/login'} replace />
 }
 
@@ -49,19 +52,19 @@ export default function App() {
           <Route path="/admin/analytics" element={guarded(['admin'], <Analytics />)} />
           <Route path="/admin/settings" element={guarded(['admin'], <Settings />)} />
 
-          {/* LC (LCP / LCVP) */}
-          <Route path="/lc" element={guarded(['lcp', 'lcvp'], <LCOverview />)} />
-          <Route path="/lc/pipeline" element={guarded(['lcp', 'lcvp'], <LCPipeline />)} />
-          <Route path="/lc/team" element={guarded(['lcp', 'lcvp'], <LCTeam />)} />
-          <Route path="/lc/goals" element={guarded(['lcp', 'lcvp'], <LCGoals />)} />
-          <Route path="/lc/reports" element={guarded(['lcp', 'lcvp'], <LCReports />)} />
+          {/* LC (LCP / LCVP / Team Leader — Team Leader is scoped to their team) */}
+          <Route path="/lc" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCOverview />)} />
+          <Route path="/lc/pipeline" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCPipeline />)} />
+          <Route path="/lc/team" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCTeam />)} />
+          <Route path="/lc/goals" element={guarded(['admin', 'lcp', 'lcvp', 'team_leader'], <LCGoals />)} />
+          <Route path="/lc/reports" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCReports />)} />
 
-          {/* Member workspace (admins/MCVPs run their own pipeline too) */}
-          <Route path="/me" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <MyPipeline />)} />
-          <Route path="/me/companies" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Companies />)} />
-          <Route path="/me/activities" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Activities />)} />
-          <Route path="/me/meetings" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Meetings />)} />
-          <Route path="/me/performance" element={guarded(['member', 'lcp', 'lcvp', 'admin'], <Performance />)} />
+          {/* Member workspace (everyone who sells runs their own pipeline) */}
+          <Route path="/me" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <MyPipeline />)} />
+          <Route path="/me/companies" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Companies />)} />
+          <Route path="/me/activities" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Activities />)} />
+          <Route path="/me/meetings" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Meetings />)} />
+          <Route path="/me/performance" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Performance />)} />
         </Route>
 
         <Route path="*" element={<RootRedirect />} />

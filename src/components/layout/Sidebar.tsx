@@ -6,7 +6,8 @@ import { BrandMark, Credits } from '@/components/ui/Brand'
 import { cn } from '@/lib/cn'
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: 'Administrator', lcp: 'LC President', lcvp: 'LC VP Sales', member: 'Sales Member',
+  admin: 'Administrator', lcp: 'LC President', lcvp: 'LC VP Sales',
+  team_leader: 'Team Leader', member: 'Sales Member',
 }
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {

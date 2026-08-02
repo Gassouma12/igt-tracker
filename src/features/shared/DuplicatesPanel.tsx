@@ -14,6 +14,7 @@ export function DuplicatesPanel({ companies, opportunities, onOpenCompany }: {
   onOpenCompany?: (id: string) => void
 }) {
   const lcs = useDB((s) => s.localCommittees)
+  const users = useDB((s) => s.users)
   const lcName = (id: string) => lcs.find((l) => l.id === id)?.name ?? '—'
   const groups = useMemo(() => duplicateCompanyGroups(companies, opportunities), [companies, opportunities])
   if (!groups.length) return null
@@ -34,18 +35,29 @@ export function DuplicatesPanel({ companies, opportunities, onOpenCompany }: {
               </p>
               <Badge tone={g.crossLc ? 'danger' : 'warning'}>{g.crossLc ? `across ${g.lcIds.length} LCs` : 'same LC'}</Badge>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {g.companies.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => onOpenCompany?.(c.id)}
-                  disabled={!onOpenCompany}
-                  className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs text-ink-dim transition enabled:hover:border-brand/40 disabled:cursor-default"
-                >
-                  {c.name} · {c.opps} opp{c.opps === 1 ? '' : 's'}
-                  {c.lcIds.length > 0 && <span className="text-ink-mute"> · {c.lcIds.map(lcName).join(', ')}</span>}
-                </button>
-              ))}
+            <div className="mt-2 space-y-1.5">
+              {g.companies.map((c) => {
+                const owners = c.ownerIds.map((id) => users.find((u) => u.id === id)).filter(Boolean) as { name: string; email: string }[]
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => onOpenCompany?.(c.id)}
+                    disabled={!onOpenCompany}
+                    title={onOpenCompany ? 'Open this company' : undefined}
+                    className="block w-full rounded-lg border border-line bg-surface px-3 py-2 text-left text-xs transition enabled:hover:border-brand/40 disabled:cursor-default"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-ink">{c.name}</span>
+                      <span className="text-ink-mute">{c.opps} opp{c.opps === 1 ? '' : 's'} · {c.lcIds.map(lcName).join(', ') || 'No LC'}</span>
+                    </div>
+                    {owners.length > 0 && (
+                      <div className="mt-0.5 text-ink-mute">
+                        Worked by {owners.map((o) => `${o.name}${o.email ? ` (${o.email})` : ''}`).join(', ')}
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
         ))}

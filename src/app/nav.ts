@@ -18,6 +18,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/users', label: 'User Management', icon: Users },
   { to: '/admin/approvals', label: 'Approvals', icon: ShieldCheck },
   { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/lc/goals', label: 'Goals', icon: Target },
   { to: '/me', label: 'My Pipeline', icon: UserSquare, end: true },
   { to: '/me/performance', label: 'Performance', icon: TrendingUp },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
@@ -43,12 +44,12 @@ const MEMBER_NAV: NavItem[] = [
 
 export function navFor(role: Role): NavItem[] {
   if (role === 'admin') return ADMIN_NAV
-  if (role === 'lcp' || role === 'lcvp') return LC_NAV
+  if (role === 'lcp' || role === 'lcvp' || role === 'team_leader') return LC_NAV
   return MEMBER_NAV
 }
 
 export function homePathFor(role: Role): string {
   if (role === 'admin') return '/admin'
-  if (role === 'lcp' || role === 'lcvp') return '/lc'
+  if (role === 'lcp' || role === 'lcvp' || role === 'team_leader') return '/lc'
   return '/me'
 }

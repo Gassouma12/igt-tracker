@@ -43,7 +43,7 @@ create policy users_select on users for select to authenticated
   using (id = public.uid() or public.is_approved());
 -- signup: only your own row, only as pending, never as admin
 create policy users_insert_self on users for insert to authenticated
-  with check (id = public.uid() and status = 'pending' and role in ('member','lcvp','lcp'));
+  with check (id = public.uid() and status = 'pending' and role in ('member','team_leader','lcvp','lcp'));
 -- admin manages everyone (create/provision profiles, incl. demo/mock members)
 create policy users_admin_insert on users for insert to authenticated
   with check (public.is_admin());
@@ -116,17 +116,17 @@ create policy contracts_write on contracts for all to authenticated
     select 1 from opportunities o where o.id = "opportunityId"
       and (o."ownerId" = public.uid() or public.is_admin())));
 
--- ---- goals (rbac.canSetGoalFor: lcvp→member, lcp→lcvp, admin→anyone) ---------
+-- ---- goals (rbac.canSetGoalFor: admin→lcvp, lcvp→team_leader, tl→member) -----
 create policy goals_select on goals for select to authenticated using (public.is_approved());
 create policy goals_write on goals for all to authenticated
   using (public.is_admin() or (public.is_approved() and exists (
-    select 1 from users t where t.id = goals."ownerId" and t."lcId" = public.me_lc()
-      and ((public.me_role() = 'lcp' and t.role = 'lcvp')
-        or (public.me_role() = 'lcvp' and t.role = 'member')))))
+    select 1 from users t where t.id = goals."ownerId" and (
+      (public.me_role() = 'lcvp' and t.role = 'team_leader' and t."lcId" = public.me_lc())
+      or (public.me_role() = 'team_leader' and t.role = 'member' and t."teamLeadId" = public.uid())))))
   with check (public.is_admin() or (public.is_approved() and exists (
-    select 1 from users t where t.id = goals."ownerId" and t."lcId" = public.me_lc()
-      and ((public.me_role() = 'lcp' and t.role = 'lcvp')
-        or (public.me_role() = 'lcvp' and t.role = 'member')))));
+    select 1 from users t where t.id = goals."ownerId" and (
+      (public.me_role() = 'lcvp' and t.role = 'team_leader' and t."lcId" = public.me_lc())
+      or (public.me_role() = 'team_leader' and t.role = 'member' and t."teamLeadId" = public.uid())))));
 
 -- ---- activity_log (write your own trail; only admin reads it) ----------------
 create policy log_select on activity_log for select to authenticated using (public.is_admin());

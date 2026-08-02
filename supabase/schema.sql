@@ -23,7 +23,7 @@ create table if not exists users (
   id           text primary key,
   name         text not null,
   email        text not null unique,
-  role         text not null default 'member' check (role in ('admin','lcp','lcvp','member')),
+  role         text not null default 'member' check (role in ('admin','lcp','lcvp','team_leader','member')),
   "lcId"       text references local_committees(id) on delete set null,
   position     text not null default 'Member',
   "teamLeadId" text references users(id) on delete set null,

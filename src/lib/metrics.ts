@@ -37,17 +37,37 @@ export function followupCount(activities: Activity[]): number {
   return activities.filter((a) => a.phase === 'follow-up').length
 }
 
+// Local calendar date (YYYY-MM-DD) — never toISOString (that shifts a day in CET).
+export function todayLocal(): string {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
 /**
- * Meetings split: `had` = meetings actually recorded through an interaction
- * (each Meeting row), `scheduled` = opps parked at 'Meeting scheduled' that have
- * no recorded meeting yet (booked but not yet held).
+ * Meetings split, date-aware:
+ *  - `had`       = meetings that already happened (a Meeting row dated today/past,
+ *                  or undated legacy rows).
+ *  - `scheduled` = booked-but-not-held: meetings dated in the FUTURE, plus opps
+ *                  parked at 'Meeting scheduled' with no meeting row at all.
+ * So logging a future-dated meeting counts as scheduled (not had) — matching the
+ * kanban stage — and it flips to `had` once the date passes.
  */
-export function meetingStats(opps: Opportunity[], meetings: Meeting[]): { had: number; scheduled: number } {
-  const withMeeting = new Set(meetings.map((m) => m.opportunityId))
-  return {
-    had: meetings.length,
-    scheduled: opps.filter((o) => o.status === 'Meeting scheduled' && !withMeeting.has(o.id)).length,
+export function meetingStats(
+  opps: Opportunity[], meetings: Meeting[], today = todayLocal(),
+): { had: number; scheduled: number } {
+  let had = 0
+  const anyMeetingOpps = new Set<string>()
+  const futureMeetingOpps = new Set<string>()
+  for (const m of meetings) {
+    anyMeetingOpps.add(m.opportunityId)
+    if (m.date && m.date > today) futureMeetingOpps.add(m.opportunityId)
+    else had++
   }
+  const stageOnly = opps.filter(
+    (o) => o.status === 'Meeting scheduled' && !anyMeetingOpps.has(o.id),
+  ).length
+  return { had, scheduled: futureMeetingOpps.size + stageOnly }
 }
 
 export interface Kpis {

@@ -22,8 +22,20 @@ const QUICK = [
 
 const SIGNUP_ROLES = [
   { value: 'member', label: 'Sales Member' },
+  { value: 'team_leader', label: 'Team Leader' },
   { value: 'lcvp', label: 'LC VP Sales' },
   { value: 'lcp', label: 'LC President' },
+]
+
+// One-click test logins (real accounts, created by scripts/create-test-users.mjs).
+// Only shown at /login?demo so they aren't exposed to ordinary visitors.
+const TEST_PASSWORD = 'igtdemo123'
+const TEST_ACCOUNTS = [
+  { email: 'admin.test@igt.aiesec.be', name: 'Adam', tag: 'MCVP · global view' },
+  { email: 'lcp.test@igt.aiesec.be', name: 'Tess', tag: 'LCP · LC Ghent' },
+  { email: 'lcvp.test@igt.aiesec.be', name: 'Vince', tag: 'LCVP · LC Ghent' },
+  { email: 'tl.test@igt.aiesec.be', name: 'Théo', tag: 'Team Leader · LC Ghent' },
+  { email: 'member.test@igt.aiesec.be', name: 'Mira', tag: 'Member · own pipeline' },
 ]
 
 export default function Login() {
@@ -37,8 +49,8 @@ export default function Login() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  // sign-up fields
-  const [su, setSu] = useState({ name: '', email: '', phone: '', position: '', lcId: '', role: 'member', password: '' })
+  // sign-up fields (position is derived from the chosen role — no separate input)
+  const [su, setSu] = useState({ name: '', email: '', phone: '', lcId: '', role: 'member', password: '' })
   const setF = (patch: Partial<typeof su>) => setSu((s) => ({ ...s, ...patch }))
 
   function enter(userId: string, role: Role) {
@@ -49,6 +61,20 @@ export default function Login() {
   function signIn(userId: string) {
     const user = users.find((u) => u.id === userId)
     if (user) enter(user.id, user.role as Role)
+  }
+
+  const showTestLogins = useSupabaseAuth
+    && typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).has('demo')
+
+  async function quickReal(testEmail: string) {
+    setBusy(true); setError('')
+    try {
+      await signInWithPassword(testEmail, TEST_PASSWORD)
+      navigate('/')
+    } catch (err) {
+      setError((err as Error).message || 'Test sign-in failed.')
+    } finally { setBusy(false) }
   }
 
   async function submitSignIn(e: React.FormEvent) {
@@ -78,7 +104,8 @@ export default function Login() {
     setBusy(true)
     try {
       const user = await signUp({
-        name: su.name, email: su.email, phone: su.phone, position: su.position,
+        name: su.name, email: su.email, phone: su.phone,
+        position: SIGNUP_ROLES.find((r) => r.value === su.role)?.label,
         lcId: su.lcId || null, role: su.role as Role, password: su.password,
       })
       if (useSupabaseAuth) {
@@ -121,15 +148,15 @@ export default function Login() {
         </div>
         <div>
           <h1 className="font-display text-4xl font-bold leading-tight text-ink">
-            Your pipeline,<br />finally out of the spreadsheet.
+            iGT sales,<br />all in one place.
           </h1>
           <p className="mt-4 max-w-md text-ink-dim">
-            Outreach, meetings, contracts and goals for every Local Committee — one fast,
-            role-aware workspace.
+            The central CRM for AIESEC in Belgium — outreach, meetings, contracts and goals
+            for every Local Committee in one fast, role-aware workspace.
           </p>
           <div className="mt-8 flex items-center gap-2 text-sm text-ink-mute">
             <TrendingUp size={16} className="text-success" />
-            Migrated from the iGT Master Sheet · live data
+            One source of truth · real-time · role-aware
           </div>
         </div>
         <p className="text-xs text-ink-mute">© {new Date().getFullYear()} AIESEC in Belgium · iGT</p>
@@ -166,10 +193,7 @@ export default function Login() {
             <form key="signup" onSubmit={submitSignUp} className="mt-6 space-y-3">
               <Field label="Full name"><Input placeholder="Jane Doe" value={su.name} onChange={(e) => { setF({ name: e.target.value }); setError('') }} autoFocus /></Field>
               <Field label="Email"><Input type="email" placeholder="you@aiesec.be" value={su.email} onChange={(e) => { setF({ email: e.target.value }); setError('') }} /></Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Phone"><Input placeholder="+32 …" value={su.phone} onChange={(e) => setF({ phone: e.target.value })} /></Field>
-                <Field label="Position"><Input placeholder="iGT Member" value={su.position} onChange={(e) => setF({ position: e.target.value })} /></Field>
-              </div>
+              <Field label="Phone"><Input placeholder="+32 …" value={su.phone} onChange={(e) => setF({ phone: e.target.value })} /></Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Local Committee">
                   <Dropdown
@@ -219,6 +243,26 @@ export default function Login() {
                   </button>
                 )
               })}
+              {showTestLogins && (
+                <div className="space-y-2">
+                  <p className="text-center text-xs font-medium text-warning">Test accounts · QA only</p>
+                  {TEST_ACCOUNTS.map((t) => (
+                    <button
+                      key={t.email}
+                      onClick={() => quickReal(t.email)}
+                      disabled={busy}
+                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 text-left transition hover:border-brand/40 hover:bg-surface-2 disabled:opacity-50"
+                    >
+                      <Avatar name={t.name} size={34} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-ink">{t.name}</span>
+                        <span className="block truncate text-xs text-ink-mute">{t.tag}</span>
+                      </span>
+                      <ArrowRight size={16} className="ml-auto text-ink-mute" />
+                    </button>
+                  ))}
+                </div>
+              )}
               <button onClick={() => { setMode('signup'); setError('') }} className="w-full pt-2 text-center text-sm text-brand transition hover:underline">
                 Don't have an account? Create one
               </button>

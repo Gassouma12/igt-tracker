@@ -29,8 +29,9 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
   const setContact = (i: number, patch: Partial<ContactDraft>) =>
     setContacts((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)))
 
-  // Duplicate-partner guard: if the typed name matches a company already worked
-  // by someone, surface who has it (member + LC) and block re-adding it.
+  // Duplicate-partner detection: if the typed name matches a company already
+  // worked by someone, surface who has it (member + LC + email). This WARNS but
+  // does not block — the user can still proceed (and the existing company is reused).
   const existing = useMemo(() => {
     const n = norm(companyName)
     if (!n) return null
@@ -39,13 +40,16 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
     const ownerIds = [...new Set(allOpps.filter((o) => o.companyId === co.id).map((o) => o.ownerId))]
     const holders = ownerIds.map((id) => {
       const u = users.find((x) => x.id === id)
-      return { id, name: u?.name ?? 'Someone', lc: lcs.find((l) => l.id === u?.lcId)?.name ?? 'No LC' }
+      return {
+        id, name: u?.name ?? 'Someone', email: u?.email ?? null,
+        lc: lcs.find((l) => l.id === u?.lcId)?.name ?? 'No LC',
+      }
     })
     return { company: co, holders }
   }, [companyName, companies, allOpps, users, lcs])
 
   const mine = !!existing && !!user && existing.holders.some((h) => h.id === user.id)
-  const blocked = !!existing && existing.holders.length > 0
+  const dup = !!existing && existing.holders.length > 0
 
   function reset() {
     setCompanyName(''); setContacts([emptyContact()])
@@ -53,7 +57,7 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user || !companyName.trim() || blocked) return
+    if (!user || !companyName.trim()) return
     setBusy(true)
     const company = existing?.company ?? (await createCompany(user, { name: companyName }))
     let firstContactId: string | null = null
@@ -82,16 +86,21 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
           </datalist>
         </Field>
 
-        {blocked && existing && (
-          <div className="flex items-start gap-2.5 rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm">
-            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-danger" />
+        {dup && existing && (
+          <div className="flex items-start gap-2.5 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
             <div>
-              <p className="font-medium text-danger">
-                {mine ? 'You already have this partner.' : `${existing.company.name} is already a partner — you can't add it again.`}
+              <p className="font-medium text-warning">
+                {mine ? 'You already work this partner.' : `${existing.company.name} is already being contacted.`}
               </p>
-              <p className="mt-0.5 text-ink-dim">
-                Worked by {existing.holders.map((h) => `${h.name} (${h.lc})`).join(', ')}.
-              </p>
+              <ul className="mt-1 space-y-0.5 text-ink-dim">
+                {existing.holders.map((h) => (
+                  <li key={h.id}>
+                    {h.name} · {h.lc}{h.email ? <> · <a href={`mailto:${h.email}`} className="text-brand hover:underline">{h.email}</a></> : null}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1 text-xs text-ink-mute">You can still proceed — the existing company will be reused.</p>
             </div>
           </div>
         )}
@@ -131,7 +140,7 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={busy || !companyName.trim() || blocked}>Create opportunity</Button>
+          <Button type="submit" disabled={busy || !companyName.trim()}>Create opportunity</Button>
         </div>
       </form>
     </Modal>

@@ -14,7 +14,7 @@ import { RankingBars } from '@/components/charts/Charts'
 import { MemberPipelineModal } from '@/features/shared/MemberPipelineModal'
 import type { User } from '@/data/types'
 
-const ROLE_TONE = { admin: 'brand', lcp: 'brand', lcvp: 'info', member: 'neutral' } as const
+const ROLE_TONE = { admin: 'brand', lcp: 'brand', lcvp: 'info', team_leader: 'info', member: 'neutral' } as const
 
 export default function Team() {
   const { members, opportunities, activities, meetings } = useLC()

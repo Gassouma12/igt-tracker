@@ -2,7 +2,10 @@
 // 1:1 onto Supabase tables later (the repository layer is the only thing that
 // changes). String-union types instead of enums (tsconfig: erasableSyntaxOnly).
 
-export type Role = 'admin' | 'lcp' | 'lcvp' | 'member'
+// Hierarchy (high → low): admin (MCVP) › lcp › lcvp › team_leader › member.
+// A member reports to a team_leader, a team_leader to an lcvp (both via
+// `teamLeadId`); lcvp/lcp belong to an LC via `lcId`.
+export type Role = 'admin' | 'lcp' | 'lcvp' | 'team_leader' | 'member'
 
 export const OPPORTUNITY_STATUSES = [
   'Prospect',

@@ -182,29 +182,46 @@ t('availableMonths dedups + sorts', () => {
   assert.deepEqual(availableMonths(['2026-06-01', '2026-01-15', '2026-06-20', null]), ['2026-01', '2026-06'])
 })
 
+t('meetingStats: future meeting = scheduled, past = had; stage-only counts too', () => {
+  const mkM = (id: string, oppId: string, date: string): Meeting =>
+    ({ id, opportunityId: oppId, ownerId: 'u', date, number: 1, outcome: 'Held', nextAction: null })
+  const opps = [
+    opp({ id: 'a', status: 'Meeting scheduled' }), // has a FUTURE meeting → scheduled
+    opp({ id: 'b', status: 'Meeting scheduled' }), // has a PAST meeting → had
+    opp({ id: 'c', status: 'Meeting scheduled' }), // stage only, no row → scheduled
+  ]
+  const s = meetingStats(opps, [mkM('m1', 'a', '2999-01-01'), mkM('m2', 'b', '2000-01-01')], '2026-01-01')
+  assert.equal(s.had, 1)
+  assert.equal(s.scheduled, 2)
+})
+
 // ---- rbac -------------------------------------------------------------------
-const [admin, lcp, lcvp, member, outsider] = [
+// Hierarchy: admin › lcp › lcvp › team_leader › member.
+// member(mem) → tl → vp; outsider is a lone member in lc2.
+const [admin, lcp, lcvp, tl, member, outsider] = [
   usr({ id: 'adm', role: 'admin', lcId: null }),
   usr({ id: 'lcp', role: 'lcp' }),
   usr({ id: 'vp', role: 'lcvp' }),
-  usr({ id: 'mem', role: 'member', teamLeadId: 'vp' }),
+  usr({ id: 'tl', role: 'team_leader', teamLeadId: 'vp' }),
+  usr({ id: 'mem', role: 'member', teamLeadId: 'tl' }),
   usr({ id: 'out', role: 'member', lcId: 'lc2' }),
 ]
-const ALL = [admin, lcp, lcvp, member, outsider]
-t('supervisorsOf member = LC chain above + every admin, never self/peers', () => {
+const ALL = [admin, lcp, lcvp, tl, member, outsider]
+t('supervisorsOf member = LC chain above (tl+vp+lcp) + every admin, never self/peers', () => {
   const s = supervisorsOf(member, ALL)
-  assert.deepEqual([...s].sort(), ['adm', 'lcp', 'vp'])
+  assert.deepEqual([...s].sort(), ['adm', 'lcp', 'tl', 'vp'])
 })
 t('inactive supervisors are skipped', () => {
   const s = supervisorsOf(member, ALL.map((u) => (u.id === 'vp' ? { ...u, active: false } : u)))
   assert.ok(!s.includes('vp'))
 })
-t('goal hierarchy: lcvp→member, lcp→lcvp, admin→lcvp; never cross-LC', () => {
-  assert.ok(canSetGoalFor(lcvp, member) && canSetGoalFor(lcp, lcvp) && canSetGoalFor(admin, lcvp))
-  assert.ok(!canSetGoalFor(lcvp, outsider) && !canSetGoalFor(member, member))
+t('goal hierarchy: admin→lcvp, lcvp→team_leader, tl→own member; lcp sets none', () => {
+  assert.ok(canSetGoalFor(admin, lcvp) && canSetGoalFor(lcvp, tl) && canSetGoalFor(tl, member))
+  assert.ok(!canSetGoalFor(lcp, lcvp) && !canSetGoalFor(lcvp, member) && !canSetGoalFor(tl, outsider) && !canSetGoalFor(member, member))
 })
-t('goalContributorIds: lcvp = self + direct team only', () => {
-  assert.deepEqual([...goalContributorIds(lcvp, ALL)].sort(), ['mem', 'vp'])
+t('goalContributorIds: lcvp = whole LC, team_leader = self + own members', () => {
+  assert.deepEqual([...goalContributorIds(lcvp, ALL)].sort(), ['lcp', 'mem', 'tl', 'vp'])
+  assert.deepEqual([...goalContributorIds(tl, ALL)].sort(), ['mem', 'tl'])
 })
 t('visibility: member=self, lcp=whole LC, admin=null(all)', () => {
   assert.deepEqual([...visibleOwnerIds(member, ALL)!], ['mem'])

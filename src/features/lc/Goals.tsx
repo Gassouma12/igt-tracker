@@ -1,102 +1,103 @@
 import { useMemo, useState } from 'react'
 import { Target } from 'lucide-react'
-import { useLC } from './useLC'
 import { useCurrentUser } from '@/state/session'
 import { useDB } from '@/data/store'
-import { goalProgress, outreachCount, revenue } from '@/lib/metrics'
-import { manageableUsers } from '@/lib/rbac'
+import { actualFor } from '@/lib/metrics'
+import { goalContributorIds, manageableUsers } from '@/lib/rbac'
 import { fmtMoney, fmtNum, fmtPct } from '@/lib/format'
-import type { GoalMetric } from '@/data/types'
+import type { GoalMetric, User } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Button, Card, Progress, SectionTitle, StatCard } from '@/components/ui/primitives'
+import { Button, Card, Progress, SectionTitle } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
 import { GoalEditorModal } from '@/features/shared/GoalEditor'
 
-const METRIC_LABEL: Record<GoalMetric, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts signed', revenue: 'Revenue received' }
+const METRICS: GoalMetric[] = ['outreaches', 'meetings', 'contracts', 'revenue']
+const METRIC_LABEL: Record<GoalMetric, string> = { outreaches: 'Outreaches', meetings: 'Meetings', contracts: 'Contracts', revenue: 'Revenue' }
 const goalVal = (m: GoalMetric, n: number) => (m === 'revenue' ? fmtMoney(n) : fmtNum(n))
+
+// Who this role sets/sees goals for, phrased for the page subtitle.
+const SUBTITLE: Record<string, string> = {
+  admin: 'Targets you set for each LCVP',
+  lcvp: 'Targets you set for your team leaders',
+  team_leader: 'Targets you set for your members',
+  lcp: 'Your LC’s LCVP targets (view only)',
+}
 
 export default function Goals() {
   const actor = useCurrentUser()
   const allUsers = useDB((s) => s.users)
-  const { lc, members, opportunities, activities, meetings, lcGoals, memberGoals } = useLC()
+  const allOpps = useDB((s) => s.opportunities)
+  const allActs = useDB((s) => s.activities)
+  const allMtgs = useDB((s) => s.meetings)
+  const allGoals = useDB((s) => s.goals)
   const [editing, setEditing] = useState(false)
 
   const managed = actor ? manageableUsers(actor, allUsers) : []
-  const lcProgress = useMemo(() => goalProgress(lcGoals, activities, meetings, opportunities), [lcGoals, activities, meetings, opportunities])
-  const rev = useMemo(() => revenue(opportunities), [opportunities])
+  // LCPs set no goals but still see the goals set for their LC's LCVPs.
+  const viewList: User[] = managed.length > 0
+    ? managed
+    : allUsers.filter((u) => u.role === 'lcvp' && u.lcId === actor?.lcId)
 
-  const memberRows = useMemo(() => {
-    // Show semester targets in the LC table; weekly/monthly live on Performance.
-    const plannedFor = (ownerId: string, metric: string) =>
-      memberGoals.find((g) => g.ownerId === ownerId && g.metric === metric && (g.cadence ?? 'semester') === 'semester')?.planned ?? 0
-    return members.map((m) => {
-      const myOpps = opportunities.filter((o) => o.ownerId === m.id)
-      const myOppIds = new Set(myOpps.map((o) => o.id))
-      const out = outreachCount(activities.filter((a) => myOppIds.has(a.opportunityId)), myOpps)
-      const mtg = meetings.filter((mt) => myOppIds.has(mt.opportunityId)).length
-      const signed = myOpps.filter((o) => o.status === 'Contract signed').length
-      const planOut = plannedFor(m.id, 'outreaches')
-      return {
-        id: m.id, name: m.name,
-        out, planOut, outPct: planOut ? out / planOut : 0,
-        mtg, planMtg: plannedFor(m.id, 'meetings'),
-        signed, planCon: plannedFor(m.id, 'contracts'),
-        received: revenue(myOpps).received, planRev: plannedFor(m.id, 'revenue'),
-      }
-    }).sort((a, b) => b.outPct - a.outPct)
-  }, [members, opportunities, activities, meetings, memberGoals])
+  const rows = useMemo(() => viewList.map((m) => {
+    const ids = new Set(goalContributorIds(m, allUsers))
+    const opps = allOpps.filter((o) => ids.has(o.ownerId))
+    const oppIds = new Set(opps.map((o) => o.id))
+    const acts = allActs.filter((a) => oppIds.has(a.opportunityId))
+    const mtgs = allMtgs.filter((mt) => oppIds.has(mt.opportunityId))
+    const cells = METRICS.map((metric) => {
+      const planned = allGoals.find(
+        (g) => g.ownerId === m.id && g.metric === metric && (g.cadence ?? 'semester') === 'semester',
+      )?.planned ?? 0
+      const done = actualFor(metric, acts, mtgs, opps)
+      return { metric, planned, done, pct: planned ? done / planned : 0 }
+    })
+    return { user: m, cells }
+  }), [viewList, allUsers, allOpps, allActs, allMtgs, allGoals])
 
   return (
     <div>
       <PageHeader
         title="Goals"
-        subtitle={`${lc?.name ?? 'LC'} targets · 2026 S1`}
+        subtitle={`${actor ? (SUBTITLE[actor.role] ?? 'Targets') : 'Targets'} · 2026 S1`}
         actions={managed.length > 0 && <Button onClick={() => setEditing(true)}><Target size={16} /> Set goals</Button>}
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {lcProgress.map((g) => (
-          <StatCard
-            key={g.metric}
-            label={METRIC_LABEL[g.metric]}
-            value={`${goalVal(g.metric, g.done)} / ${goalVal(g.metric, g.planned)}`}
-            icon={<Target size={18} />}
-            accent={g.pct >= 1 ? 'var(--success)' : g.pct >= 0.5 ? 'var(--brand)' : 'var(--warning)'}
-            hint={`${fmtPct(g.pct)} achieved · gap ${goalVal(g.metric, g.gap)}`}
-          />
-        ))}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        <StatCard label="Revenue received" value={fmtMoney(rev.received)} accent="var(--success)" hint="collected this semester" />
-        <StatCard label="Receivable (outstanding)" value={fmtMoney(rev.receivable)} accent="var(--warning)" hint="signed, awaiting payment" />
-      </div>
-
-      <Card className="mt-4">
-        <SectionTitle title="Member goal progress" subtitle="Per-member target attainment" />
-        <Table>
-          <THead><TR><TH>Member</TH><TH>Outreaches</TH><TH className="w-36">Progress</TH><TH>Meetings</TH><TH>Contracts</TH><TH>Revenue</TH></TR></THead>
-          <TBody>
-            {memberRows.map((r) => (
-              <TR key={r.id}>
-                <TD className="font-medium text-ink">{r.name}</TD>
-                <TD>{fmtNum(r.out)} / {fmtNum(r.planOut)}</TD>
-                <TD>
-                  <div className="flex items-center gap-2">
-                    <Progress value={r.outPct} tone={r.outPct >= 1 ? 'success' : r.outPct >= 0.5 ? 'brand' : 'warning'} />
-                    <span className="w-10 shrink-0 text-right text-xs text-ink-mute">{fmtPct(r.outPct)}</span>
-                  </div>
-                </TD>
-                <TD>{fmtNum(r.mtg)} / {fmtNum(r.planMtg)}</TD>
-                <TD>{fmtNum(r.signed)} / {fmtNum(r.planCon)}</TD>
-                <TD>{fmtMoney(r.received)} / {fmtMoney(r.planRev)}</TD>
+      <Card>
+        <SectionTitle title="Target attainment" subtitle="Planned vs. achieved this semester" />
+        {rows.length === 0 ? (
+          <p className="py-8 text-center text-sm text-ink-mute">No one to show goals for yet.</p>
+        ) : (
+          <Table>
+            <THead>
+              <TR>
+                <TH>Name</TH>
+                {METRICS.map((m) => <TH key={m}>{METRIC_LABEL[m]}</TH>)}
+                <TH className="w-32">Outreach progress</TH>
               </TR>
-            ))}
-          </TBody>
-        </Table>
+            </THead>
+            <TBody>
+              {rows.map(({ user, cells }) => (
+                <TR key={user.id}>
+                  <TD className="font-medium text-ink">{user.name}</TD>
+                  {cells.map((c) => (
+                    <TD key={c.metric}>{goalVal(c.metric, c.done)} / {goalVal(c.metric, c.planned)}</TD>
+                  ))}
+                  <TD>
+                    <div className="flex items-center gap-2">
+                      <Progress value={cells[0].pct} tone={cells[0].pct >= 1 ? 'success' : cells[0].pct >= 0.5 ? 'brand' : 'warning'} />
+                      <span className="w-10 shrink-0 text-right text-xs text-ink-mute">{fmtPct(cells[0].pct)}</span>
+                    </div>
+                  </TD>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        )}
       </Card>
 
-      {actor && <GoalEditorModal open={editing} onClose={() => setEditing(false)} actor={actor} users={managed} />}
+      {actor && managed.length > 0 && (
+        <GoalEditorModal open={editing} onClose={() => setEditing(false)} actor={actor} users={managed} />
+      )}
     </div>
   )
 }
