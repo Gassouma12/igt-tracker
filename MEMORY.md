@@ -3,7 +3,24 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
-## state_snapshot (updated 2026-07-29 — LIVE)
+## state_snapshot (updated 2026-08-02 — LIVE)
+
+- **team_leader role added** (2026-08-02): hierarchy admin › lcp › lcvp ›
+  team_leader › member; linked via `teamLeadId`. rbac.ts + DB role CHECK +
+  signup policy + goals RLS (admin→lcvp, lcvp→tl, tl→member; lcp view-only) all
+  updated & verified live. Goals page rebuilt around `manageableUsers` + exposed
+  to admin/team_leader. Build 32/32 audit, 27/27 live QA.
+- **Test-login accounts** (real auth, password `igtdemo123`): admin/lcp/lcvp/
+  team_leader/member `*.test@igt.aiesec.be`, wired into a hierarchy in LC Ghent.
+  One-click buttons appear on `/login?demo` only. Created/refreshed via
+  `scripts/create-test-users.mjs`. **Remove before wide release** (known creds).
+- Fixes 2026-08-02: first-login race (guard spinner while hydrating), meetings
+  scheduled vs had is date-aware, add-opportunity duplicate is a soft warning
+  (member·LC·email, can proceed), activity log trimmed to key events, analytics
+  duplicate panel clickable + emails, old "Reset data" button removed, login copy
+  refreshed, signup drops position + adds Team Leader.
+
+## state_snapshot (2026-07-29)
 
 - Repo: `C:\Users\abena\Desktop\AiB IGT Master Tracker` → github.com/Gassouma12/igt-tracker (main)
 - Live: https://gassouma12.github.io/igt-tracker/ — **PRODUCTION** (real Supabase

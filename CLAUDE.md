@@ -63,14 +63,16 @@ SUPABASE_DB_URL="<session-pooler URI>" node scripts/setup-supabase.mjs  # idempo
 - Duplicate partners: `normCompany` (drops legal suffixes) powers both the
   passive `DuplicatesPanel` and the hard block in `AddOpportunityDialog`.
 
-## rbac (mirror of future RLS — single source: src/lib/rbac.ts)
+## rbac (mirrors RLS — single source: src/lib/rbac.ts, mirrored in supabase/rls.sql)
 
-- visibility: member=self · lcvp=self+team+LC · lcp=LC · admin=all
-- edit: **owner + admin only** (`canEditOwned`) — LCP/LCVP view-only on others
-- goals: lcvp→members, lcp→lcvps, admin→lcvps (same LC); contributors: lcvp
-  aggregates self+team, lcp whole LC
+- Hierarchy (high→low): **admin (MCVP) › lcp › lcvp › team_leader › member**.
+  Linking via `teamLeadId`: member → team_leader → lcvp.
+- visibility: member=self · team_leader=self+own members · lcvp/lcp=whole LC · admin=all
+- edit: **owner + admin only** (`canEditOwned`) — everyone else view-only on others
+- goals (`canSetGoalFor`): **admin→lcvp · lcvp→team_leader(same LC) · team_leader→own
+  members**; LCP is view-only. Contributors: team_leader = self+members, lcvp/lcp = whole LC.
 - assignment: `canAssignMembers` = lcp/lcvp/admin (Team page dropdown)
-- Client-side only today — server RLS is permissive authenticated-all (see security_state)
+- Enforced server-side by scoped RLS (see security_state); rbac.ts is the client mirror.
 
 ## ui_conventions
 
