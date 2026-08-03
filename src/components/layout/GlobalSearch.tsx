@@ -1,20 +1,25 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Briefcase, Search, User as UserIcon } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { useFilters } from '@/state/filters'
 import { scopeOpportunities, visibleOwnerIds } from '@/lib/rbac'
+import { CompanyDialog } from '@/features/member/CompanyDialog'
+import { OpportunityDialog } from '@/features/member/OpportunityDialog'
+import { MemberInfoModal } from '@/features/shared/MemberInfoModal'
+import type { User } from '@/data/types'
 
 interface Hit { kind: 'company' | 'contact' | 'member'; id: string; label: string; sub: string }
 
 export function GlobalSearch() {
   const user = useCurrentUser()
-  const navigate = useNavigate()
-  const setFilters = useFilters((s) => s.set)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const blurTimer = useRef<number | undefined>(undefined)
+
+  // What a hit opens: a company drawer, an opportunity drawer, or a member card.
+  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [oppId, setOppId] = useState<string | null>(null)
+  const [member, setMember] = useState<User | null>(null)
 
   const companies = useDB((s) => s.companies)
   const contacts = useDB((s) => s.contacts)
@@ -53,17 +58,17 @@ export function GlobalSearch() {
 
   if (!user) return null
 
-  const listPath = user.role === 'member' ? '/me/companies' : user.role === 'admin' ? '/admin/users' : '/lc/pipeline'
-
   function select(hit: Hit) {
     setOpen(false)
     setQ('')
     if (hit.kind === 'member') {
-      setFilters({ ownerId: hit.id, search: '' })
-      navigate(user!.role === 'admin' ? '/admin/users' : '/lc/team')
+      setMember(users.find((u) => u.id === hit.id) ?? null)
+    } else if (hit.kind === 'company') {
+      setCompanyId(hit.id)
     } else {
-      setFilters({ search: hit.label })
-      navigate(listPath)
+      // contact → open the company it belongs to
+      const ct = contacts.find((c) => c.id === hit.id)
+      if (ct) setCompanyId(ct.companyId)
     }
   }
 
@@ -101,6 +106,11 @@ export function GlobalSearch() {
           ))}
         </div>
       )}
+
+      {/* Result detail views — app-styled, role-scoped */}
+      <CompanyDialog companyId={companyId} onClose={() => setCompanyId(null)} onOpenOpp={(id) => setOppId(id)} />
+      <OpportunityDialog oppId={oppId} onClose={() => setOppId(null)} />
+      <MemberInfoModal member={member} open={!!member} onClose={() => setMember(null)} />
     </div>
   )
 }

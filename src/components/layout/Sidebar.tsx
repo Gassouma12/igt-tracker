@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { MessageSquare, Sparkles } from 'lucide-react'
 import { navFor } from '@/app/nav'
 import { useCurrentUser } from '@/state/session'
 import { Avatar } from '@/components/ui/primitives'
@@ -51,6 +52,24 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </NavLink>
         ))}
       </nav>
+
+      {/* Flashy "Got feedback?" CTA — stands apart from the indigo nav in accent cyan */}
+      <NavLink
+        to="/feedback"
+        onClick={onNavigate}
+        className={({ isActive }) =>
+          cn(
+            'feedback-cta group relative mt-1 flex items-center gap-2.5 overflow-hidden rounded-xl border px-3 py-2.5 text-sm font-semibold transition',
+            isActive
+              ? 'border-accent/70 bg-accent/20 text-accent'
+              : 'border-accent/40 bg-accent/10 text-accent hover:border-accent/60 hover:bg-accent/15',
+          )
+        }
+      >
+        <MessageSquare size={18} />
+        <span>Got feedback?</span>
+        <Sparkles size={15} className="ml-auto opacity-80 transition group-hover:rotate-12" />
+      </NavLink>
 
       <div className="mt-2 flex items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2.5">
         <Avatar name={user.name} size={34} />

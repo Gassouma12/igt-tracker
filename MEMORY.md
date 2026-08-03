@@ -3,6 +3,38 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
+## state_snapshot (2026-08-03 — batch 2, LIVE)
+
+- **AIESEC semester calendar** redefined in `dates.ts`: S1 = Feb–Jul, S2 =
+  Aug–Jan (labelled by start year; Jan → prev-year S2). Quarters Q1 Feb / Q2 May
+  / Q3 Aug / Q4 Nov. `semesterBounds`/`quarterBounds`/`operatingYear` added;
+  audit tests updated. periodRange('semester','2026-S1') = Feb1–Jul31.
+- **DateRangePicker** rebuilt: fixed ~750px width (no cramped day cells), grouped
+  shortcut rail — Relative + `Semesters·<year>` (S1/S2) + `Quarters·<year>`
+  (Q1–Q4) always listed.
+- **Goals page** now hosts BOTH the actor's own "Your goal achievement" cards
+  AND the managed "Target attainment" table; S1/S2 toggle + DateRangePicker
+  filter both (date range narrows within the semester). Semester filter now
+  windows to the SELECTED period only (fixed S1+S2 showing together). Goals added
+  to MEMBER_NAV + /lc/goals route allows `member`. Goal-achievement cards were
+  REMOVED from Performance (moved here).
+- **Performance** KPIs Outreaches/Meetings/Signed are clickable (`StatCard`
+  gained `onClick`/`cta` + arrow affordance) → drill-in `Modal` listing the
+  underlying companies/meetings/contracts, recomputed with the same date filter.
+- **Global search** results open detail modals in place (company/contact →
+  `CompanyDialog` + `OpportunityDialog`; member → new `MemberInfoModal`) instead
+  of navigating.
+- **Team**: clicking a member opens `MemberInfoModal` (avatar, role, contact
+  details, KPIs) with a separate "View pipeline" button → `MemberPipelineModal`.
+- **LC Management** derives each LC's LCP/LCVP from users (role+lcId, falls back
+  to lc.lcpId/lcvpIds) so newly-approved leadership shows; one of each.
+- **Add opportunity**: native `<datalist>` replaced by a styled combobox of
+  existing company names + an "Add '<name>' as a new company" row.
+- **"Got feedback?"** flashy accent-cyan CTA under the sidebar nav on every role
+  → `/feedback` page (friendly copy, pre-filled mailto to kacem@aiesec.be).
+- Verified: build green, 33/33 audit, browser QA across admin+lcvp (all 9 items,
+  no functional console errors).
+
 ## state_snapshot (updated 2026-08-03 — LIVE)
 
 - **UX/BA pass 2026-08-03**: one LCVP per LC (demo generator reuses an existing

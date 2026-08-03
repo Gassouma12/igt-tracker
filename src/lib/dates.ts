@@ -44,12 +44,20 @@ export function isoWeek(d: Date): { year: number; week: number } {
   return { year: t.getUTCFullYear(), week }
 }
 
+// AIESEC operating calendar: S1 = Feb–Jul, S2 = Aug–Jan (S2 spans the year-end).
+// Each semester is LABELLED by the calendar year it STARTS in, so
+// '2026-S2' means Aug 2026 → Jan 2027, and Jan 2026 belongs to '2025-S2'.
+// Quarters split each semester in half: Q1 Feb–Apr · Q2 May–Jul · Q3 Aug–Oct ·
+// Q4 Nov–Jan (Q4 also spans the year-end).
+
 /** The period key for `date` under a cadence: '2026-S1' | '2026-06' | '2026-W26'. */
 export function currentPeriod(cadence: GoalCadence, date = new Date()): string {
   const y = date.getFullYear()
   if (cadence === 'monthly') return `${y}-${pad(date.getMonth() + 1)}`
   if (cadence === 'weekly') { const { year, week } = isoWeek(date); return `${year}-W${pad(week)}` }
-  return `${y}-S${date.getMonth() < 6 ? 1 : 2}`
+  const m = date.getMonth() // 0 = Jan
+  if (m === 0) return `${y - 1}-S2` // Jan → the S2 that began last August
+  return `${y}-S${m <= 6 ? 1 : 2}` // Feb(1)–Jul(6) = S1, Aug(7)–Dec(11) = S2
 }
 
 /** Concrete [from,to] (inclusive, 'YYYY-MM-DD') for a cadence + period key. */
@@ -71,7 +79,28 @@ export function periodRange(cadence: GoalCadence, period: string): { from: strin
     return { from: iso(from), to: iso(to) }
   }
   const [y, s] = period.split('-S').map(Number)
-  return s === 1 ? { from: `${y}-01-01`, to: `${y}-06-30` } : { from: `${y}-07-01`, to: `${y}-12-31` }
+  return semesterBounds(y, s as 1 | 2)
+}
+
+/** [from,to] day bounds (inclusive, 'YYYY-MM-DD') for AIESEC semester 1|2 of a
+ *  starting year. S1 = Feb–Jul; S2 = Aug–Jan of the NEXT year. */
+export function semesterBounds(year: number, s: 1 | 2): { from: string; to: string } {
+  return s === 1
+    ? { from: `${year}-02-01`, to: `${year}-07-31` }
+    : { from: `${year}-08-01`, to: `${year + 1}-01-31` }
+}
+
+/** [from,to] day bounds for AIESEC quarter 1..4 (Q1 Feb, Q2 May, Q3 Aug, Q4 Nov).
+ *  Each spans three months; Q4 (Nov–Jan) crosses the year-end. */
+export function quarterBounds(year: number, q: 1 | 2 | 3 | 4): { from: string; to: string } {
+  const startMonth = [1, 4, 7, 10][q - 1] // 0-indexed: Feb, May, Aug, Nov
+  return { from: iso(new Date(year, startMonth, 1)), to: iso(new Date(year, startMonth + 3, 0)) }
+}
+
+/** The AIESEC operating year for `date` — the year the CURRENT semester started
+ *  in (so Jan resolves to the previous calendar year). Used to seed pickers. */
+export function operatingYear(date = new Date()): number {
+  return Number(currentPeriod('semester', date).split('-S')[0])
 }
 
 /** Human label for a period key, e.g. 'Jun 2026', 'Week 26 · 2026', '2026 S1'. */

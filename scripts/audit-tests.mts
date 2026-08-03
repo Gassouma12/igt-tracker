@@ -165,9 +165,15 @@ t('periodRange monthly handles 28/30/31-day months', () => {
   assert.equal(periodRange('monthly', '2026-02').to, '2026-02-28')
   assert.equal(periodRange('monthly', '2026-12').to, '2026-12-31')
 })
-t('currentPeriod semester splits at July', () => {
-  assert.equal(currentPeriod('semester', new Date(2026, 5, 30)), '2026-S1')
-  assert.equal(currentPeriod('semester', new Date(2026, 6, 1)), '2026-S2')
+t('currentPeriod semester: S1 Feb–Jul, S2 Aug–Jan (Jan → previous year S2)', () => {
+  assert.equal(currentPeriod('semester', new Date(2026, 1, 1)), '2026-S1')  // Feb
+  assert.equal(currentPeriod('semester', new Date(2026, 6, 31)), '2026-S1') // Jul
+  assert.equal(currentPeriod('semester', new Date(2026, 7, 1)), '2026-S2')  // Aug
+  assert.equal(currentPeriod('semester', new Date(2026, 0, 15)), '2025-S2') // Jan → prev S2
+})
+t('periodRange semester matches the AIESEC calendar (S2 spans year-end)', () => {
+  assert.deepEqual(periodRange('semester', '2026-S1'), { from: '2026-02-01', to: '2026-07-31' })
+  assert.deepEqual(periodRange('semester', '2026-S2'), { from: '2026-08-01', to: '2027-01-31' })
 })
 t('periodLabel round-trips each cadence', () => {
   assert.ok(periodLabel('weekly', '2026-W07').includes('7'))

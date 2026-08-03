@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { initials } from '@/lib/format'
 
@@ -112,16 +113,27 @@ export function ProgressRing({ value, size = 72, stroke = 7, color = 'var(--bran
 }
 
 // ---- StatCard ------------------------------------------------------------
-export function StatCard({ label, value, hint, icon, accent = 'var(--brand)' }: { label: string; value: ReactNode; hint?: ReactNode; icon?: ReactNode; accent?: string }) {
+// Pass `onClick` to make the whole card an interactive "drill-in" — it gets a
+// pointer cursor, a hover ring and a corner arrow so the affordance is obvious.
+export function StatCard({ label, value, hint, icon, accent = 'var(--brand)', onClick, cta }: { label: string; value: ReactNode; hint?: ReactNode; icon?: ReactNode; accent?: string; onClick?: () => void; cta?: string }) {
+  const clickable = !!onClick
   return (
-    <Card className="relative overflow-hidden">
+    <Card
+      className={cn('relative overflow-hidden', clickable && 'group cursor-pointer transition hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-pop')}
+      onClick={onClick}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick!() } } : undefined}
+    >
       <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full opacity-20 blur-2xl" style={{ background: accent }} />
+      {clickable && <ArrowUpRight size={15} className="absolute right-3 top-3 text-ink-mute transition group-hover:text-brand" />}
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wide text-ink-mute">{label}</p>
         {icon && <span style={{ color: accent }}>{icon}</span>}
       </div>
       <p className="mt-2 font-display text-3xl font-bold text-ink">{value}</p>
       {hint && <p className="mt-1 text-xs text-ink-mute">{hint}</p>}
+      {clickable && <p className="mt-1 text-[11px] font-medium text-brand opacity-80 transition group-hover:opacity-100">{cta ?? 'View list'} →</p>}
     </Card>
   )
 }

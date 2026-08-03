@@ -57,6 +57,12 @@ SUPABASE_DB_URL="<session-pooler URI>" node scripts/setup-supabase.mjs  # idempo
 - Goals are cadence-keyed (weekly/monthly/semester × period string) — the
   (owner, metric, cadence, period) tuple is unique; "done" is windowed to the
   cadence's CURRENT period via `periodRange` (LOCAL dates — see date_gotchas).
+- **AIESEC operating calendar (dates.ts)**: `S1 = Feb–Jul`, `S2 = Aug–Jan`
+  (S2 crosses the year-end); a semester is labelled by the year it STARTS, so
+  `2026-S2` = Aug 2026 → Jan 2027 and Jan 2026 → `2025-S2`. Quarters: Q1 Feb–Apr,
+  Q2 May–Jul, Q3 Aug–Oct, Q4 Nov–Jan. Helpers: `semesterBounds` / `quarterBounds`
+  / `operatingYear`. The `DateRangePicker` shortcut rail lists S1/S2 + Q1–Q4 for
+  the current operating year. Do NOT revert to a calendar-half (Jan–Jun/Jul–Dec) split.
 - Notifications (stored, targeted): wins route through `notify()` →
   `supervisorsOf` (LC chain above actor + every admin). New "win" paths MUST go
   through `advanceStage`/`addMeeting`/`setRevenueReceived` so kanban and dialog stay in parity.

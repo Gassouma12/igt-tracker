@@ -24,6 +24,7 @@ const MyPipeline = lazy(() => import('@/features/member/MyPipeline'))
 const Companies = lazy(() => import('@/features/member/Companies'))
 const Interactions = lazy(() => import('@/features/member/Interactions'))
 const Performance = lazy(() => import('@/features/member/Performance'))
+const Feedback = lazy(() => import('@/features/shared/Feedback'))
 
 function RootRedirect() {
   const sessionId = useSession((s) => s.currentUserId)
@@ -55,7 +56,7 @@ export default function App() {
           <Route path="/lc" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCOverview />)} />
           <Route path="/lc/pipeline" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCPipeline />)} />
           <Route path="/lc/team" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCTeam />)} />
-          <Route path="/lc/goals" element={guarded(['admin', 'lcp', 'lcvp', 'team_leader'], <LCGoals />)} />
+          <Route path="/lc/goals" element={guarded(['admin', 'lcp', 'lcvp', 'team_leader', 'member'], <LCGoals />)} />
           <Route path="/lc/reports" element={guarded(['lcp', 'lcvp', 'team_leader'], <LCReports />)} />
 
           {/* Member workspace (everyone who sells runs their own pipeline) */}
@@ -63,6 +64,9 @@ export default function App() {
           <Route path="/me/companies" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Companies />)} />
           <Route path="/me/interactions" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Interactions />)} />
           <Route path="/me/performance" element={guarded(['member', 'team_leader', 'lcp', 'lcvp', 'admin'], <Performance />)} />
+
+          {/* Feedback — reachable by every role */}
+          <Route path="/feedback" element={<Feedback />} />
         </Route>
 
         <Route path="*" element={<RootRedirect />} />

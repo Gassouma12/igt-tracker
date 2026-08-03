@@ -118,6 +118,20 @@ body::before {
   animation: row-pulse 1.6s ease-out 2;
 }
 
+/* Gentle glow so the "Got feedback?" CTA quietly stands out from the nav. */
+@keyframes feedback-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0);
+  }
+  50% {
+    box-shadow: 0 0 16px -3px rgb(var(--accent-rgb) / 0.45);
+  }
+}
+.feedback-cta {
+  animation: feedback-glow 3s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

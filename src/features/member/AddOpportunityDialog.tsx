@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { AlertTriangle, Plus, Trash2 } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { AlertTriangle, Building2, Plus, Trash2 } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import { createCompany, createContact, createOpportunity } from '@/data/actions'
@@ -23,8 +23,19 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
   const users = useDB((s) => s.users)
   const lcs = useDB((s) => s.localCommittees)
   const [companyName, setCompanyName] = useState('')
+  const [listOpen, setListOpen] = useState(false)
   const [contacts, setContacts] = useState<ContactDraft[]>([emptyContact()])
   const [busy, setBusy] = useState(false)
+  const blurTimer = useRef<number | undefined>(undefined)
+
+  // Company suggestions: filter the existing companies as the user types. If the
+  // typed name matches nothing, an "Add …" row lets them create a new one.
+  const matches = useMemo(() => {
+    const n = companyName.trim().toLowerCase()
+    const list = n ? companies.filter((c) => c.name.toLowerCase().includes(n)) : companies
+    return [...list].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8)
+  }, [companies, companyName])
+  const exactExists = companies.some((c) => c.name.trim().toLowerCase() === companyName.trim().toLowerCase())
 
   const setContact = (i: number, patch: Partial<ContactDraft>) =>
     setContacts((cs) => cs.map((c, j) => (j === i ? { ...c, ...patch } : c)))
@@ -80,10 +91,42 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
     <Modal open={open} onOpenChange={(o) => !o && onClose()} title="New opportunity" description="Add a company and its contacts. Existing companies are reused." className="max-w-2xl">
       <form onSubmit={submit} className="space-y-4">
         <Field label="Company" hint="Pick an existing company or type a new one.">
-          <Input list="company-list" placeholder="e.g. Odoo" value={companyName} onChange={(e) => setCompanyName(e.target.value)} autoFocus required />
-          <datalist id="company-list">
-            {companies.slice(0, 1000).map((c) => <option key={c.id} value={c.name} />)}
-          </datalist>
+          <div className="relative">
+            <Input
+              placeholder="Start typing a company name…"
+              value={companyName}
+              onChange={(e) => { setCompanyName(e.target.value); setListOpen(true) }}
+              onFocus={() => setListOpen(true)}
+              onBlur={() => { blurTimer.current = window.setTimeout(() => setListOpen(false), 150) }}
+              autoFocus required
+            />
+            {listOpen && (matches.length > 0 || (companyName.trim() && !exactExists)) && (
+              <div
+                className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-line bg-surface shadow-pop"
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {matches.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => { setCompanyName(c.name); setListOpen(false) }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink transition hover:bg-surface-2"
+                  >
+                    <Building2 size={14} className="shrink-0 text-ink-mute" /> {c.name}
+                  </button>
+                ))}
+                {companyName.trim() && !exactExists && (
+                  <button
+                    type="button"
+                    onClick={() => setListOpen(false)}
+                    className="flex w-full items-center gap-2 border-t border-line px-3 py-2 text-left text-sm font-medium text-brand transition hover:bg-surface-2"
+                  >
+                    <Plus size={14} className="shrink-0" /> Add “{companyName.trim()}” as a new company
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </Field>
 
         {dup && existing && (

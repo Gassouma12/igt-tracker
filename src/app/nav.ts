@@ -39,6 +39,7 @@ const MEMBER_NAV: NavItem[] = [
   { to: '/me/companies', label: 'Companies', icon: Briefcase },
   { to: '/me/interactions', label: 'Interactions', icon: Activity },
   { to: '/me/performance', label: 'Performance', icon: TrendingUp },
+  { to: '/lc/goals', label: 'Goals', icon: Target },
 ]
 
 export function navFor(role: Role): NavItem[] {

@@ -1,8 +1,9 @@
-// App-styled date-range picker: two side-by-side month calendars + a shortcut
-// rail (This Week / Last Week / Last 7 Days / Current Month / Next Month / Reset).
+// App-styled date-range picker: two side-by-side month calendars + a grouped
+// shortcut rail (relative ranges, AIESEC semesters S1/S2, quarters Q1–Q4).
 // Emits inclusive 'YYYY-MM-DD' bounds ('' = open on that side). Dependency-free.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarRange, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { operatingYear, quarterBounds, semesterBounds } from '@/lib/dates'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -12,15 +13,40 @@ const startOfWeek = (d: Date) => { const x = new Date(d); x.setDate(x.getDate() 
 const fmt = (s: string) => parse(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
 type Range = [string, string] // ['' | 'YYYY-MM-DD', '' | 'YYYY-MM-DD']
+type Shortcut = { label: string; get: () => Range }
 
-const SHORTCUTS: { label: string; get: () => Range }[] = [
-  { label: 'This Week', get: () => { const s = startOfWeek(new Date()); const e = new Date(s); e.setDate(s.getDate() + 6); return [iso(s), iso(e)] } },
-  { label: 'Last Week', get: () => { const s = startOfWeek(new Date()); s.setDate(s.getDate() - 7); const e = new Date(s); e.setDate(s.getDate() + 6); return [iso(s), iso(e)] } },
-  { label: 'Last 7 Days', get: () => { const e = new Date(); const s = new Date(); s.setDate(e.getDate() - 6); return [iso(s), iso(e)] } },
-  { label: 'Current Month', get: () => { const n = new Date(); return [iso(new Date(n.getFullYear(), n.getMonth(), 1)), iso(new Date(n.getFullYear(), n.getMonth() + 1, 0))] } },
-  { label: 'Next Month', get: () => { const n = new Date(); return [iso(new Date(n.getFullYear(), n.getMonth() + 1, 1)), iso(new Date(n.getFullYear(), n.getMonth() + 2, 0))] } },
-  { label: 'Reset', get: () => ['', ''] },
-]
+// Grouped shortcuts. Semesters/quarters follow the AIESEC operating calendar
+// (S1 Feb–Jul, S2 Aug–Jan) and are ALWAYS listed for the current operating year.
+function shortcutGroups(): { title: string; items: Shortcut[] }[] {
+  const y = operatingYear()
+  const b = (r: { from: string; to: string }): Range => [r.from, r.to]
+  return [
+    {
+      title: 'Relative',
+      items: [
+        { label: 'This Week', get: () => { const s = startOfWeek(new Date()); const e = new Date(s); e.setDate(s.getDate() + 6); return [iso(s), iso(e)] } },
+        { label: 'Last Week', get: () => { const s = startOfWeek(new Date()); s.setDate(s.getDate() - 7); const e = new Date(s); e.setDate(s.getDate() + 6); return [iso(s), iso(e)] } },
+        { label: 'Last 7 Days', get: () => { const e = new Date(); const s = new Date(); s.setDate(e.getDate() - 6); return [iso(s), iso(e)] } },
+        { label: 'This Month', get: () => { const n = new Date(); return [iso(new Date(n.getFullYear(), n.getMonth(), 1)), iso(new Date(n.getFullYear(), n.getMonth() + 1, 0))] } },
+        { label: 'Next Month', get: () => { const n = new Date(); return [iso(new Date(n.getFullYear(), n.getMonth() + 1, 1)), iso(new Date(n.getFullYear(), n.getMonth() + 2, 0))] } },
+      ],
+    },
+    {
+      title: `Semesters · ${y}`,
+      items: [
+        { label: 'S1 · Feb–Jul', get: () => b(semesterBounds(y, 1)) },
+        { label: 'S2 · Aug–Jan', get: () => b(semesterBounds(y, 2)) },
+      ],
+    },
+    {
+      title: `Quarters · ${y}`,
+      items: ([1, 2, 3, 4] as const).map((q) => ({
+        label: `Q${q} · ${['Feb–Apr', 'May–Jul', 'Aug–Oct', 'Nov–Jan'][q - 1]}`,
+        get: () => b(quarterBounds(y, q)),
+      })),
+    },
+  ]
+}
 
 function Month({ base, from, to, hover, onPick, onHover }: {
   base: Date; from: string; to: string; hover: string
@@ -32,15 +58,15 @@ function Month({ base, from, to, hover, onPick, onHover }: {
   const end = to || hover // preview end while choosing
   const inSel = (d: string) => from && end && d >= (from < end ? from : end) && d <= (from < end ? end : from)
   return (
-    <div>
+    <div className="w-[15.75rem] shrink-0">
       <div className="mb-2 text-center text-sm font-semibold text-ink">
         {base.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
       </div>
-      <div className="grid grid-cols-7 gap-0.5 text-center text-[10px] text-ink-mute">
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i}>{d}</div>)}
+      <div className="grid grid-cols-7 text-center text-[11px] font-medium text-ink-mute">
+        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <div key={i} className="py-1">{d}</div>)}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-0.5">
-        {Array.from({ length: lead }).map((_, i) => <div key={`b${i}`} />)}
+      <div className="grid grid-cols-7">
+        {Array.from({ length: lead }).map((_, i) => <div key={`b${i}`} className="h-9" />)}
         {Array.from({ length: days }).map((_, i) => {
           const d = iso(new Date(y, m, i + 1))
           const isEnd = d === from || d === to
@@ -51,7 +77,7 @@ function Month({ base, from, to, hover, onPick, onHover }: {
               type="button"
               onClick={() => onPick(d)}
               onMouseEnter={() => onHover(d)}
-              className={`h-8 rounded-lg text-sm transition ${
+              className={`mx-auto flex h-9 w-9 items-center justify-center rounded-lg text-sm tabular-nums transition ${
                 isEnd ? 'bg-brand font-semibold text-white'
                   : selected ? 'bg-brand/20 text-ink'
                     : 'text-ink-dim hover:bg-surface-2'}`}
@@ -72,6 +98,7 @@ export function DateRangePicker({ from, to, onChange }: {
   const [left, setLeft] = useState(() => (from ? addMonths(parse(from), 0) : new Date(new Date().getFullYear(), new Date().getMonth(), 1)))
   const [hover, setHover] = useState('')
   const ref = useRef<HTMLDivElement>(null)
+  const groups = useMemo(shortcutGroups, [])
 
   useEffect(() => {
     if (!open) return
@@ -86,10 +113,19 @@ export function DateRangePicker({ from, to, onChange }: {
     return from ? `From ${fmt(from)}` : `Until ${fmt(to)}`
   }, [from, to])
 
+  const active = (r: Range) => from === r[0] && to === r[1]
+
   // Click logic: first click sets start (clears end); second sets end (ordered).
   function pick(d: string) {
     if (!from || (from && to)) { onChange(d, ''); setHover('') }
     else { const [a, b] = d < from ? [d, from] : [from, d]; onChange(a, b); setOpen(false) }
+  }
+
+  function applyShortcut(s: Shortcut) {
+    const [a, b] = s.get()
+    onChange(a, b)
+    if (a) setLeft(parse(a))
+    setOpen(false)
   }
 
   return (
@@ -107,25 +143,40 @@ export function DateRangePicker({ from, to, onChange }: {
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 flex rounded-2xl border border-line bg-surface p-3 shadow-xl">
-          <div className="mr-3 flex w-32 flex-col gap-1 border-r border-line pr-3">
-            {SHORTCUTS.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => { const [a, b] = s.get(); onChange(a, b); if (a) setLeft(parse(a)); if (s.label === 'Reset') { /* stay open */ } else setOpen(false) }}
-                className="rounded-lg px-2.5 py-1.5 text-left text-sm text-ink-dim transition hover:bg-surface-2 hover:text-ink"
-              >
-                {s.label}
-              </button>
+        <div className="absolute right-0 z-50 mt-2 flex max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-pop">
+          <div className="mr-4 flex w-44 shrink-0 flex-col gap-3 overflow-y-auto border-r border-line pr-4">
+            {groups.map((grp) => (
+              <div key={grp.title}>
+                <p className="mb-1 px-1 text-[10px] font-semibold uppercase tracking-wide text-ink-mute">{grp.title}</p>
+                <div className="flex flex-col gap-0.5">
+                  {grp.items.map((s) => (
+                    <button
+                      key={s.label}
+                      type="button"
+                      onClick={() => applyShortcut(s)}
+                      className={`rounded-lg px-2.5 py-1.5 text-left text-[13px] transition ${
+                        active(s.get()) ? 'bg-brand/15 font-medium text-brand' : 'text-ink-dim hover:bg-surface-2 hover:text-ink'}`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
+            <button
+              type="button"
+              onClick={() => { onChange('', ''); setHover('') }}
+              className="mt-auto rounded-lg px-2.5 py-1.5 text-left text-[13px] text-ink-mute transition hover:bg-surface-2 hover:text-danger"
+            >
+              Reset
+            </button>
           </div>
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <button type="button" onClick={() => setLeft(addMonths(left, -1))} className="rounded-lg p-1 text-ink-mute hover:bg-surface-2"><ChevronLeft size={16} /></button>
-              <button type="button" onClick={() => setLeft(addMonths(left, 1))} className="rounded-lg p-1 text-ink-mute hover:bg-surface-2"><ChevronRight size={16} /></button>
+              <button type="button" onClick={() => setLeft(addMonths(left, -1))} className="rounded-lg p-1 text-ink-mute hover:bg-surface-2"><ChevronLeft size={18} /></button>
+              <button type="button" onClick={() => setLeft(addMonths(left, 1))} className="rounded-lg p-1 text-ink-mute hover:bg-surface-2"><ChevronRight size={18} /></button>
             </div>
-            <div className="flex gap-4" onMouseLeave={() => setHover('')}>
+            <div className="flex gap-5" onMouseLeave={() => setHover('')}>
               <Month base={left} from={from} to={to} hover={hover} onPick={pick} onHover={setHover} />
               <Month base={addMonths(left, 1)} from={from} to={to} hover={hover} onPick={pick} onHover={setHover} />
             </div>

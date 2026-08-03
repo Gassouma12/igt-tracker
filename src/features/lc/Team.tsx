@@ -11,7 +11,7 @@ import { Avatar, Badge, Card, SectionTitle } from '@/components/ui/primitives'
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { RankingBars } from '@/components/charts/Charts'
-import { MemberPipelineModal } from '@/features/shared/MemberPipelineModal'
+import { MemberInfoModal } from '@/features/shared/MemberInfoModal'
 import type { User } from '@/data/types'
 
 const ROLE_TONE = { admin: 'brand', lcp: 'brand', lcvp: 'info', team_leader: 'info', member: 'neutral' } as const
@@ -44,7 +44,7 @@ export default function Team() {
 
   return (
     <div>
-      <PageHeader title="Team" subtitle={`${members.length} members · click a member to view their pipeline`} />
+      <PageHeader title="Team" subtitle={`${members.length} members · click a member to see their profile`} />
 
       <Card className="mb-4">
         <SectionTitle title="Member ranking" subtitle="By companies reached" />
@@ -85,13 +85,13 @@ export default function Team() {
               <TD>{fmtNum(r.meetings)}</TD>
               <TD>{fmtNum(r.signed)}</TD>
               <TD>{fmtPct(r.conversion, 1)}</TD>
-              <TD><span className="flex items-center gap-1 text-xs text-ink-mute"><Eye size={13} /> View</span></TD>
+              <TD><span className="flex items-center gap-1 text-xs text-ink-mute"><Eye size={13} /> Profile</span></TD>
             </TR>
           ))}
         </TBody>
       </Table>
 
-      <MemberPipelineModal member={viewing} open={!!viewing} onClose={() => setViewing(null)} />
+      <MemberInfoModal member={viewing} open={!!viewing} onClose={() => setViewing(null)} />
     </div>
   )
 }

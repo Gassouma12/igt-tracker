@@ -24,7 +24,6 @@ export default function LCManagement() {
     [opportunities, activities, meetings, lcs],
   )
   const statOf = (id: string) => perf.find((p) => p.id === id)
-  const userName = (id: string | null) => users.find((u) => u.id === id)?.name ?? '—'
 
   return (
     <div>
@@ -37,7 +36,12 @@ export default function LCManagement() {
       <div className="grid gap-4 lg:grid-cols-3">
         {lcs.map((lc) => {
           const s = statOf(lc.id)
-          const members = users.filter((u) => u.lcId === lc.id)
+          // Derive leadership from the users themselves (role + lcId) so a newly
+          // approved LCP/LCVP account shows up here automatically — one of each.
+          const inLc = users.filter((u) => u.lcId === lc.id)
+          const lcp = inLc.find((u) => u.role === 'lcp') ?? (lc.lcpId ? users.find((u) => u.id === lc.lcpId) : undefined)
+          const lcvp = inLc.find((u) => u.role === 'lcvp') ?? (lc.lcvpIds[0] ? users.find((u) => u.id === lc.lcvpIds[0]) : undefined)
+          const members = inLc.filter((u) => u.role === 'member' || u.role === 'team_leader')
           return (
             <Card key={lc.id} className="flex flex-col">
               <div className="flex items-center justify-between">
@@ -58,10 +62,12 @@ export default function LCManagement() {
               </p>
 
               <div className="mt-4 space-y-1.5 border-t border-line pt-3 text-sm">
-                <p className="flex items-center gap-2 text-ink-dim"><Crown size={14} className="text-warning" /> {userName(lc.lcpId)} <span className="text-ink-mute">· LCP</span></p>
-                {lc.lcvpIds.map((id) => (
-                  <p key={id} className="flex items-center gap-2 text-ink-dim"><Star size={14} className="text-info" /> {userName(id)} <span className="text-ink-mute">· LCVP</span></p>
-                ))}
+                <p className="flex items-center gap-2 text-ink-dim">
+                  <Crown size={14} className="text-warning" /> {lcp?.name ?? <span className="text-ink-mute italic">LCP unassigned</span>} <span className="text-ink-mute">· LCP</span>
+                </p>
+                <p className="flex items-center gap-2 text-ink-dim">
+                  <Star size={14} className="text-info" /> {lcvp?.name ?? <span className="text-ink-mute italic">LCVP unassigned</span>} <span className="text-ink-mute">· LCVP</span>
+                </p>
               </div>
 
               <div className="mt-4 border-t border-line pt-3">
