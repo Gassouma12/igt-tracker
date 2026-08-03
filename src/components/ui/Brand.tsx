@@ -1,7 +1,7 @@
-// Brand mark (gem.png) + the site-wide credit line. Used in the sidebar, login
+// Brand mark (atom.png) + the site-wide credit line. Used in the sidebar, login
 // and the app footer so the identity is consistent everywhere.
 
-import gem from '@/images/gem.png'
+import atom from '@/images/atom.png'
 import { LinkedInLink } from '@/components/ui/LinkedInLink'
 
 const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/aboulkacem-ben-arab-567974241/'
@@ -9,8 +9,8 @@ const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/aboulkacem-ben-arab-5679742
 export function BrandMark({ size = 36, rounded = 'rounded-xl' }: { size?: number; rounded?: string }) {
   return (
     <img
-      src={gem}
-      alt="iGT"
+      src={atom}
+      alt="Atom"
       width={size}
       height={size}
       className={`${rounded} object-cover shadow-glow`}

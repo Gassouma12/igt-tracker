@@ -3,6 +3,30 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
+## state_snapshot (2026-08-03 — batch 3, LIVE)
+
+- **Rebrand: the platform is "Atom"** (was "iGT Sales"). Logo = `src/images/atom.png`
+  (imported by Brand.tsx BrandMark + main.tsx favicon; **note: 965KB, not resized —
+  compress when a tool is available**). Renamed: Sidebar, Login brand label, index.html
+  `<title>`, BrandMark alt. **"iGT" stays** everywhere it means the AIESEC product
+  (iGT sales / programme / member). `upload-images.mjs` now includes atom.png (needs
+  the service_role key — owner runs it).
+- **Inactive accounts are locked out**: new `AccountLocked.tsx`; `RequireAuth` shows it
+  when `user.active === false` ("Account temporarily locked — email kacem@aiesec.be").
+  Previously an inactive user could still use the app.
+- **MCVP (kacem@aiesec.be) is protected in UserManagement**: role shows a locked "MCVP"
+  badge (no dropdown) and status a static "Active" (no toggle) for everyone, incl. other
+  admins. `isMCVP` = email match. **CLIENT-SIDE ONLY** — a determined admin could still
+  change it via the API; add an RLS trigger to enforce server-side (flagged).
+- **LCVP can assign team leaders to report to them** (Team page): team_leader rows now get
+  an "Assigned to" dropdown (Unassigned / the LCVP) alongside member rows.
+- **Performance per-team filter for LCVP**: a team (team-leader) dropdown scopes ALL page
+  data to that team (leader + their members) via `teamOwners` in `sel`; works with the
+  date-range picker. `showTeam = role==='lcvp'`.
+- **Global search shows members** for admin/lcp/lcvp/team_leader (was admin/lcp only) and
+  no longer starves them via the final slice — per-category caps, members before contacts.
+- Verified: build green, 33/33 audit, browser QA (admin+lcvp+locked-member) all 6 items.
+
 ## state_snapshot (2026-08-03 — batch 2, LIVE)
 
 - **AIESEC semester calendar** redefined in `dates.ts`: S1 = Feb–Jul, S2 =

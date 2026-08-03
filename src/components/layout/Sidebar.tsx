@@ -21,7 +21,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex items-center gap-2.5 px-2 pb-4">
         <BrandMark size={36} />
         <div className="leading-tight">
-          <p className="font-display text-sm font-bold text-ink">iGT Sales</p>
+          <p className="font-display text-sm font-bold text-ink">Atom</p>
           <p className="text-[11px] text-ink-mute">AIESEC in Belgium</p>
         </div>
       </div>

@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react'
-import { Eye, Search, UserCheck, UserX } from 'lucide-react'
+import { Eye, Lock, Search, UserCheck, UserX } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import { updateUser } from '@/data/actions'
 import type { Role, User } from '@/data/types'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Avatar, Button } from '@/components/ui/primitives'
+import { Avatar, Badge, Button } from '@/components/ui/primitives'
+
+// The MCVP (platform owner) is protected: nobody — including other admins — can
+// change their role or deactivate them, and they keep full control of everyone.
+const MCVP_EMAIL = 'kacem@aiesec.be'
+const isMCVP = (u: User) => u.email?.toLowerCase() === MCVP_EMAIL
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/Table'
 import { Pagination } from '@/components/ui/Pagination'
 import { Dropdown } from '@/components/ui/Dropdown'
@@ -71,12 +76,16 @@ export default function UserManagement() {
               </TD>
               <TD>{u.email}</TD>
               <TD>
-                <Dropdown
-                  size="sm" className="w-28"
-                  value={u.role}
-                  onChange={(v) => actor && updateUser(actor, u.id, { role: v as Role })}
-                  options={ROLE_OPTS}
-                />
+                {isMCVP(u) ? (
+                  <Badge tone="brand" className="cursor-default"><Lock size={12} /> MCVP</Badge>
+                ) : (
+                  <Dropdown
+                    size="sm" className="w-28"
+                    value={u.role}
+                    onChange={(v) => actor && updateUser(actor, u.id, { role: v as Role })}
+                    options={ROLE_OPTS}
+                  />
+                )}
               </TD>
               <TD>
                 <Dropdown
@@ -87,13 +96,17 @@ export default function UserManagement() {
                 />
               </TD>
               <TD>
-                <Button
-                  size="sm"
-                  variant={u.active ? 'secondary' : 'danger'}
-                  onClick={() => actor && updateUser(actor, u.id, { active: !u.active })}
-                >
-                  {u.active ? <><UserCheck size={14} /> Active</> : <><UserX size={14} /> Inactive</>}
-                </Button>
+                {isMCVP(u) ? (
+                  <Badge tone="success" className="cursor-default"><UserCheck size={12} /> Active</Badge>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant={u.active ? 'secondary' : 'danger'}
+                    onClick={() => actor && updateUser(actor, u.id, { active: !u.active })}
+                  >
+                    {u.active ? <><UserCheck size={14} /> Active</> : <><UserX size={14} /> Inactive</>}
+                  </Button>
+                )}
               </TD>
               <TD>
                 <Button size="sm" variant="ghost" onClick={() => setViewing(u)}><Eye size={14} /> View</Button>

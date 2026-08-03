@@ -4,12 +4,12 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
-import gem from '@/images/gem.png'
+import atom from '@/images/atom.png'
 import { hydrateFromSupabase } from '@/data/repositories'
 import { startRealtime } from '@/data/realtime'
 
 // Favicon from the bundled asset URL — correct under any base path.
-document.getElementById('app-favicon')?.setAttribute('href', gem)
+document.getElementById('app-favicon')?.setAttribute('href', atom)
 
 if (import.meta.env.DEV) {
   import('@/lib/metrics.selfcheck').then((m) => m.runSelfCheck())

@@ -24,24 +24,37 @@ export default function Performance() {
   const lcs = useDB((s) => s.localCommittees)
 
   const [lcId, setLcId] = useState('')
+  const [teamId, setTeamId] = useState('') // team leader id (LCVP: filter by team)
   const [memberId, setMemberId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [drill, setDrill] = useState<Drill | null>(null)
 
   const showLc = user?.role === 'admin'
+  const showTeam = user?.role === 'lcvp'
   const showMember = user?.role !== 'member'
-  // members that actually own opportunities in the current scope (optionally an LC)
+  // The LCVP's teams (one per team leader in their LC).
+  const teamOptions = useMemo(
+    () => allUsers.filter((u) => u.role === 'team_leader' && u.lcId === user?.lcId).sort((a, b) => a.name.localeCompare(b.name)),
+    [allUsers, user],
+  )
+  // Owner ids that make up the selected team (the leader + their members).
+  const teamOwners = useMemo(
+    () => (teamId ? new Set<string>([teamId, ...allUsers.filter((u) => u.teamLeadId === teamId).map((u) => u.id)]) : null),
+    [teamId, allUsers],
+  )
+  // members that actually own opportunities in the current scope (optionally an LC / team)
   const memberOptions = useMemo(() => {
     const owners = new Set(opportunities.map((o) => o.ownerId))
     return allUsers
-      .filter((u) => owners.has(u.id) && (!lcId || u.lcId === lcId))
+      .filter((u) => owners.has(u.id) && (!lcId || u.lcId === lcId) && (!teamOwners || teamOwners.has(u.id)))
       .sort((a, b) => a.name.localeCompare(b.name))
-  }, [opportunities, allUsers, lcId])
+  }, [opportunities, allUsers, lcId, teamOwners])
 
   const sel = useMemo(() => {
     let opps = opportunities
     if (lcId) opps = opps.filter((o) => o.lcId === lcId)
+    if (teamOwners) opps = opps.filter((o) => teamOwners.has(o.ownerId))
     if (memberId) opps = opps.filter((o) => o.ownerId === memberId)
     const ids = new Set(opps.map((o) => o.id))
     const dated = (date: string | null | undefined) => !from && !to ? true : inRange(date, from, to)
@@ -59,7 +72,7 @@ export default function Performance() {
       rev: revenue(oppsInRange),
       pipe: pipelineValue(oppsInRange),
     }
-  }, [opportunities, activities, meetings, contracts, lcId, memberId, from, to])
+  }, [opportunities, activities, meetings, contracts, lcId, teamOwners, memberId, from, to])
 
   // Row lists behind the clickable KPIs — recomputed with the same scope + date
   // filter, so the modal always matches the number on the card.
@@ -91,8 +104,9 @@ export default function Performance() {
   }, [sel, companies, allUsers, opportunities])
 
   const who = memberId ? memberOptions.find((m) => m.id === memberId)?.name
-    : lcId ? lcs.find((l) => l.id === lcId)?.name
-      : user?.role === 'member' ? 'You' : 'All in scope'
+    : teamId ? `${allUsers.find((u) => u.id === teamId)?.name ?? 'Team'}’s team`
+      : lcId ? lcs.find((l) => l.id === lcId)?.name
+        : user?.role === 'member' ? 'You' : 'All in scope'
   const rangeLabel = from || to ? `${from ? shortDate(from) : '…'} – ${to ? shortDate(to) : '…'}` : 'all time'
 
   return (
@@ -109,6 +123,14 @@ export default function Performance() {
                 value={lcId}
                 onChange={(v) => { setLcId(v); setMemberId('') }}
                 options={[{ value: '', label: 'All LCs' }, ...lcs.map((l) => ({ value: l.id, label: l.name }))]}
+              />
+            )}
+            {showTeam && (
+              <Dropdown
+                className="w-44"
+                value={teamId}
+                onChange={(v) => { setTeamId(v); setMemberId('') }}
+                options={[{ value: '', label: 'All teams' }, ...teamOptions.map((t) => ({ value: t.id, label: `${t.name}’s team` }))]}
               />
             )}
             {showMember && (

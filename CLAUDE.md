@@ -4,6 +4,12 @@ React CRM + performance platform for AIESEC in Belgium's iGT sales, replacing a
 42-tab Excel workbook. See `ARCHITECTURE.md` (system design), `FEATURES.md`
 (per-role inventory), `MEMORY.md` (current state + decision log).
 
+**Brand: the platform is "Atom"** (logo `src/images/atom.png`). "iGT" is the AIESEC
+PRODUCT (iGT sales/programme/member) — keep those; only the tool identity is "Atom".
+**The MCVP `kacem@aiesec.be` is protected**: nobody may change their role or deactivate
+them (UserManagement `isMCVP`, client-side; mirror in RLS if hardening). Deactivated
+users (`active===false`) are gated by `AccountLocked` in `RequireAuth`.
+
 ## commands
 
 ```bash

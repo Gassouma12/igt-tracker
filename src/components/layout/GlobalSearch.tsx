@@ -33,27 +33,33 @@ export function GlobalSearch() {
     const companyIds = new Set(scopedOpps.map((o) => o.companyId))
     const owners = visibleOwnerIds(user, users)
 
-    const out: Hit[] = []
+    const companyHits: Hit[] = []
     for (const c of companies) {
       if (companyIds.has(c.id) && c.name.toLowerCase().includes(term)) {
-        out.push({ kind: 'company', id: c.id, label: c.name, sub: c.industry ?? 'Company' })
+        companyHits.push({ kind: 'company', id: c.id, label: c.name, sub: c.industry ?? 'Company' })
       }
-      if (out.length > 12) break
+      if (companyHits.length >= 5) break
     }
+    const contactHits: Hit[] = []
     for (const ct of contacts) {
       if (companyIds.has(ct.companyId) && (ct.name.toLowerCase().includes(term) || ct.email?.toLowerCase().includes(term))) {
-        out.push({ kind: 'contact', id: ct.id, label: ct.name, sub: ct.role ?? ct.email ?? 'Contact' })
+        contactHits.push({ kind: 'contact', id: ct.id, label: ct.name, sub: ct.role ?? ct.email ?? 'Contact' })
       }
-      if (out.length > 18) break
+      if (contactHits.length >= 4) break
     }
-    if (user.role === 'admin' || user.role === 'lcp') {
+    // Members: anyone who oversees people can find people in their visible scope.
+    const memberHits: Hit[] = []
+    if (['admin', 'lcp', 'lcvp', 'team_leader'].includes(user.role)) {
       for (const u of users) {
-        if ((!owners || owners.has(u.id)) && u.name.toLowerCase().includes(term)) {
-          out.push({ kind: 'member', id: u.id, label: u.name, sub: u.position })
+        if ((!owners || owners.has(u.id)) && (u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term))) {
+          memberHits.push({ kind: 'member', id: u.id, label: u.name, sub: u.position })
         }
+        if (memberHits.length >= 5) break
       }
     }
-    return out.slice(0, 8)
+    // Members go before contacts so a flood of company/contact matches can't
+    // starve them out (the old flat slice hid members entirely).
+    return [...companyHits, ...memberHits, ...contactHits]
   }, [q, user, companies, contacts, users, opportunities])
 
   if (!user) return null
@@ -85,7 +91,7 @@ export function GlobalSearch() {
       />
       {open && hits.length > 0 && (
         <div
-          className="absolute z-40 mt-2 w-full overflow-hidden rounded-xl border border-line bg-surface shadow-pop"
+          className="absolute z-40 mt-2 max-h-96 w-full overflow-y-auto rounded-xl border border-line bg-surface shadow-pop"
           onMouseDown={(e) => e.preventDefault()}
         >
           {hits.map((h) => (

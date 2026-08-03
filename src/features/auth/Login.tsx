@@ -142,8 +142,8 @@ export default function Login() {
         <div className="flex items-center gap-2.5">
           <BrandMark size={40} />
           <div>
-            <p className="font-display text-base font-bold text-ink">iGT Sales Platform</p>
-            <p className="text-xs text-ink-mute">AIESEC in Belgium</p>
+            <p className="font-display text-base font-bold text-ink">Atom</p>
+            <p className="text-xs text-ink-mute">AIESEC in Belgium · iGT</p>
           </div>
         </div>
         <div>

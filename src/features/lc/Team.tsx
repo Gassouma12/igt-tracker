@@ -23,9 +23,11 @@ export default function Team() {
   const memberById = (id: string) => members.find((m) => m.id === id) ?? null
 
   const canAssign = !!actor && canAssignMembers(actor)
-  // The LCVP assigns each member to one of the LC's team leaders.
+  // The LCVP assigns each member to one of the LC's team leaders...
   const teamLeaders = useMemo(() => members.filter((m) => m.role === 'team_leader'), [members])
   const leadOptions = [{ value: '', label: 'Unassigned' }, ...teamLeaders.map((l) => ({ value: l.id, label: l.name }))]
+  // ...and can make a team leader report to them (the LCVP).
+  const lcvpSelfOptions = [{ value: '', label: 'Unassigned' }, ...(actor ? [{ value: actor.id, label: `${actor.name} (you)` }] : [])]
 
   const rows = useMemo(() => {
     return members.map((m) => {
@@ -72,6 +74,17 @@ export default function Team() {
                         value={r.teamLeadId ?? ''}
                         onChange={(v) => actor && updateUser(actor, r.id, { teamLeadId: v || null })}
                         options={leadOptions.filter((o) => o.value !== r.id)}
+                      />
+                    ) : (
+                      <span className="text-ink-dim">{memberById(r.teamLeadId ?? '')?.name ?? '—'}</span>
+                    )
+                  ) : r.role === 'team_leader' ? (
+                    canAssign ? (
+                      <Dropdown
+                        size="sm" className="w-36"
+                        value={r.teamLeadId ?? ''}
+                        onChange={(v) => actor && updateUser(actor, r.id, { teamLeadId: v || null })}
+                        options={lcvpSelfOptions}
                       />
                     ) : (
                       <span className="text-ink-dim">{memberById(r.teamLeadId ?? '')?.name ?? '—'}</span>
