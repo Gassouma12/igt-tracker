@@ -132,6 +132,20 @@ body::before {
   animation: feedback-glow 3s ease-in-out infinite;
 }
 
+/* Login hand-off: the logo beats twice (~1s apart) before we redirect. */
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  7% { transform: scale(1.18); }
+  14% { transform: scale(1); }
+  45% { transform: scale(1); }
+  52% { transform: scale(1.18); }
+  59% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+.animate-heartbeat {
+  animation: heartbeat 2.2s ease-in-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

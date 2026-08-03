@@ -6,19 +6,12 @@ import { useSession } from '@/state/session'
 import { signInWithPassword, signUp } from '@/data/actions'
 import { supabase, useSupabaseAuth } from '@/lib/supabase'
 import { homePathFor } from '@/app/nav'
-import { Avatar, Button } from '@/components/ui/primitives'
+import { Button } from '@/components/ui/primitives'
 import { Field, Input } from '@/components/ui/Field'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { BrandMark, Credits } from '@/components/ui/Brand'
 import bg from '@/images/bg.png'
 import type { Role } from '@/data/types'
-
-const QUICK = [
-  { id: 'usr_admin', tag: 'Admin · global view' },
-  { id: 'usr_pavlos', tag: 'LCP · LC Ghent' },
-  { id: 'usr_tijs', tag: 'LCVP · sales team' },
-  { id: 'usr_kobe', tag: 'Member · own pipeline' },
-]
 
 const SIGNUP_ROLES = [
   { value: 'member', label: 'Sales Member' },
@@ -27,16 +20,8 @@ const SIGNUP_ROLES = [
   { value: 'lcp', label: 'LC President' },
 ]
 
-// One-click test logins (real accounts, created by scripts/create-test-users.mjs).
-// Only shown at /login?demo so they aren't exposed to ordinary visitors.
-const TEST_PASSWORD = 'igtdemo123'
-const TEST_ACCOUNTS = [
-  { email: 'admin.test@igt.aiesec.be', name: 'Adam', tag: 'MCVP · global view' },
-  { email: 'lcp.test@igt.aiesec.be', name: 'Tess', tag: 'LCP · LC Ghent' },
-  { email: 'lcvp.test@igt.aiesec.be', name: 'Vince', tag: 'LCVP · LC Ghent' },
-  { email: 'tl.test@igt.aiesec.be', name: 'Théo', tag: 'Team Leader · LC Ghent' },
-  { email: 'member.test@igt.aiesec.be', name: 'Mira', tag: 'Member · own pipeline' },
-]
+// The heartbeat hand-off plays for this long before we route into the app.
+const HANDOFF_MS = 2200
 
 export default function Login() {
   const users = useDB((s) => s.users)
@@ -48,6 +33,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [signingIn, setSigningIn] = useState(false) // heartbeat hand-off screen
 
   // sign-up fields (position is derived from the chosen role — no separate input)
   const [su, setSu] = useState({ name: '', email: '', phone: '', lcId: '', role: 'member', password: '' })
@@ -58,40 +44,28 @@ export default function Login() {
     navigate(homePathFor(role))
   }
 
-  function signIn(userId: string) {
-    const user = users.find((u) => u.id === userId)
-    if (user) enter(user.id, user.role as Role)
-  }
-
-  const showTestLogins = useSupabaseAuth
-    && typeof window !== 'undefined'
-    && new URLSearchParams(window.location.search).has('demo')
-
-  async function quickReal(testEmail: string) {
-    setBusy(true); setError('')
-    try {
-      await signInWithPassword(testEmail, TEST_PASSWORD)
-      navigate('/')
-    } catch (err) {
-      setError((err as Error).message || 'Test sign-in failed.')
-    } finally { setBusy(false) }
-  }
-
   async function submitSignIn(e: React.FormEvent) {
     e.preventDefault()
+    setError('')
     if (useSupabaseAuth) {
       setBusy(true)
       try {
+        setSigningIn(true)
+        const t0 = Date.now()
         await signInWithPassword(email, password)
-        navigate('/') // RootRedirect routes to the right home; pending gate applies
+        // Let the logo beat twice before routing (min HANDOFF_MS from screen show).
+        await new Promise((r) => setTimeout(r, Math.max(0, HANDOFF_MS - (Date.now() - t0))))
+        navigate('/') // RootRedirect routes to the right home; pending/lock gates apply
       } catch (err) {
+        setSigningIn(false)
         setError((err as Error).message || 'Sign in failed.')
       } finally { setBusy(false) }
       return
     }
     const user = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase())
-    if (!user) return setError('No account with that email. Create one or try a quick sign-in →')
-    signIn(user.id)
+    if (!user) return setError('No account with that email. Create one to get started →')
+    setSigningIn(true)
+    setTimeout(() => enter(user.id, user.role as Role), HANDOFF_MS)
   }
 
   async function submitSignUp(e: React.FormEvent) {
@@ -120,6 +94,18 @@ export default function Login() {
     } finally { setBusy(false) }
   }
 
+  // Heartbeat hand-off: full-screen beating logo, then redirect.
+  if (signingIn) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-bg">
+        <div className="flex flex-col items-center gap-6">
+          <BrandMark size={112} bare className="animate-heartbeat" />
+          <p className="text-sm text-ink-mute">Signing you in…</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* brand panel */}
@@ -139,11 +125,12 @@ export default function Login() {
           }}
         />
         <div className="absolute -left-20 top-40 -z-10 h-80 w-80 rounded-full bg-brand/20 blur-3xl" />
-        <div className="flex items-center gap-2.5">
-          <BrandMark size={40} />
+        {/* Brand lockup — large unframed logo, name as wide as the tagline below */}
+        <div className="flex items-center gap-5">
+          <BrandMark size={96} bare className="-my-4 shrink-0" />
           <div>
-            <p className="font-display text-base font-bold text-ink">Atom</p>
-            <p className="text-xs text-ink-mute">AIESEC in Belgium · iGT</p>
+            <p className="font-display text-4xl font-bold leading-none text-ink">Atom</p>
+            <p className="mt-1.5 text-sm text-ink-mute">AIESEC in Belgium · iGT</p>
           </div>
         </div>
         <div>
@@ -182,7 +169,7 @@ export default function Login() {
               <Button type="submit" className="w-full" disabled={busy}>Sign in <ArrowRight size={16} /></Button>
               {useSupabaseAuth && (
                 <a
-                  href="mailto:kacem@aiesec.be?subject=iGT%20password%20reset"
+                  href="mailto:kacem@aiesec.be?subject=Atom%20password%20reset"
                   className="block text-center text-xs text-ink-mute transition hover:text-brand"
                 >
                   Forgot your password? Email kacem@aiesec.be
@@ -217,58 +204,12 @@ export default function Login() {
             </form>
           )}
 
-          <div className="my-6 flex items-center gap-3 text-xs text-ink-mute">
-            <span className="h-px flex-1 bg-line" />
-            {mode === 'signin' ? (useSupabaseAuth ? 'new here?' : 'or quick sign-in') : 'already have access?'}
-            <span className="h-px flex-1 bg-line" />
-          </div>
-
           {mode === 'signin' ? (
-            <div className="space-y-2">
-              {!useSupabaseAuth && QUICK.map((q) => {
-                const u = users.find((x) => x.id === q.id)
-                if (!u) return null
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => signIn(q.id)}
-                    className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 text-left transition hover:border-brand/40 hover:bg-surface-2"
-                  >
-                    <Avatar name={u.name} size={34} />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-ink">{u.name}</span>
-                      <span className="block truncate text-xs text-ink-mute">{q.tag}</span>
-                    </span>
-                    <ArrowRight size={16} className="ml-auto text-ink-mute" />
-                  </button>
-                )
-              })}
-              {showTestLogins && (
-                <div className="space-y-2">
-                  <p className="text-center text-xs font-medium text-warning">Test accounts · QA only</p>
-                  {TEST_ACCOUNTS.map((t) => (
-                    <button
-                      key={t.email}
-                      onClick={() => quickReal(t.email)}
-                      disabled={busy}
-                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 text-left transition hover:border-brand/40 hover:bg-surface-2 disabled:opacity-50"
-                    >
-                      <Avatar name={t.name} size={34} />
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-ink">{t.name}</span>
-                        <span className="block truncate text-xs text-ink-mute">{t.tag}</span>
-                      </span>
-                      <ArrowRight size={16} className="ml-auto text-ink-mute" />
-                    </button>
-                  ))}
-                </div>
-              )}
-              <button onClick={() => { setMode('signup'); setError('') }} className="w-full pt-2 text-center text-sm text-brand transition hover:underline">
-                Don't have an account? Create one
-              </button>
-            </div>
+            <button onClick={() => { setMode('signup'); setError('') }} className="mt-6 w-full text-center text-sm text-brand transition hover:underline">
+              Don't have an account? Create one
+            </button>
           ) : (
-            <button onClick={() => { setMode('signin'); setError('') }} className="w-full text-center text-sm text-brand transition hover:underline">
+            <button onClick={() => { setMode('signin'); setError('') }} className="mt-6 w-full text-center text-sm text-brand transition hover:underline">
               Back to sign in
             </button>
           )}

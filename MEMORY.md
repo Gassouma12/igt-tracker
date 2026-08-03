@@ -3,6 +3,19 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
+## state_snapshot (2026-08-03 — batch 4, LIVE)
+
+- **Login polish**: bigger unframed brand lockup (BrandMark gained `bare` +
+  `className`; `bare` = object-contain, no rounded frame/shadow). On sign-in a
+  full-screen **heartbeat hand-off** plays (`.animate-heartbeat`, logo beats
+  twice ~1s apart, `HANDOFF_MS=2200`) before routing.
+- **Demo removed**: deleted the `/login?demo` test-login UI, the mock QUICK
+  buttons, and `TEST_ACCOUNTS`/`TEST_PASSWORD`/`quickReal` from Login.tsx. The
+  real Supabase test accounts (`*.test@igt.aiesec.be`) still EXIST in auth — owner
+  can delete them server-side; scripts/create-test-users.mjs left as-is.
+- atom.png replaced by the owner with a smaller image (~134KB). We do NOT upload
+  it to Supabase (app uses the bundled asset) — reverted upload-images.mjs.
+
 ## state_snapshot (2026-08-03 — batch 3, LIVE)
 
 - **Rebrand: the platform is "Atom"** (was "iGT Sales"). Logo = `src/images/atom.png`

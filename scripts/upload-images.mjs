@@ -19,7 +19,7 @@ if (!key) {
 }
 
 const supabase = createClient(url, key)
-const files = ['bg.png', 'gem.png', 'atom.png']
+const files = ['bg.png', 'gem.png']
 
 for (const f of files) {
   const buf = readFileSync(join(root, 'src/images', f))

@@ -6,14 +6,16 @@ import { LinkedInLink } from '@/components/ui/LinkedInLink'
 
 const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/aboulkacem-ben-arab-567974241/'
 
-export function BrandMark({ size = 36, rounded = 'rounded-xl' }: { size?: number; rounded?: string }) {
+export function BrandMark({ size = 36, rounded = 'rounded-xl', bare = false, className = '' }: { size?: number; rounded?: string; bare?: boolean; className?: string }) {
+  // `bare` drops the rounded frame/shadow and shows the whole logo (object-contain)
+  // instead of cropping it into a box.
   return (
     <img
       src={atom}
       alt="Atom"
       width={size}
       height={size}
-      className={`${rounded} object-cover shadow-glow`}
+      className={`${bare ? 'object-contain' : `${rounded} object-cover shadow-glow`} ${className}`.trim()}
       style={{ width: size, height: size }}
     />
   )
