@@ -40,7 +40,8 @@ create table if not exists companies (
   country   text,
   website   text,
   linkedin  text,
-  notes     text
+  notes     text,
+  "taxNumber" text
 );
 
 -- ---- contacts --------------------------------------------------------------

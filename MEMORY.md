@@ -3,6 +3,21 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
+## state_snapshot (2026-08-03 — batch 5, LIVE)
+
+- **Company `taxNumber` (VAT) field** added: types.ts, schema.sql (`"taxNumber" text`),
+  `setCompanyTaxNumber`, editable in CompanyDialog + optional on AddOpportunityDialog.
+  createCompany OMITS taxNumber when empty so creation still works pre-migration.
+  **DB column NOT yet applied** (no DDL creds in repo) — run
+  `supabase/migrations/add_company_tax_number.sql` (one line) in the SQL editor to
+  activate saving; until then, editing a tax number toast-fails but nothing else breaks.
+- **30 prospection leads loaded into Kacem's pipeline** via `scripts/seed-leads.mjs`
+  (signs in as admin.test; RLS lets an admin insert opps for another owner). Rows are
+  id-tagged `*_lead_*` (idempotent). MCVP kacem@aiesec.be id =
+  `0fe00e4c-687f-4cf7-9729-a5c09ed95c0c`, LC `lc_mc`. 30 companies + 30 contacts +
+  30 Prospect opps (company info, notes w/ target+channel+job signal, contact
+  name+role+LinkedIn). No tax numbers (not in the source doc).
+
 ## state_snapshot (2026-08-03 — batch 4, LIVE)
 
 - **Login polish**: bigger unframed brand lockup (BrandMark gained `bare` +

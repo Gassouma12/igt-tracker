@@ -57,6 +57,7 @@ export interface Company {
   website: string | null
   linkedin: string | null
   notes: string | null
+  taxNumber?: string | null // VAT / company tax id (DB column "taxNumber")
 }
 
 export interface Contact {

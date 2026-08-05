@@ -23,6 +23,7 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
   const users = useDB((s) => s.users)
   const lcs = useDB((s) => s.localCommittees)
   const [companyName, setCompanyName] = useState('')
+  const [taxNumber, setTaxNumber] = useState('')
   const [listOpen, setListOpen] = useState(false)
   const [contacts, setContacts] = useState<ContactDraft[]>([emptyContact()])
   const [busy, setBusy] = useState(false)
@@ -63,14 +64,14 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
   const dup = !!existing && existing.holders.length > 0
 
   function reset() {
-    setCompanyName(''); setContacts([emptyContact()])
+    setCompanyName(''); setTaxNumber(''); setContacts([emptyContact()])
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!user || !companyName.trim()) return
     setBusy(true)
-    const company = existing?.company ?? (await createCompany(user, { name: companyName }))
+    const company = existing?.company ?? (await createCompany(user, { name: companyName, taxNumber: taxNumber.trim() || undefined }))
     let firstContactId: string | null = null
     for (const c of contacts) {
       if (!c.name.trim()) continue
@@ -127,6 +128,10 @@ export function AddOpportunityDialog({ open, onClose, onCreated }: {
               </div>
             )}
           </div>
+        </Field>
+
+        <Field label="Tax number (VAT)" hint="Optional — added to the new company's info.">
+          <Input placeholder="e.g. BE 0123.456.789" value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} />
         </Field>
 
         {dup && existing && (

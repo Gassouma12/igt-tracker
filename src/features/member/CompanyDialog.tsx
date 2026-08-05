@@ -3,7 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { Building2, Mail, Phone, Trash2, UserPlus, X } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { createContact, deleteContact } from '@/data/actions'
+import { createContact, deleteContact, setCompanyTaxNumber } from '@/data/actions'
 import { visibleOwnerIds } from '@/lib/rbac'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Field, Input } from '@/components/ui/Field'
@@ -69,6 +69,22 @@ export function CompanyDialog({
           </div>
 
           <div className="flex-1 space-y-6 overflow-y-auto p-5">
+            {/* company details */}
+            <section>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold text-ink">Tax number (VAT)</span>
+                <input
+                  key={company.id}
+                  className="input"
+                  placeholder="e.g. BE 0123.456.789"
+                  defaultValue={company.taxNumber ?? ''}
+                  onBlur={(e) => {
+                    if ((e.target.value.trim() || null) !== (company.taxNumber ?? null)) setCompanyTaxNumber(user, company, e.target.value)
+                  }}
+                />
+              </label>
+            </section>
+
             {/* contacts */}
             <section>
               <div className="mb-3 flex items-center justify-between">

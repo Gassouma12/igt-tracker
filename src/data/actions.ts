@@ -63,9 +63,16 @@ export async function createCompany(
     id: newId('co'), name: data.name.trim(), industry: data.industry ?? null,
     country: data.country ?? 'Belgium', website: data.website ?? null,
     linkedin: data.linkedin ?? null, notes: data.notes ?? null,
+    // ponytail: only attach taxNumber when set — keeps company creation working
+    // even before the "taxNumber" column exists in the DB (migration is separate).
+    ...(data.taxNumber ? { taxNumber: data.taxNumber.trim() } : {}),
   }
   await repo.companies.create(company)
   return company
+}
+
+export async function setCompanyTaxNumber(actor: User, company: Company, taxNumber: string): Promise<void> {
+  await repo.companies.update(company.id, { taxNumber: taxNumber.trim() || null })
 }
 
 export async function createContact(
