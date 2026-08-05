@@ -6,7 +6,7 @@ import { useSession } from '@/state/session'
 import { signInWithPassword, signUp } from '@/data/actions'
 import { supabase, useSupabaseAuth } from '@/lib/supabase'
 import { homePathFor } from '@/app/nav'
-import { Button } from '@/components/ui/primitives'
+import { Avatar, Button } from '@/components/ui/primitives'
 import { Field, Input } from '@/components/ui/Field'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { BrandMark, Credits } from '@/components/ui/Brand'
@@ -18,6 +18,16 @@ const SIGNUP_ROLES = [
   { value: 'team_leader', label: 'Team Leader' },
   { value: 'lcvp', label: 'LC VP Sales' },
   { value: 'lcp', label: 'LC President' },
+]
+
+// One-click demo logins (real Supabase accounts) shown on the main sign-in page.
+const TEST_PASSWORD = 'igtdemo123'
+const TEST_ACCOUNTS = [
+  { email: 'admin.test@igt.aiesec.be', name: 'Adam', tag: 'MCVP · global view' },
+  { email: 'lcp.test@igt.aiesec.be', name: 'Tess', tag: 'LCP · LC Ghent' },
+  { email: 'lcvp.test@igt.aiesec.be', name: 'Vince', tag: 'LCVP · LC Ghent' },
+  { email: 'tl.test@igt.aiesec.be', name: 'Théo', tag: 'Team Leader · LC Ghent' },
+  { email: 'member.test@igt.aiesec.be', name: 'Mira', tag: 'Member · own pipeline' },
 ]
 
 // The heartbeat hand-off plays for this long before we route into the app.
@@ -66,6 +76,21 @@ export default function Login() {
     if (!user) return setError('No account with that email. Create one to get started →')
     setSigningIn(true)
     setTimeout(() => enter(user.id, user.role as Role), HANDOFF_MS)
+  }
+
+  // One-click demo sign-in (real accounts), same heartbeat hand-off as the form.
+  async function quickReal(testEmail: string) {
+    setError(''); setBusy(true)
+    try {
+      setSigningIn(true)
+      const t0 = Date.now()
+      await signInWithPassword(testEmail, TEST_PASSWORD)
+      await new Promise((r) => setTimeout(r, Math.max(0, HANDOFF_MS - (Date.now() - t0))))
+      navigate('/')
+    } catch (err) {
+      setSigningIn(false)
+      setError((err as Error).message || 'Demo sign-in failed.')
+    } finally { setBusy(false) }
   }
 
   async function submitSignUp(e: React.FormEvent) {
@@ -202,6 +227,31 @@ export default function Login() {
               {error && <p className="text-sm text-danger">{error}</p>}
               <Button type="submit" className="w-full" disabled={busy}>Request access <ArrowRight size={16} /></Button>
             </form>
+          )}
+
+          {mode === 'signin' && useSupabaseAuth && (
+            <div className="mt-6">
+              <div className="mb-3 flex items-center gap-3 text-xs text-ink-mute">
+                <span className="h-px flex-1 bg-line" /> or try a demo account <span className="h-px flex-1 bg-line" />
+              </div>
+              <div className="space-y-2">
+                {TEST_ACCOUNTS.map((t) => (
+                  <button
+                    key={t.email}
+                    onClick={() => quickReal(t.email)}
+                    disabled={busy}
+                    className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 text-left transition hover:border-brand/40 hover:bg-surface-2 disabled:opacity-50"
+                  >
+                    <Avatar name={t.name} size={34} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-ink">{t.name}</span>
+                      <span className="block truncate text-xs text-ink-mute">{t.tag}</span>
+                    </span>
+                    <ArrowRight size={16} className="ml-auto text-ink-mute" />
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
           {mode === 'signin' ? (
