@@ -1,1 +1,0 @@
-import{o as e}from"./store-CJEd9-_c.js";var t={search:``,lcId:null,ownerId:null,status:null,from:null,to:null},n=e(e=>({...t,set:t=>e(t),clear:()=>e(t)}));export{n as t};

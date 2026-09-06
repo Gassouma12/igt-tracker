@@ -1,0 +1,1 @@
+import{o as e}from"./store-CKybcCjE.js";var t={search:``,lcId:null,ownerId:null,status:null,from:null,to:null},n=e(e=>({...t,set:t=>e(t),clear:()=>e(t)}));export{n as t};
