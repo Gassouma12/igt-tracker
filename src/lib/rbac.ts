@@ -11,6 +11,18 @@ import type { LocalCommittee, Opportunity, User } from '@/data/types'
 
 const RANK: Record<string, number> = { member: 0, team_leader: 1, lcvp: 2, lcp: 3, admin: 4 }
 
+// The national Member Committee. Anyone in the MC "LC" oversees sales across ALL
+// LCs (org-wide read), while still running their own pipeline and — unless they
+// are the MCVP (admin) — never setting goals. The id matches the seeded MC LC.
+export const MC_LC_ID = 'lc_mc'
+export function isMC(user: User | null | undefined): boolean {
+  return !!user && user.lcId === MC_LC_ID
+}
+/** Org-wide sales visibility: the MCVP (admin) and every MC-committee member. */
+export function seesAllSales(user: User | null | undefined): boolean {
+  return !!user && (user.role === 'admin' || isMC(user))
+}
+
 /**
  * Everyone who should be notified about a user's wins: all higher-ranked people
  * in the same LC (their team leader, VPs and LCP), plus every MCVP (admin).
@@ -32,6 +44,9 @@ export function supervisorsOf(user: User, allUsers: User[]): string[] {
  */
 export function canSetGoalFor(actor: User, target: User): boolean {
   if (actor.role === 'admin') return target.role === 'lcvp'
+  // MC-committee members (other than the MCVP admin above) never set goals —
+  // they oversee sales across all LCs but goal-setting stays with the LC chain.
+  if (isMC(actor)) return false
   if (actor.role === 'lcvp') return target.role === 'team_leader' && target.lcId === actor.lcId
   if (actor.role === 'team_leader') return target.role === 'member' && target.teamLeadId === actor.id
   return false // lcp (view-only) and member
@@ -55,13 +70,14 @@ export function canManageUsers(user: User): boolean {
 }
 
 export function visibleLCs(user: User, lcs: LocalCommittee[]): LocalCommittee[] {
-  if (user.role === 'admin') return lcs
+  if (seesAllSales(user)) return lcs
   return lcs.filter((lc) => lc.id === user.lcId)
 }
 
 /** Ids of users whose data `user` may see (self, team, LC, or everyone). */
 export function visibleOwnerIds(user: User, allUsers: User[]): Set<string> | null {
-  if (user.role === 'admin') return null // null == no restriction
+  // MCVP (admin) and MC-committee members see every LC's sales data.
+  if (seesAllSales(user)) return null // null == no restriction
   if (user.role === 'lcp' || user.role === 'lcvp') {
     // Whole LC — LCVP "sees everything sales in their LC", LCP oversees it.
     return new Set(allUsers.filter((u) => u.lcId === user.lcId).map((u) => u.id))

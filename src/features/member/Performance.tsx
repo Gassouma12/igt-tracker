@@ -3,6 +3,7 @@ import { Activity, CalendarCheck, Handshake, TrendingUp } from 'lucide-react'
 import { useScopedData } from './useScopedData'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
+import { isMC } from '@/lib/rbac'
 import { conversions, funnel, keyConversions, kpis, pipelineValue, receivablesByMonth, revenue, timeline, todayLocal } from '@/lib/metrics'
 import { fmtMoney, fmtMonth, fmtNum, fmtPct } from '@/lib/format'
 import { inRange } from '@/lib/dates'
@@ -30,9 +31,11 @@ export default function Performance() {
   const [to, setTo] = useState('')
   const [drill, setDrill] = useState<Drill | null>(null)
 
-  const showLc = user?.role === 'admin'
+  // MC-committee members oversee all LCs, so they get the LC + member filters too.
+  const mc = isMC(user)
+  const showLc = user?.role === 'admin' || mc
   const showTeam = user?.role === 'lcvp'
-  const showMember = user?.role !== 'member'
+  const showMember = user?.role !== 'member' || mc
   // The LCVP's teams (one per team leader in their LC).
   const teamOptions = useMemo(
     () => allUsers.filter((u) => u.role === 'team_leader' && u.lcId === user?.lcId).sort((a, b) => a.name.localeCompare(b.name)),
@@ -106,7 +109,7 @@ export default function Performance() {
   const who = memberId ? memberOptions.find((m) => m.id === memberId)?.name
     : teamId ? `${allUsers.find((u) => u.id === teamId)?.name ?? 'Team'}’s team`
       : lcId ? lcs.find((l) => l.id === lcId)?.name
-        : user?.role === 'member' ? 'You' : 'All in scope'
+        : (user?.role === 'member' && !mc) ? 'You' : 'All in scope'
   const rangeLabel = from || to ? `${from ? shortDate(from) : '…'} – ${to ? shortDate(to) : '…'}` : 'all time'
 
   return (

@@ -34,6 +34,13 @@ browser-QA'd in mock mode.
   client auth throttle `lib/rateLimit.ts`; confirmed no service_role key in repo.
 - **Data mgmt**: activity_log no longer persisted to localStorage; hydrate paginates;
   provided `perf_indexes_and_retention.sql` (indexes + prune_old_data + notif cap).
+- **MC committee visibility** (`lib/rbac.ts` `isMC`/`seesAllSales`): users with
+  `lcId === 'lc_mc'` get org-wide sales visibility (visibleOwnerIds/visibleLCs →
+  all) like admin, keep their OWN pipeline (MyPipeline filters to ownerId), and
+  `canSetGoalFor` returns false for non-admin MC. Performance shows LC+member
+  filters for MC. Verified in mock (member re-homed to lc_mc → saw all LCs'
+  companies/perf, own pipeline intact, no set-goals). RLS already allows org-wide
+  read; migration needs no MC change.
 - **Login demo one-click accounts removed** (production).
 - **DB-gated, owner runs with service_role** (see docs): apply the 2 migrations;
   run `scripts/cleanup-demo-data.mjs` (dry-run first, then `--apply`) to remove

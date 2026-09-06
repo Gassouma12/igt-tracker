@@ -16,6 +16,7 @@ access, which is not in the repo).
 | **Re-registration** | A user whose account was deleted can sign up again and admins get the approval request. Client signs the returning user in and calls a server-side reclaim RPC; degrades to today's behaviour until the migration is applied. | `data/actions.ts` (`signUp`), `supabase/migrations/request_account.sql` |
 | **LCVP team view** | Team page grouped by team leader (leadership · one card per team + totals · unassigned). | `lc/Team.tsx` |
 | **Team leader scope** | Verified: team leaders already see only their own team (via `visibleOwnerIds`). Renamed their tab + page to **Team Pipeline** (LCP/LCVP keep **LC Pipeline**). | `app/nav.ts`, `lc/Pipeline.tsx` |
+| **MC committee** | MC-committee members (`lcId === 'lc_mc'`) now get **org-wide sales visibility** across every LC, keep their **own pipeline**, and **cannot set goals** (only the MCVP/admin does). Performance gained the LC + member filters for them. | `lib/rbac.ts` (`isMC`/`seesAllSales`, `visibleOwnerIds`, `visibleLCs`, `canSetGoalFor`), `member/Performance.tsx` |
 | **Reminders** | Moved to their own icon with its own badge + dropdown, separate from notifications. | `layout/RemindersBell.tsx`, `layout/NotificationBell.tsx`, `layout/Topbar.tsx` |
 | **Delete notifications** | Bin on each notification (deletes for the account + from the DB) plus "Clear all". | `layout/NotificationBell.tsx`, `data/actions.ts` (`deleteNotification`, `clearAllNotifications`) |
 | **Production login** | Removed the one-click demo accounts from the login page. | `auth/Login.tsx` |
@@ -82,6 +83,14 @@ side; the client-side-scoping items are future work, not blockers.
 - **Error handling.** Writes never throw (optimistic update + rollback + toast on
   failure); a root `ErrorBoundary`; friendly signup/sign-in errors including the
   re-registration path.
+
+**MC committee visibility (verified).** MC-committee members (`lcId === 'lc_mc'`)
+now see all LCs' sales in the UI, keep their own pipeline, and can't set goals.
+The `request_account.sql` migration already handles MC signups (any role + the MC
+LC) — no change needed there. Org-wide *read* is already permitted server-side
+(RLS grants approved users org-wide SELECT — the documented ceiling), so this is a
+client-scoping change. The "MC can't set goals" rule is client-enforced; MC
+members are `member` role, which RLS already blocks from writing goals.
 
 **Recommended follow-ups (server-side, owner):** enforce MCVP protection with an
 RLS trigger (currently client-mirrored); apply `request_account.sql`; consider
