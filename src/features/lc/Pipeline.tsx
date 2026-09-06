@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BarChart3, Search, Table as TableIcon } from 'lucide-react'
 import { useLC } from './useLC'
+import { useCurrentUser } from '@/state/session'
+import { pipelineTitleFor } from '@/app/nav'
 import { useFocus } from '@/state/focus'
 import { OpportunityDialog } from '@/features/member/OpportunityDialog'
 import { PipelineSummary } from '@/features/shared/PipelineSummary'
@@ -20,6 +22,8 @@ import { OPPORTUNITY_STATUSES, type OpportunityStatus } from '@/data/types'
 
 export default function Pipeline() {
   const { opportunities, activities, meetings, contracts, members, companyById, contactById, userById } = useLC()
+  const currentUser = useCurrentUser()
+  const pageTitle = pipelineTitleFor(currentUser?.role ?? 'lcvp')
   const [owner, setOwner] = useState('')
   const [status, setStatus] = useState<OpportunityStatus | ''>('')
   const [q, setQ] = useState('')
@@ -76,7 +80,7 @@ export default function Pipeline() {
   return (
     <div>
       <PageHeader
-        title="LC Pipeline"
+        title={pageTitle}
         subtitle={`${rows.length} of ${opportunities.length} opportunities`}
         actions={
           <>

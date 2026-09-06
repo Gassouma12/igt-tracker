@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, Mail, Phone, Trash2, UserPlus, X } from 'lucide-react'
+import { Building2, Mail, Pencil, Phone, Trash2, UserPlus, X } from 'lucide-react'
 import { useDB } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
-import { createContact, deleteContact, setCompanyTaxNumber } from '@/data/actions'
+import { createContact, deleteContact, setCompanyTaxNumber, updateContact } from '@/data/actions'
 import { visibleOwnerIds } from '@/lib/rbac'
 import { Avatar, Button } from '@/components/ui/primitives'
 import { Field, Input } from '@/components/ui/Field'
@@ -11,6 +11,43 @@ import { LinkedInLink } from '@/components/ui/LinkedInLink'
 import { CompanyPanelButtons } from './CompanyPanels'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { relativeDays } from '@/lib/format'
+import type { Contact } from '@/data/types'
+
+export interface ContactDraft { name: string; role: string; email: string; phone: string; linkedin: string }
+const draftFrom = (c?: Contact): ContactDraft => ({
+  name: c?.name ?? '', role: c?.role ?? '', email: c?.email ?? '', phone: c?.phone ?? '', linkedin: c?.linkedin ?? '',
+})
+
+/** Add/edit form for a single contact — shared by the "Add contact" and inline edit flows. */
+export function ContactForm({
+  initial, submitLabel, onSubmit, onCancel,
+}: {
+  initial?: Contact
+  submitLabel: string
+  onSubmit: (d: ContactDraft) => void | Promise<void>
+  onCancel: () => void
+}) {
+  const [d, setD] = useState<ContactDraft>(() => draftFrom(initial))
+  const set = (patch: Partial<ContactDraft>) => setD((s) => ({ ...s, ...patch }))
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); if (d.name.trim()) onSubmit(d) }}
+      className="space-y-3 rounded-2xl border border-line bg-surface p-4"
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Name"><Input value={d.name} onChange={(e) => set({ name: e.target.value })} placeholder="Jane Doe" autoFocus required /></Field>
+        <Field label="Role"><Input value={d.role} onChange={(e) => set({ role: e.target.value })} placeholder="Head of HR" /></Field>
+        <Field label="Email"><Input type="email" value={d.email} onChange={(e) => set({ email: e.target.value })} placeholder="jane@company.com" /></Field>
+        <Field label="Phone"><Input value={d.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="+32 …" /></Field>
+      </div>
+      <Field label="LinkedIn URL"><Input value={d.linkedin} onChange={(e) => set({ linkedin: e.target.value })} placeholder="linkedin.com/in/…" /></Field>
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
+        <Button size="sm" type="submit" disabled={!d.name.trim()}>{submitLabel}</Button>
+      </div>
+    </form>
+  )
+}
 
 export function CompanyDialog({
   companyId, onClose, onOpenOpp,
@@ -32,23 +69,24 @@ export function CompanyDialog({
     return allOpps.filter((o) => o.companyId === companyId && (!owners || owners.has(o.ownerId)))
   }, [allOpps, companyId, user, users])
 
-  const [name, setName] = useState('')
-  const [role, setRole] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [linkedin, setLinkedin] = useState('')
   const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   if (!company || !user) return null
 
-  async function addContact(e: React.FormEvent) {
-    e.preventDefault()
-    if (!user || !name.trim()) return
+  async function saveNew(d: ContactDraft) {
+    if (!user) return
     await createContact(user, {
-      companyId: company!.id, name, role: role || null, email: email || null,
-      phone: phone || null, linkedin: linkedin || null,
+      companyId: company!.id, name: d.name, role: d.role || null, email: d.email || null,
+      phone: d.phone || null, linkedin: d.linkedin || null,
     })
-    setName(''); setRole(''); setEmail(''); setPhone(''); setLinkedin(''); setAdding(false)
+    setAdding(false)
+  }
+
+  async function saveEdit(contact: Contact, d: ContactDraft) {
+    if (!user) return
+    await updateContact(user, contact, d)
+    setEditingId(null)
   }
 
   return (
@@ -89,49 +127,56 @@ export function CompanyDialog({
             <section>
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink">Contacts · {contacts.length}</p>
-                <Button size="sm" variant="secondary" onClick={() => setAdding((a) => !a)}><UserPlus size={14} /> Add contact</Button>
+                <Button size="sm" variant="secondary" onClick={() => { setAdding((a) => !a); setEditingId(null) }}><UserPlus size={14} /> Add contact</Button>
               </div>
 
               {adding && (
-                <form onSubmit={addContact} className="mb-3 space-y-3 rounded-2xl border border-line bg-surface p-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Name"><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" autoFocus required /></Field>
-                    <Field label="Role"><Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Head of HR" /></Field>
-                    <Field label="Email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@company.com" /></Field>
-                    <Field label="Phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+32 …" /></Field>
-                  </div>
-                  <Field label="LinkedIn URL"><Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} placeholder="linkedin.com/in/…" /></Field>
-                  <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="ghost" type="button" onClick={() => setAdding(false)}>Cancel</Button>
-                    <Button size="sm" type="submit" disabled={!name.trim()}>Save contact</Button>
-                  </div>
-                </form>
+                <div className="mb-3">
+                  <ContactForm submitLabel="Save contact" onSubmit={saveNew} onCancel={() => setAdding(false)} />
+                </div>
               )}
 
               {contacts.length === 0 && !adding && <p className="text-sm text-ink-mute">No contacts yet. Add the people you talk to here.</p>}
 
               <div className="space-y-2">
                 {contacts.map((ct) => (
-                  <div key={ct.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3">
-                    <Avatar name={ct.name} size={34} />
-                    <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-1.5 truncate text-sm font-medium text-ink">
-                        <LinkedInLink url={ct.linkedin} /> {ct.name}
-                        {ct.role && <span className="truncate text-xs font-normal text-ink-mute">· {ct.role}</span>}
-                      </p>
-                      <p className="flex flex-wrap gap-x-3 text-xs text-ink-mute">
-                        {ct.email && <span className="inline-flex items-center gap-1"><Mail size={11} /> {ct.email}</span>}
-                        {ct.phone && <span className="inline-flex items-center gap-1"><Phone size={11} /> {ct.phone}</span>}
-                      </p>
+                  editingId === ct.id ? (
+                    <ContactForm
+                      key={ct.id}
+                      initial={ct}
+                      submitLabel="Save changes"
+                      onSubmit={(d) => saveEdit(ct, d)}
+                      onCancel={() => setEditingId(null)}
+                    />
+                  ) : (
+                    <div key={ct.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3">
+                      <Avatar name={ct.name} size={34} />
+                      <div className="min-w-0 flex-1">
+                        <p className="flex items-center gap-1.5 truncate text-sm font-medium text-ink">
+                          <LinkedInLink url={ct.linkedin} /> {ct.name}
+                          {ct.role && <span className="truncate text-xs font-normal text-ink-mute">· {ct.role}</span>}
+                        </p>
+                        <p className="flex flex-wrap gap-x-3 text-xs text-ink-mute">
+                          {ct.email && <span className="inline-flex items-center gap-1"><Mail size={11} /> {ct.email}</span>}
+                          {ct.phone && <span className="inline-flex items-center gap-1"><Phone size={11} /> {ct.phone}</span>}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => { setEditingId(ct.id); setAdding(false) }}
+                        className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-surface-2 hover:text-ink"
+                        title="Edit contact"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => { if (confirm(`Remove ${ct.name}?`)) deleteContact(user!, ct) }}
+                        className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-danger/10 hover:text-danger"
+                        title="Remove contact"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => { if (confirm(`Remove ${ct.name}?`)) deleteContact(user!, ct) }}
-                      className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-danger/10 hover:text-danger"
-                      title="Remove contact"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  )
                 ))}
               </div>
             </section>

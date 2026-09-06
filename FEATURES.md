@@ -68,6 +68,21 @@ leads + receivables-by-month schedule in Credit & revenue; delete opportunity
 (danger zone in lead detail) and delete contact (CompanyDialog); approval
 notification to the new user; scoped RLS live (see CLAUDE.md security_state).
 
+## Added 2026-09-06 (branch: production-hardening, not yet live)
+- **Contacts on a lead**: edit an existing contact, add another, and switch the
+  lead's primary contact — from the lead detail (`OpportunityDialog` Contact
+  section) and the company drawer (`CompanyDialog` inline edit).
+- **Reminders bell**: overdue / upcoming-meeting / inactive reminders now live in
+  their own top-bar icon (own badge), separate from stored notifications.
+- **Notifications**: per-item delete (bin) + "Clear all" (removes for the account
+  and from the DB).
+- **Team page grouped by team leader** (LCVP): LC leadership · one card per team
+  with totals · unassigned members.
+- **Team leaders**: pipeline tab/page renamed **Team Pipeline** (team-scoped).
+- Auth fixes: no more signup spinner; a deleted account can re-register and admins
+  are notified. Login demo one-click accounts removed. Security + data-management
+  hardening — see `docs/PRODUCTION-READINESS.md`.
+
 ## Known gaps (tracked in MEMORY.md)
 Company delete/edit UI; images bucket unused (assets bundled); mock sign-in
 checks no password (demo mode only).

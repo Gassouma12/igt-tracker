@@ -8,6 +8,7 @@ import { useSupabaseAuth } from '@/lib/supabase'
 import { Avatar } from '@/components/ui/primitives'
 import { GlobalSearch } from './GlobalSearch'
 import { NotificationBell } from './NotificationBell'
+import { RemindersBell } from './RemindersBell'
 
 // Quick demo identities so reviewers can hop between roles.
 const DEMO_USERS = ['usr_admin', 'usr_pavlos', 'usr_tijs', 'usr_kobe']
@@ -41,6 +42,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         <div className="hidden flex-1 justify-center sm:flex">
           <GlobalSearch />
         </div>
+        <RemindersBell />
         <NotificationBell />
         <Dropdown.Root>
           <Dropdown.Trigger className="flex items-center gap-2 rounded-xl border border-line bg-bg-elev py-1 pl-1 pr-2.5 transition hover:bg-surface-2">

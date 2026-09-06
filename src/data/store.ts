@@ -47,14 +47,19 @@ function loadDB(): DB {
   return seedDB()
 }
 
-const ENTITY_KEYS: (keyof DB)[] = [
+// Tables mirrored to localStorage. `activityLog` is deliberately excluded: it is
+// the highest-churn table (a row per mutation), admin-only, and always re-loaded
+// from the DB via hydrate — persisting it just bloats localStorage and makes
+// every write re-serialize an ever-growing audit trail (see the data-management
+// notes in MEMORY.md). It stays in memory for the session.
+const PERSIST_KEYS: (keyof DB)[] = [
   'users', 'localCommittees', 'companies', 'contacts', 'opportunities',
-  'activities', 'meetings', 'contracts', 'goals', 'activityLog', 'notifications',
+  'activities', 'meetings', 'contracts', 'goals', 'notifications',
 ]
 
 function persist(db: DB) {
   const slim: Partial<DB> = {}
-  for (const k of ENTITY_KEYS) (slim as Record<string, unknown>)[k] = db[k]
+  for (const k of PERSIST_KEYS) (slim as Record<string, unknown>)[k] = db[k]
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(slim))
   } catch {

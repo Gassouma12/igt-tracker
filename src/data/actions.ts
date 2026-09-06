@@ -4,15 +4,31 @@
 
 import { db, newId, nowISO, todayISO, useDB } from './store'
 import { repo, hydrateFromSupabase } from './repositories'
-import { supervisorsOf } from '@/lib/rbac'
+import { canEditOwned, canManageUsers, canSetGoalFor, supervisorsOf } from '@/lib/rbac'
 import { supabase, useSupabaseAuth } from '@/lib/supabase'
+import { toast } from '@/lib/toast'
 import type {
   AccountStatus, Activity, ActivityOutcome, ActivityPhase, ActivityType, Company, Contact,
   GoalCadence, GoalMetric, NotificationKind, Opportunity, OpportunityStatus, Role, User,
 } from './types'
 
+// The MCVP account is protected everywhere: nobody may change their role or
+// deactivate them. Mirrors the client guard in UserManagement + the RLS intent.
+const MCVP_EMAIL = 'kacem@aiesec.be'
+const isMCVP = (u: User | undefined | null) => u?.email?.toLowerCase() === MCVP_EMAIL
+
 function companyName(companyId: string): string {
   return db().companies.find((c) => c.id === companyId)?.name ?? 'company'
+}
+
+// ---- permission gates (defense in depth; RLS in supabase/rls.sql is the real
+// ---- enforcer, these stop a disallowed write before it optimistically lands) --
+
+/** Owner + admin only. Returns false (and toasts) when the actor may not edit. */
+function ensureCanEdit(actor: User, ownerId: string): boolean {
+  if (canEditOwned(actor, ownerId)) return true
+  toast.error("You don't have permission to change this record.")
+  return false
 }
 
 async function log(
@@ -43,6 +59,20 @@ export async function markNotificationRead(id: string): Promise<void> {
 export async function markAllNotificationsRead(recipientId: string): Promise<void> {
   for (const n of db().notifications) {
     if (n.recipientId === recipientId && !n.read) await repo.notifications.update(n.id, { read: true })
+  }
+}
+
+/** Permanently delete a notification (recipient-owned; RLS: recipient or admin). */
+export async function deleteNotification(actor: User, id: string): Promise<void> {
+  const n = db().notifications.find((x) => x.id === id)
+  if (!n || (n.recipientId !== actor.id && actor.role !== 'admin')) return
+  await repo.notifications.remove(id)
+}
+
+/** Clear every one of the recipient's notifications at once. */
+export async function clearAllNotifications(recipientId: string): Promise<void> {
+  for (const n of db().notifications.filter((x) => x.recipientId === recipientId)) {
+    await repo.notifications.remove(n.id)
   }
 }
 
@@ -87,6 +117,28 @@ export async function createContact(
   return contact
 }
 
+/** Edit an existing contact's details (approved users; mirrors contacts_update RLS). */
+export async function updateContact(
+  actor: User, contact: Contact,
+  patch: Partial<Pick<Contact, 'name' | 'role' | 'email' | 'phone' | 'linkedin'>>,
+): Promise<void> {
+  const clean: Partial<Contact> = {}
+  if (patch.name !== undefined) clean.name = patch.name?.trim() || contact.name
+  if (patch.role !== undefined) clean.role = patch.role?.trim() || null
+  if (patch.email !== undefined) clean.email = patch.email?.trim() || null
+  if (patch.phone !== undefined) clean.phone = patch.phone?.trim() || null
+  if (patch.linkedin !== undefined) clean.linkedin = patch.linkedin?.trim() || null
+  await repo.contacts.update(contact.id, clean)
+}
+
+/** Change which contact a lead is primarily tied to (owner + admin only). */
+export async function setOpportunityContact(
+  actor: User, opp: Opportunity, contactId: string | null,
+): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
+  await repo.opportunities.update(opp.id, { contactId, updatedAt: nowISO() })
+}
+
 export async function createOpportunity(
   actor: User, data: { companyId: string; contactId?: string | null; lcId: string },
 ): Promise<Opportunity> {
@@ -105,7 +157,8 @@ export async function createOpportunity(
 export async function logActivity(
   actor: User, opp: Opportunity,
   data: { type: ActivityType; phase: ActivityPhase; outcome?: ActivityOutcome; notes?: string; date?: string },
-): Promise<Activity> {
+): Promise<Activity | undefined> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return undefined
   const activity: Activity = {
     id: newId('act'), opportunityId: opp.id, ownerId: actor.id, type: data.type,
     phase: data.phase, count: 1, outcome: data.outcome ?? 'neutral',
@@ -132,6 +185,7 @@ export async function logActivity(
 export async function advanceStage(
   actor: User, opp: Opportunity, to: OpportunityStatus,
 ): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   if (to === opp.status) return
   await repo.opportunities.update(opp.id, { status: to, updatedAt: nowISO() })
   await log(actor, 'opportunity', opp.id, `moved ${companyName(opp.companyId)}`, opp.status, to)
@@ -169,11 +223,13 @@ async function touchContract(opp: Opportunity, stage: 'Contract sent' | 'Contrac
 
 /** When is this deal's money expected? Feeds the receivables schedule. */
 export async function setExpectedPayment(actor: User, opp: Opportunity, date: string | null): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   await repo.opportunities.update(opp.id, { expectedPaymentDate: date, updatedAt: nowISO() })
 }
 
 /** Delete a lead and its local children (the DB cascades from the one delete). */
 export async function deleteOpportunity(actor: User, opp: Opportunity): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   const d = db()
   useDB.getState().patch({
     activities: d.activities.filter((a) => a.opportunityId !== opp.id),
@@ -195,10 +251,12 @@ export async function deleteContact(actor: User, contact: Contact): Promise<void
 }
 
 export async function setDealValue(actor: User, opp: Opportunity, value: number): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   await repo.opportunities.update(opp.id, { value: Math.max(0, value), updatedAt: nowISO() })
 }
 
 export async function setRevenueReceived(actor: User, opp: Opportunity, received: boolean): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   await repo.opportunities.update(opp.id, { revenueReceived: received, updatedAt: nowISO() })
   await log(actor, 'opportunity', opp.id, `marked ${companyName(opp.companyId)} revenue ${received ? 'received' : 'outstanding'}`)
   // Tell supervisors money landed — include the amount and the partner.
@@ -218,6 +276,7 @@ export async function setRevenueReceived(actor: User, opp: Opportunity, received
 export async function scheduleFollowUp(
   actor: User, opp: Opportunity, nextActionDate: string, nextAction: string,
 ): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   await repo.opportunities.update(opp.id, { nextAction, nextActionDate, updatedAt: nowISO() })
 }
 
@@ -225,6 +284,7 @@ export async function setGoal(
   actor: User, target: User, metric: GoalMetric, planned: number,
   cadence: GoalCadence = 'semester', period = '2026-S1',
 ): Promise<void> {
+  if (!canSetGoalFor(actor, target)) { toast.error("You can't set goals for this person."); return }
   // The (owner, metric, cadence, period) tuple is unique, so a weekly, monthly
   // and semester target for the same metric never collide.
   const existing = db().goals.find(
@@ -257,6 +317,17 @@ export async function updateUser(
   actor: User, userId: string, patch: Partial<User>,
 ): Promise<void> {
   const before = db().users.find((u) => u.id === userId)
+  // The MCVP is protected: their role and active flag can never be changed.
+  if (isMCVP(before) && ('role' in patch || 'active' in patch)) {
+    toast.error('The MCVP account is protected and cannot be changed.')
+    return
+  }
+  // Only an admin, or an LC lead (lcp/lcvp) acting on a member/team-leader in
+  // their own LC, may edit a user. Mirrors users_* policies in rls.sql.
+  const canManage = canManageUsers(actor)
+    || (actor.role === 'lcvp' && !!before && before.lcId === actor.lcId
+        && (before.role === 'member' || before.role === 'team_leader'))
+  if (!canManage) { toast.error("You don't have permission to edit this user."); return }
   await repo.users.update(userId, patch)
   const field = Object.keys(patch)[0]
   await log(actor, 'user', userId, `updated ${before?.name ?? 'user'} (${field})`,
@@ -264,9 +335,34 @@ export async function updateUser(
     String((patch as Record<string, unknown>)[field] ?? ''))
 }
 
-/** Self-service account creation. New accounts start 'pending' admin approval.
- *  In real-auth mode this also creates the Supabase Auth user; the profile row
- *  is keyed on the auth uid. */
+/** Add/refresh a user row in the local store without a second DB write (used when
+ *  the profile was created server-side, e.g. by the request_account RPC). */
+function upsertUserLocal(user: User): void {
+  const users = db().users
+  const next = users.some((u) => u.id === user.id)
+    ? users.map((u) => (u.id === user.id ? { ...u, ...user } : u))
+    : [...users, user]
+  useDB.getState().patch({ users: next })
+}
+
+/** True when a Supabase error means the email is already registered in Auth. */
+function isAlreadyRegistered(error: { message?: string; status?: number } | null): boolean {
+  if (!error) return false
+  const m = (error.message ?? '').toLowerCase()
+  return m.includes('already registered') || m.includes('already exists') || m.includes('user already')
+}
+
+/**
+ * Self-service account creation. New accounts start 'pending' admin approval.
+ * In real-auth mode this also creates the Supabase Auth user; the profile row is
+ * keyed on the auth uid.
+ *
+ * Re-registration after deletion: if the email still exists in Auth we sign the
+ * person in with the password they supplied, then (re)create their pending
+ * profile via the request_account RPC — which reclaims any stale row with the
+ * same email and fires the admin-approval trigger. The RPC degrades to a plain
+ * insert when it isn't deployed yet, so signup keeps working either way.
+ */
 export async function signUp(data: {
   name: string; email: string; phone?: string; position?: string; lcId: string | null
   role?: Role; password?: string
@@ -275,20 +371,44 @@ export async function signUp(data: {
   let id = newId('usr')
   if (useSupabaseAuth && supabase) {
     const { data: auth, error } = await supabase.auth.signUp({ email, password: data.password ?? '' })
-    if (error) throw error
-    if (auth.user) id = auth.user.id
+    if (error) {
+      if (!isAlreadyRegistered(error)) throw error
+      // Email exists in Auth (e.g. a previously-deleted profile). Sign them in so
+      // we can rebuild their pending profile under their own uid.
+      const { data: signIn, error: signInErr } =
+        await supabase.auth.signInWithPassword({ email, password: data.password ?? '' })
+      if (signInErr || !signIn.user) {
+        throw new Error(
+          'An account with this email already exists. If it is yours, sign in instead — or email kacem@aiesec.be to reset your password.',
+        )
+      }
+      id = signIn.user.id
+    } else if (auth.user) {
+      id = auth.user.id
+    }
   }
   const user: User = {
     id, name: data.name.trim(), email,
     role: data.role ?? 'member', lcId: data.lcId, position: data.position?.trim() || 'Member',
     teamLeadId: null, active: true, phone: data.phone?.trim() || null, status: 'pending',
   }
-  await repo.users.create(user)
-  // Notify admins that an account is awaiting approval. In real-auth mode a DB
-  // trigger (notify_admins_on_signup) does this server-side — the client can't
-  // read the real admin list under RLS, and would only hit demo ids. So only run
-  // it client-side in the pure-mock demo, where there is no trigger.
-  if (!useSupabaseAuth) {
+
+  if (useSupabaseAuth && supabase) {
+    // Server-side reclaim + insert (SECURITY DEFINER) so re-signup after deletion
+    // notifies admins reliably. Falls back to a direct insert if not yet deployed.
+    const { error } = await supabase.rpc('request_account', {
+      p_name: user.name, p_email: user.email, p_phone: user.phone,
+      p_position: user.position, p_lc: user.lcId, p_role: user.role,
+    })
+    if (error) {
+      console.warn('[signup] request_account RPC unavailable — falling back to direct insert', error)
+      await repo.users.create(user)
+    } else {
+      upsertUserLocal(user) // reflect the server-side row locally for the pending screen
+    }
+  } else {
+    await repo.users.create(user)
+    // Pure-mock demo has no trigger — notify admins client-side.
     for (const admin of db().users.filter((u) => u.role === 'admin' && u.active)) {
       await repo.notifications.create({
         id: newId('ntf'), recipientId: admin.id, actorId: user.id, opportunityId: null,
@@ -311,6 +431,7 @@ export async function signInWithPassword(email: string, password: string): Promi
 }
 
 export async function setUserStatus(actor: User, userId: string, status: AccountStatus): Promise<void> {
+  if (actor.role !== 'admin') { toast.error('Only an MCVP can approve or decline accounts.'); return }
   const before = db().users.find((u) => u.id === userId)
   await repo.users.update(userId, { status })
   await log(actor, 'user', userId, `${status} account for ${before?.name ?? 'user'}`)
@@ -328,6 +449,7 @@ export async function addMeeting(
   actor: User, opp: Opportunity,
   data: { date: string; outcome?: string; nextAction?: string; notes?: string },
 ): Promise<void> {
+  if (!ensureCanEdit(actor, opp.ownerId)) return
   const existing = db().meetings.filter((m) => m.opportunityId === opp.id).length
   await repo.meetings.create({
     id: newId('mtg'), opportunityId: opp.id, ownerId: actor.id, date: data.date,

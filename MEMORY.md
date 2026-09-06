@@ -3,6 +3,42 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
+## state_snapshot (2026-09-06 — production-hardening, branch, NOT yet live)
+
+Branch `feature/production-hardening-2026-09` (pushed for review; NOT merged to
+main). Full write-up in `docs/PRODUCTION-READINESS.md`. Build green, audit 33/33,
+browser-QA'd in mock mode.
+
+- **Contacts editable on a lead**: `updateContact` + `setOpportunityContact` in
+  actions.ts; shared `ContactForm` exported from CompanyDialog (add + inline edit);
+  OpportunityDialog gained a Contact section (edit / add / switch primary).
+- **Signup spinner fixed**: `hydrateFromSupabase` now preserves the signed-in
+  user's own `users` row when a `SIGNED_IN`-triggered hydrate races the profile
+  insert (was wiping it → stuck spinner). Hydrate also PAGINATES (`.range`, 1000/
+  page) — previously silently truncated any table >1000 rows.
+- **Re-registration after deletion**: `signUp` now, on "already registered", signs
+  the returning user in and calls the new `request_account` RPC (SECURITY DEFINER)
+  which reclaims a stale same-email row (refuses if it owns data) + inserts a fresh
+  pending profile → existing signup trigger notifies admins. Falls back to a direct
+  insert if the RPC isn't deployed, so it's safe to ship before the migration.
+  **Migration `supabase/migrations/request_account.sql` NOT yet applied.**
+- **Reminders split** into their own bell (`RemindersBell.tsx`, own badge/dropdown);
+  NotificationBell now stored-notifications-only + per-row **delete bin**
+  (`deleteNotification`, outside the Radix Item so it doesn't navigate) + Clear all.
+- **Team page grouped by team leader** (leadership · per-TL card w/ team totals ·
+  unassigned). Team-leader stats scoping VERIFIED already correct (visibleOwnerIds).
+- **Nav**: team_leader's pipeline tab + page = "Team Pipeline" (`pipelineTitleFor`);
+  lcp/lcvp keep "LC Pipeline".
+- **Security (code)**: action-layer permission guards (owner/admin on lead writes,
+  canSetGoalFor on goals, admin-only approvals, MCVP protection in `updateUser`);
+  client auth throttle `lib/rateLimit.ts`; confirmed no service_role key in repo.
+- **Data mgmt**: activity_log no longer persisted to localStorage; hydrate paginates;
+  provided `perf_indexes_and_retention.sql` (indexes + prune_old_data + notif cap).
+- **Login demo one-click accounts removed** (production).
+- **DB-gated, owner runs with service_role** (see docs): apply the 2 migrations;
+  run `scripts/cleanup-demo-data.mjs` (dry-run first, then `--apply`) to remove
+  demo/test users + data — Kacem hard-excluded.
+
 ## state_snapshot (2026-08-03 — batch 5, LIVE)
 
 - **Company `taxNumber` (VAT) field** added: types.ts, schema.sql (`"taxNumber" text`),

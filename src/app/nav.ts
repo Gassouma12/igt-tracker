@@ -44,8 +44,20 @@ const MEMBER_NAV: NavItem[] = [
 
 export function navFor(role: Role): NavItem[] {
   if (role === 'admin') return ADMIN_NAV
-  if (role === 'lcp' || role === 'lcvp' || role === 'team_leader') return LC_NAV
+  if (role === 'lcp' || role === 'lcvp' || role === 'team_leader') {
+    // A team leader oversees only their own team, so their pipeline tab reads
+    // "Team Pipeline"; the LC-wide leads (lcp/lcvp) keep "LC Pipeline".
+    if (role === 'team_leader') {
+      return LC_NAV.map((n) => (n.to === '/lc/pipeline' ? { ...n, label: 'Team Pipeline' } : n))
+    }
+    return LC_NAV
+  }
   return MEMBER_NAV
+}
+
+/** Title for the /lc/pipeline page — role-aware (team leader sees just their team). */
+export function pipelineTitleFor(role: Role): string {
+  return role === 'team_leader' ? 'Team Pipeline' : 'LC Pipeline'
 }
 
 export function homePathFor(role: Role): string {

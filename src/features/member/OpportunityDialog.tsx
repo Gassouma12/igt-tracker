@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
-import { CalendarPlus, Eye, Mail, MessageSquare, Phone, Trash2, Users, X } from 'lucide-react'
+import { CalendarPlus, Eye, Mail, MessageSquare, Pencil, Phone, Trash2, UserPlus, Users, X } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useDB, todayISO } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import {
-  addMeeting, advanceStage, deleteOpportunity, logActivity, scheduleFollowUp,
-  setDealValue, setExpectedPayment, setRevenueReceived,
+  addMeeting, advanceStage, createContact, deleteOpportunity, logActivity, scheduleFollowUp,
+  setDealValue, setExpectedPayment, setOpportunityContact, setRevenueReceived, updateContact,
 } from '@/data/actions'
 import { canEditOwned } from '@/lib/rbac'
 import { OPPORTUNITY_STATUSES, type ActivityOutcome, type ActivityType } from '@/data/types'
@@ -15,6 +15,7 @@ import { Field, Input, Textarea } from '@/components/ui/Field'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { LinkedInLink } from '@/components/ui/LinkedInLink'
 import { CompanyPanelButtons } from './CompanyPanels'
+import { ContactForm, type ContactDraft } from './CompanyDialog'
 import { fmtDate, fmtMoney, relativeDays } from '@/lib/format'
 import { cn } from '@/lib/cn'
 
@@ -38,9 +39,14 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
   const allMeetings = useDB((s) => s.meetings)
   const company = useDB((s) => s.companies.find((c) => c.id === opp?.companyId))
   const contact = useDB((s) => s.contacts.find((c) => c.id === opp?.contactId))
+  const allContacts = useDB((s) => s.contacts)
   const contract = useDB((s) => s.contracts.find((c) => c.opportunityId === oppId))
   const activities = useMemo(() => allActivities.filter((a) => a.opportunityId === oppId), [allActivities, oppId])
   const meetings = useMemo(() => allMeetings.filter((m) => m.opportunityId === oppId), [allMeetings, oppId])
+  const companyContacts = useMemo(
+    () => allContacts.filter((c) => c.companyId === opp?.companyId),
+    [allContacts, opp?.companyId],
+  )
 
   const [type, setType] = useState<ActivityType>('Email')
   const [phase, setPhase] = useState<'first' | 'follow-up'>('first')
@@ -50,6 +56,7 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
   const [faDate, setFaDate] = useState('')
   const [faText, setFaText] = useState('')
   const [confirmDel, setConfirmDel] = useState(false)
+  const [contactMode, setContactMode] = useState<'view' | 'edit' | 'add'>('view')
 
   if (!opp || !user) return null
   const canEdit = canEditOwned(user, opp.ownerId)
@@ -135,6 +142,66 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
                 Deal value {fmtMoney(opp.value)} · {opp.revenueReceived ? 'Received' : 'Outstanding'}
               </div>
             ) : null}
+
+            {/* contact — change info, switch primary, or add another (owner + admin) */}
+            {canEdit && (
+              <section className="rounded-2xl border border-line bg-surface p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-ink">Contact</p>
+                  {contactMode === 'view' && (
+                    <div className="flex gap-2">
+                      {contact && (
+                        <Button size="sm" variant="ghost" onClick={() => setContactMode('edit')}><Pencil size={13} /> Edit</Button>
+                      )}
+                      <Button size="sm" variant="secondary" onClick={() => setContactMode('add')}><UserPlus size={13} /> Add contact</Button>
+                    </div>
+                  )}
+                </div>
+
+                {contactMode === 'edit' && contact ? (
+                  <ContactForm
+                    initial={contact}
+                    submitLabel="Save changes"
+                    onSubmit={async (d: ContactDraft) => { await updateContact(user, contact, d); setContactMode('view') }}
+                    onCancel={() => setContactMode('view')}
+                  />
+                ) : contactMode === 'add' ? (
+                  <ContactForm
+                    submitLabel="Add contact"
+                    onSubmit={async (d: ContactDraft) => {
+                      const c = await createContact(user, {
+                        companyId: opp.companyId, name: d.name, role: d.role || null,
+                        email: d.email || null, phone: d.phone || null, linkedin: d.linkedin || null,
+                      })
+                      await setOpportunityContact(user, opp, c.id)
+                      setContactMode('view')
+                    }}
+                    onCancel={() => setContactMode('view')}
+                  />
+                ) : (
+                  <>
+                    <Field label="Primary contact for this lead">
+                      <Dropdown
+                        className="w-full"
+                        value={opp.contactId ?? ''}
+                        onChange={(v) => setOpportunityContact(user, opp, v || null)}
+                        options={[
+                          { value: '', label: 'No contact' },
+                          ...companyContacts.map((c) => ({ value: c.id, label: c.role ? `${c.name} · ${c.role}` : c.name })),
+                        ]}
+                      />
+                    </Field>
+                    {contact && (contact.email || contact.phone || contact.linkedin) && (
+                      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-mute">
+                        {contact.linkedin && <LinkedInLink url={contact.linkedin} size={13} />}
+                        {contact.email && <span className="inline-flex items-center gap-1"><Mail size={11} /> {contact.email}</span>}
+                        {contact.phone && <span className="inline-flex items-center gap-1"><Phone size={11} /> {contact.phone}</span>}
+                      </p>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
 
             {/* log interaction — single clear control */}
             {canEdit && (

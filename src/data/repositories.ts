@@ -80,6 +80,22 @@ export const repo = {
   notifications: makeRepo('notifications'),
 }
 
+// PostgREST caps a single select at 1000 rows by default. Page through with
+// .range() so growing tables (activities, opportunities, notifications) are
+// loaded in full instead of being silently truncated at 1000.
+const PAGE = 1000
+async function fetchAllRows(table: string): Promise<Identified[]> {
+  const rows: Identified[] = []
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase!.from(table).select('*').range(from, from + PAGE - 1)
+    if (error) throw error
+    const batch = (data ?? []) as Identified[]
+    rows.push(...batch)
+    if (batch.length < PAGE) break
+  }
+  return rows
+}
+
 /**
  * Replace the in-memory store with live Supabase data. Call once at startup
  * (main.tsx) when configured; no-op otherwise. Columns match the entity field
@@ -89,18 +105,30 @@ export async function hydrateFromSupabase(): Promise<boolean> {
   if (!isSupabaseConfigured || !supabase) return false
   try {
     const keys = Object.keys(TABLE) as EntityKey[]
-    const results = await Promise.all(keys.map((k) => supabase!.from(TABLE[k]).select('*')))
+    const results = await Promise.all(keys.map((k) => fetchAllRows(TABLE[k])))
     const next: Partial<DB> = {}
     keys.forEach((k, i) => {
-      const { data, error } = results[i]
-      if (error) throw error
+      const data = results[i]
       // Real-auth (production): the DB is the whole truth — adopt every table
       // even when empty, so a clean project starts empty instead of showing the
       // bundled demo. Demo/linked mode keeps the seed for empty tables so the
       // unseeded demo still works.
-      if (useSupabaseAuth) (next as Record<string, unknown>)[k] = data ?? []
-      else if (data && data.length) (next as Record<string, unknown>)[k] = data
+      if (useSupabaseAuth) (next as Record<string, unknown>)[k] = data
+      else if (data.length) (next as Record<string, unknown>)[k] = data
     })
+    // Guard the just-signed-in user's own profile: a hydrate fired by SIGNED_IN
+    // can race the signup INSERT and come back without that row, which would wipe
+    // the local pending profile and freeze the app on a spinner (the "stuck on
+    // signup" bug). If our own row is missing from the fetch but present locally,
+    // keep it so the pending screen renders immediately.
+    if (useSupabaseAuth && next.users) {
+      const { data: sess } = await supabase.auth.getSession()
+      const meId = sess.session?.user.id
+      if (meId && !next.users.some((u) => u.id === meId)) {
+        const local = db().users.find((u) => u.id === meId)
+        if (local) next.users = [...next.users, local]
+      }
+    }
     if (Object.keys(next).length) useDB.getState().patch(next)
     return true
   } catch (e) {
