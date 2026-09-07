@@ -3,7 +3,27 @@
 > Compressed context for continuing work in a fresh session. Read with CLAUDE.md.
 > Supersedes HANDOFF.md (deleted). Last audit: 2026-07-06.
 
-## state_snapshot (2026-09-06 — production-hardening, branch, NOT yet live)
+## state_snapshot (2026-09-07 — batch 2, LIVE on main)
+
+- **Lead = multiple contacts**: OpportunityDialog Contact section now lists ALL of
+  the company's contacts (`companyContacts`) with add / edit / delete
+  (`deleteContact`) / make-primary (`setOpportunityContact`); primary shows a
+  Star badge. First contact added auto-becomes primary.
+- **Approval notification routing fixed**: NotificationBell 'goal' notifications
+  whose message includes "approval needed" go to `/admin/approvals` (was always
+  `/me/performance`).
+- **Reminders deletable + "Read all"**: `state/reminders.ts` persists a dismissed
+  set (key = kind:oppId:date); RemindersBell filters it, per-item dismiss + Read
+  all clears the FULL non-dismissed set (not just the shown 30). Badge/count use
+  the full set.
+- **Recent activity (audit trail) removed**: `log()` in actions.ts is now a NO-OP
+  (stops all activity_log writes); "Recent activity" card removed from admin
+  Settings. Owner should clear the table: `truncate table activity_log;` (kept the
+  table + empty plumbing to avoid touching hydrate/realtime/repo/types).
+- Verified in mock (Fibricheck lead showed Contacts·4 with all controls; reminder
+  dismiss + Read all → empty; Settings has no audit card). Build green, audit 33/33.
+
+## state_snapshot (2026-09-06 — production-hardening, LIVE on main)
 
 Branch `feature/production-hardening-2026-09` (pushed for review; NOT merged to
 main). Full write-up in `docs/PRODUCTION-READINESS.md`. Build green, audit 33/33,

@@ -31,14 +31,14 @@ function ensureCanEdit(actor: User, ownerId: string): boolean {
   return false
 }
 
+// Audit trail removed (data-management): activity_log grew unbounded and the
+// "Recent activity" view was retired. log() is now a no-op so the existing call
+// sites stay untouched but nothing is written to activity_log any more.
 async function log(
-  actor: User, entity: string, entityId: string, action: string,
-  from: string | null = null, to: string | null = null,
-) {
-  await repo.activityLog.create({
-    id: newId('log'), actorId: actor.id, entity, entityId, action,
-    from, to, at: nowISO(),
-  })
+  _actor: User, _entity: string, _entityId: string, _action: string,
+  _from: string | null = null, _to: string | null = null,
+): Promise<void> {
+  /* no-op */
 }
 
 /** Notify the actor's supervisors (LC chain above them) + MCVP of a win. */

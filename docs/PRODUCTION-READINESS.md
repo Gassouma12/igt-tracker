@@ -109,6 +109,12 @@ Run each once, in order:
 2. `supabase/migrations/perf_indexes_and_retention.sql` — indexes + retention.
 3. (already noted in MEMORY) `supabase/migrations/add_company_tax_number.sql` if not yet applied.
 
+### 4a-bis. Clear the retired audit log (Recent activity was removed)
+The app no longer writes `activity_log`. Reclaim its space once:
+```sql
+truncate table activity_log;
+```
+
 ### 4b. Remove demo/test users + their data — **preview first**
 ```bash
 # preview (nothing is deleted) — review the printed list:

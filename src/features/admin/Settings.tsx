@@ -1,6 +1,6 @@
-import { Database, RotateCcw, ScrollText } from 'lucide-react'
+import { Database, RotateCcw } from 'lucide-react'
 import { useDB } from '@/data/store'
-import { fmtNum, fmtDate } from '@/lib/format'
+import { fmtNum } from '@/lib/format'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Button, Card, SectionTitle } from '@/components/ui/primitives'
 
@@ -14,12 +14,6 @@ export default function Settings() {
     ['Opportunities', db.opportunities.length], ['Activities', db.activities.length],
     ['Meetings', db.meetings.length], ['Contracts', db.contracts.length],
   ]
-  const lcName = (id: string | null) => db.localCommittees.find((l) => l.id === id)?.name ?? '—'
-  const actorOf = (id: string) => {
-    const u = db.users.find((x) => x.id === id)
-    return u ? { name: u.name, lc: lcName(u.lcId) } : { name: 'Someone', lc: '—' }
-  }
-  const recent = [...db.activityLog].slice(-12).reverse()
 
   return (
     <div>
@@ -61,29 +55,6 @@ export default function Settings() {
           </div>
         </Card>
       </div>
-
-      <Card className="mt-4">
-        <SectionTitle title="Recent activity" subtitle="Audit trail of changes" />
-        {recent.length === 0 ? (
-          <p className="flex items-center gap-2 py-6 text-sm text-ink-mute"><ScrollText size={16} /> No changes recorded yet this session.</p>
-        ) : (
-          <ul className="divide-y divide-line">
-            {recent.map((l) => {
-              const who = actorOf(l.actorId)
-              return (
-                <li key={l.id} className="flex items-center justify-between gap-4 py-2.5 text-sm">
-                  <span className="min-w-0 text-ink-dim">
-                    <span className="font-medium text-ink">{who.name}</span>
-                    <span className="text-ink-mute"> · {who.lc}</span>
-                    {' — '}{l.action}{l.from && l.to ? ` (${l.from} → ${l.to})` : ''}
-                  </span>
-                  <span className="shrink-0 text-xs text-ink-mute">{fmtDate(l.at)}</span>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </Card>
     </div>
   )
 }

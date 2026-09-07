@@ -83,8 +83,10 @@ export function NotificationBell() {
                 <Dropdown.Item
                   onSelect={() => {
                     markNotificationRead(n.id)
-                    if (n.kind === 'goal') navigate('/me/performance')
-                    else if (n.opportunityId) focusLead(n.opportunityId)
+                    // Account-approval requests go to the Approvals queue, not Performance.
+                    if (n.kind === 'goal') {
+                      navigate(n.message.toLowerCase().includes('approval needed') ? '/admin/approvals' : '/me/performance')
+                    } else if (n.opportunityId) focusLead(n.opportunityId)
                   }}
                   className="flex flex-1 cursor-pointer items-start gap-3 rounded-xl px-2 py-2 outline-none transition data-[highlighted]:bg-surface-2"
                 >

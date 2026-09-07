@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react'
-import { CalendarPlus, Eye, Mail, MessageSquare, Pencil, Phone, Trash2, UserPlus, Users, X } from 'lucide-react'
+import { CalendarPlus, Eye, Mail, MessageSquare, Pencil, Phone, Star, Trash2, UserPlus, Users, X } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { useDB, todayISO } from '@/data/store'
 import { useCurrentUser } from '@/state/session'
 import {
-  addMeeting, advanceStage, createContact, deleteOpportunity, logActivity, scheduleFollowUp,
-  setDealValue, setExpectedPayment, setOpportunityContact, setRevenueReceived, updateContact,
+  addMeeting, advanceStage, createContact, deleteContact, deleteOpportunity, logActivity,
+  scheduleFollowUp, setDealValue, setExpectedPayment, setOpportunityContact, setRevenueReceived, updateContact,
 } from '@/data/actions'
 import { canEditOwned } from '@/lib/rbac'
 import { OPPORTUNITY_STATUSES, type ActivityOutcome, type ActivityType } from '@/data/types'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Button } from '@/components/ui/primitives'
+import { Avatar, Button } from '@/components/ui/primitives'
 import { Field, Input, Textarea } from '@/components/ui/Field'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { LinkedInLink } from '@/components/ui/LinkedInLink'
@@ -56,7 +56,8 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
   const [faDate, setFaDate] = useState('')
   const [faText, setFaText] = useState('')
   const [confirmDel, setConfirmDel] = useState(false)
-  const [contactMode, setContactMode] = useState<'view' | 'edit' | 'add'>('view')
+  const [addingContact, setAddingContact] = useState(false)
+  const [editingContactId, setEditingContactId] = useState<string | null>(null)
 
   if (!opp || !user) return null
   const canEdit = canEditOwned(user, opp.ownerId)
@@ -143,63 +144,89 @@ export function OpportunityDialog({ oppId, onClose }: { oppId: string | null; on
               </div>
             ) : null}
 
-            {/* contact — change info, switch primary, or add another (owner + admin) */}
+            {/* contacts — all people on this lead: add several, edit, delete, set primary */}
             {canEdit && (
               <section className="rounded-2xl border border-line bg-surface p-4">
                 <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-ink">Contact</p>
-                  {contactMode === 'view' && (
-                    <div className="flex gap-2">
-                      {contact && (
-                        <Button size="sm" variant="ghost" onClick={() => setContactMode('edit')}><Pencil size={13} /> Edit</Button>
-                      )}
-                      <Button size="sm" variant="secondary" onClick={() => setContactMode('add')}><UserPlus size={13} /> Add contact</Button>
-                    </div>
+                  <p className="text-sm font-semibold text-ink">Contacts · {companyContacts.length}</p>
+                  {!addingContact && !editingContactId && (
+                    <Button size="sm" variant="secondary" onClick={() => setAddingContact(true)}><UserPlus size={13} /> Add contact</Button>
                   )}
                 </div>
 
-                {contactMode === 'edit' && contact ? (
-                  <ContactForm
-                    initial={contact}
-                    submitLabel="Save changes"
-                    onSubmit={async (d: ContactDraft) => { await updateContact(user, contact, d); setContactMode('view') }}
-                    onCancel={() => setContactMode('view')}
-                  />
-                ) : contactMode === 'add' ? (
-                  <ContactForm
-                    submitLabel="Add contact"
-                    onSubmit={async (d: ContactDraft) => {
-                      const c = await createContact(user, {
-                        companyId: opp.companyId, name: d.name, role: d.role || null,
-                        email: d.email || null, phone: d.phone || null, linkedin: d.linkedin || null,
-                      })
-                      await setOpportunityContact(user, opp, c.id)
-                      setContactMode('view')
-                    }}
-                    onCancel={() => setContactMode('view')}
-                  />
-                ) : (
-                  <>
-                    <Field label="Primary contact for this lead">
-                      <Dropdown
-                        className="w-full"
-                        value={opp.contactId ?? ''}
-                        onChange={(v) => setOpportunityContact(user, opp, v || null)}
-                        options={[
-                          { value: '', label: 'No contact' },
-                          ...companyContacts.map((c) => ({ value: c.id, label: c.role ? `${c.name} · ${c.role}` : c.name })),
-                        ]}
-                      />
-                    </Field>
-                    {contact && (contact.email || contact.phone || contact.linkedin) && (
-                      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-mute">
-                        {contact.linkedin && <LinkedInLink url={contact.linkedin} size={13} />}
-                        {contact.email && <span className="inline-flex items-center gap-1"><Mail size={11} /> {contact.email}</span>}
-                        {contact.phone && <span className="inline-flex items-center gap-1"><Phone size={11} /> {contact.phone}</span>}
-                      </p>
-                    )}
-                  </>
+                {addingContact && (
+                  <div className="mb-3">
+                    <ContactForm
+                      submitLabel="Add contact"
+                      onSubmit={async (d: ContactDraft) => {
+                        const c = await createContact(user, {
+                          companyId: opp.companyId, name: d.name, role: d.role || null,
+                          email: d.email || null, phone: d.phone || null, linkedin: d.linkedin || null,
+                        })
+                        // First contact on the lead becomes its primary automatically.
+                        if (!opp.contactId) await setOpportunityContact(user, opp, c.id)
+                        setAddingContact(false)
+                      }}
+                      onCancel={() => setAddingContact(false)}
+                    />
+                  </div>
                 )}
+
+                {companyContacts.length === 0 && !addingContact && (
+                  <p className="text-sm text-ink-mute">No contacts yet. Add the people you talk to here.</p>
+                )}
+
+                <div className="space-y-2">
+                  {companyContacts.map((ct) => (
+                    editingContactId === ct.id ? (
+                      <ContactForm
+                        key={ct.id}
+                        initial={ct}
+                        submitLabel="Save changes"
+                        onSubmit={async (d: ContactDraft) => { await updateContact(user, ct, d); setEditingContactId(null) }}
+                        onCancel={() => setEditingContactId(null)}
+                      />
+                    ) : (
+                      <div key={ct.id} className="flex items-center gap-3 rounded-xl border border-line bg-bg-elev p-3">
+                        <Avatar name={ct.name} size={32} />
+                        <div className="min-w-0 flex-1">
+                          <p className="flex items-center gap-1.5 truncate text-sm font-medium text-ink">
+                            <LinkedInLink url={ct.linkedin} size={13} /> {ct.name}
+                            {ct.role && <span className="truncate text-xs font-normal text-ink-mute">· {ct.role}</span>}
+                            {opp.contactId === ct.id && <span className="chip bg-brand/15 text-brand"><Star size={10} /> Primary</span>}
+                          </p>
+                          <p className="flex flex-wrap gap-x-3 text-xs text-ink-mute">
+                            {ct.email && <span className="inline-flex items-center gap-1"><Mail size={11} /> {ct.email}</span>}
+                            {ct.phone && <span className="inline-flex items-center gap-1"><Phone size={11} /> {ct.phone}</span>}
+                          </p>
+                        </div>
+                        {opp.contactId !== ct.id && (
+                          <button
+                            onClick={() => setOpportunityContact(user, opp, ct.id)}
+                            className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-brand/10 hover:text-brand"
+                            title="Make primary contact"
+                          >
+                            <Star size={14} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => { setEditingContactId(ct.id); setAddingContact(false) }}
+                          className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-surface-2 hover:text-ink"
+                          title="Edit contact"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => { if (confirm(`Remove ${ct.name}?`)) deleteContact(user, ct) }}
+                          className="shrink-0 rounded-lg p-1.5 text-ink-mute transition hover:bg-danger/10 hover:text-danger"
+                          title="Remove contact"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    )
+                  ))}
+                </div>
               </section>
             )}
 
