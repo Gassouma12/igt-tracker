@@ -2,7 +2,11 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <script>sessionStorage.redirect = location.href</script>
-    <meta http-equiv="refresh" content="0;URL='/igt-tracker/'" />
+    <!-- cPanel normally serves index.html through .htaccess. This fallback also
+         keeps the temporary GitHub Pages deployment working at its subpath. -->
+    <script>
+      sessionStorage.redirect = location.href
+      location.replace(location.hostname === 'gassouma12.github.io' ? '/igt-tracker/' : '/')
+    </script>
   </head>
 </html>

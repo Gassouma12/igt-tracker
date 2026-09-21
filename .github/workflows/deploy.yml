@@ -29,6 +29,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_USE_SUPABASE_AUTH: ${{ secrets.VITE_USE_SUPABASE_AUTH }}
+          VITE_BASE_PATH: /igt-tracker/
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
